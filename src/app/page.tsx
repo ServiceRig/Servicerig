@@ -7,7 +7,7 @@ export default function Home() {
     <main className="flex min-h-screen flex-col items-center justify-center p-8 bg-background">
       <div className="w-full max-w-md">
         <div className="mb-8 flex flex-col items-center gap-4">
-          <Logo className="h-20 w-20 text-primary" />
+          <Logo className="h-20 w-auto text-primary" />
           <Image
             src="/logo-name.png"
             alt="ServiceRig Full Logo"
