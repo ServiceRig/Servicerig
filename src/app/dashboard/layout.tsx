@@ -1,11 +1,14 @@
+
 'use client'
 import React, { Suspense } from 'react';
+import Image from 'next/image';
 import { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainNav } from '@/components/dashboard/main-nav';
 import { UserNav } from '@/components/dashboard/user-nav';
 import { Logo } from '@/components/logo';
 import { useRole } from '@/hooks/use-role';
 import { useRouter } from 'next/navigation';
+import { Flame } from 'lucide-react';
 
 function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -29,11 +32,26 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
     <SidebarProvider>
       <Sidebar>
         <SidebarHeader>
-          <div className="flex items-center gap-2 p-2">
-            <Logo className="w-8 h-8 text-primary" />
-            <div className="group-data-[collapsible=icon]:hidden">
-                <p className="text-lg font-semibold font-headline">ServiceRig</p>
-                <p className="text-xs text-muted-foreground">From Dispatch to Dollars</p>
+          <div className="flex items-center justify-center p-2 group-data-[collapsible=icon]:hidden">
+             <div className="flex flex-col items-center justify-center gap-2">
+                <div className="relative">
+                    <Logo className="h-12 w-auto" />
+                    <Flame className="absolute -top-1 left-1/2 -translate-x-1/2 w-4 h-4 text-orange-500 animate-pulse" />
+                </div>
+                <Image
+                    src="/logo-name.png"
+                    alt="ServiceRig Full Logo"
+                    width={156}
+                    height={39}
+                    priority
+                    className="w-28 h-auto filter dark:invert"
+                />
+            </div>
+          </div>
+           <div className="hidden items-center justify-center p-2 group-data-[collapsible=icon]:flex">
+             <div className="relative">
+                <Logo className="h-8 w-auto" />
+                <Flame className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-3 h-3 text-orange-500 animate-pulse" />
             </div>
           </div>
         </SidebarHeader>
