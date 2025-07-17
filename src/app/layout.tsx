@@ -3,7 +3,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 
 export const metadata: Metadata = {
-  title: 'ServiceRig 2.0',
+  title: 'ServiceRig',
   description: 'From Dispatch to Dollars',
 };
 

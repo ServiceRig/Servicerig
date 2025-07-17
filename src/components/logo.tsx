@@ -14,11 +14,14 @@ export function Logo(props: React.SVGProps<SVGSVGElement>) {
       className={cn("w-8 h-8", props.className)}
       {...props}
     >
-      <title>ServiceRig Logo</title>
-      <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
-      <path d="M18 15l-2 4" />
-      <path d="M22 11l-2 4" />
-      <path d="M12 11l-2 4" />
+        <title>ServiceRig Logo</title>
+        <path d="M12 22v-6" />
+        <path d="M15.24 12.81a6 6 0 0 0-8.48 0" />
+        <path d="M18.36 9.68a10 10 0 0 0-12.72 0" />
+        <path d="M21.49 6.55a14 14 0 0 0-18.98 0" />
+        <path d="M5.52 16.89A6 6 0 0 1 12 13a6 6 0 0 1 6.48 3.89" />
+        <path d="M12 13V2" />
+        <path d="M8 2h8" />
     </svg>
   );
 }

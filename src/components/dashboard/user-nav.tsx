@@ -14,6 +14,7 @@ import { useRole } from "@/hooks/use-role";
 import { capitalize } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { Suspense } from "react";
+import { LogOut } from "lucide-react";
 
 function UserNavContent() {
     const { role } = useRole();
@@ -34,30 +35,10 @@ function UserNavContent() {
 
     return (
         <SidebarFooter>
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="h-auto w-full justify-start p-2 text-left group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:size-8">
-                         <Avatar className="h-8 w-8">
-                            <AvatarImage src={`https://placehold.co/32x32.png`} alt="User" data-ai-hint="person avatar" />
-                            <AvatarFallback>{role ? getInitials(role) : 'U'}</AvatarFallback>
-                        </Avatar>
-                        <div className="ml-2 group-data-[collapsible=icon]:hidden">
-                            <p className="font-semibold text-sm">Demo User</p>
-                            <p className="text-xs text-muted-foreground">{role ? capitalize(role) : 'User'}</p>
-                        </div>
-                    </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent side="right" align="start">
-                    <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem>Profile</DropdownMenuItem>
-                    <DropdownMenuItem>Settings</DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleSignOut}>
-                        Sign out
-                    </DropdownMenuItem>
-                </DropdownMenuContent>
-            </DropdownMenu>
+            <Button variant="ghost" className="h-auto w-full justify-start p-2 text-left group-data-[collapsible=icon]:justify-center" onClick={handleSignOut}>
+                <LogOut className="h-4 w-4" />
+                <span className="ml-2 group-data-[collapsible=icon]:hidden">Logout</span>
+            </Button>
         </SidebarFooter>
     )
 }

@@ -7,10 +7,10 @@ export default function Home() {
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
             <div className="inline-block">
-              <Logo className="h-16 w-16" />
+              <Logo className="h-16 w-16 text-primary" />
             </div>
             <h1 className="text-4xl font-bold text-primary mt-4 font-headline">
-              ServiceRig 2.0
+              ServiceRig
             </h1>
             <p className="text-muted-foreground mt-2">From Dispatch to Dollars</p>
         </div>

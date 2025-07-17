@@ -1,55 +1,127 @@
 'use client';
-import { Suspense } from 'react';
-import { useRole } from "@/hooks/use-role";
-import { AiEstimator } from "@/components/dashboard/ai-estimator";
-import { CustomerView } from "@/components/dashboard/customer-view";
-import { InvoiceView } from "@/components/dashboard/invoice-view";
-import { ScheduleView } from "@/components/dashboard/schedule-view";
-import { Timeclock } from "@/components/dashboard/timeclock";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { capitalize } from '@/lib/utils';
+import { useRole } from "@/hooks/use-role";
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Terminal } from 'lucide-react';
+import { Terminal, Calendar, User, Wrench, FileText, BarChart, Book, Warehouse, FileDiff, FileSignature, ClipboardList, DollarSign, Clock, AppWindow, Mic, Plus } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
-const AdminDashboard = () => (
-  <div className="grid gap-6">
-    <ScheduleView />
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <CustomerView />
-      <InvoiceView />
-    </div>
-    <AiEstimator />
-  </div>
+
+const StatCard = ({ title, value, change, icon: Icon }: { title: string, value: string, change: string, icon: React.ElementType }) => (
+    <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">{title}</CardTitle>
+            <Icon className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+            <div className="text-2xl font-bold">{value}</div>
+            <p className="text-xs text-muted-foreground">{change}</p>
+        </CardContent>
+    </Card>
 );
 
 const DispatcherDashboard = () => (
-  <div className="grid gap-6">
-    <ScheduleView />
-    <CustomerView />
-    <AiEstimator />
-  </div>
-);
-
-const TechnicianDashboard = () => (
-  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    <div className="lg:col-span-2">
-      <ScheduleView />
-    </div>
     <div className="space-y-6">
-      <Timeclock />
-      <Card>
-        <CardHeader>
-          <CardTitle>My Stats</CardTitle>
-          <CardDescription>Your performance this week.</CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-4">
-            <div className="flex justify-between"><span>Jobs Completed</span><span className="font-bold">12</span></div>
-            <div className="flex justify-between"><span>Hours Logged</span><span className="font-bold">38.5</span></div>
-            <div className="flex justify-between"><span>Customer Rating</span><span className="font-bold">4.9/5</span></div>
-        </CardContent>
-      </Card>
+        <div className="flex justify-between items-center">
+             <h1 className="text-3xl font-bold font-headline">
+                Dispatcher Dashboard
+            </h1>
+            <div className="flex items-center gap-2">
+                <Button variant="outline"><Mic className="mr-2 h-4 w-4" /> Voice Command</Button>
+                <Button className="bg-accent hover:bg-accent/90"><Plus className="mr-2 h-4 w-4" /> Schedule New Job</Button>
+            </div>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <StatCard title="Total Revenue" value="$0.00" change="+20.1% from last month" icon={DollarSign} />
+            <StatCard title="Direct Expenses" value="$0.00" change="from completed jobs" icon={DollarSign} />
+            <StatCard title="Gross Profit" value="$0.00" change="Revenue - Expenses" icon={BarChart} />
+            <StatCard title="Pending Invoices" value="0" change="0 overdue" icon={FileText} />
+            <StatCard title="Active Jobs" value="0" change="+2 since yesterday" icon={Wrench} />
+            <StatCard title="Active Technicians" value="2" change="+1 since last week" icon={User} />
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+                <CardHeader>
+                    <div className="flex justify-between items-center">
+                        <div>
+                            <CardTitle>Upcoming Jobs</CardTitle>
+                            <CardDescription>A list of all scheduled jobs.</CardDescription>
+                        </div>
+                        <Button variant="outline" size="sm"><Calendar className="mr-2 h-4 w-4" /> Go to Full Schedule</Button>
+                    </div>
+                </CardHeader>
+                <CardContent>
+                     <p className="text-sm text-muted-foreground text-center py-8">No upcoming jobs.</p>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Unscheduled Jobs</CardTitle>
+                    <CardDescription>Drag a job from here onto the full scheduler to assign it.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <p className="text-sm text-muted-foreground text-center py-8">No unscheduled jobs.</p>
+                </CardContent>
+            </Card>
+        </div>
+
+        <Card>
+            <CardHeader>
+                <CardTitle>Jobs Complete, Not Invoiced</CardTitle>
+                <CardDescription>These jobs are marked as completed but do not have an associated invoice yet.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Job ID</TableHead>
+                            <TableHead>Customer</TableHead>
+                            <TableHead>Technician</TableHead>
+                            <TableHead>Completed On</TableHead>
+                            <TableHead className="text-right">Action</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        <TableRow>
+                            <TableCell>JOB-9611</TableCell>
+                            <TableCell>john doe</TableCell>
+                            <TableCell>Colton</TableCell>
+                            <TableCell>July 16th, 2025</TableCell>
+                            <TableCell className="text-right"><Button variant="outline" size="sm">View Job</Button></TableCell>
+                        </TableRow>
+                        <TableRow>
+                            <TableCell>JOB-6194</TableCell>
+                            <TableCell>fsad asdf</TableCell>
+                            <TableCell>Colton</TableCell>
+                            <TableCell>July 16th, 2025</TableCell>
+                            <TableCell className="text-right"><Button variant="outline" size="sm">View Job</Button></TableCell>
+                        </TableRow>
+                        <TableRow>
+                            <TableCell>JOB-2615</TableCell>
+                            <TableCell>asdf asdf</TableCell>
+                            <TableCell>Colton</TableCell>
+                            <TableCell>July 16th, 2025</TableCell>
+                            <TableCell className="text-right"><Button variant="outline" size="sm">View Job</Button></TableCell>
+                        </TableRow>
+                    </TableBody>
+                </Table>
+            </CardContent>
+        </Card>
+        
+        <Card>
+            <CardHeader>
+                <CardTitle>Upcoming Agreement Services</CardTitle>
+                <CardDescription>Recurring services that are due soon. Drag to the schedule to create a job.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <p className="text-sm text-muted-foreground text-center py-8">No upcoming services in the next 30 days.</p>
+            </CardContent>
+        </Card>
+
     </div>
-  </div>
 );
 
 function DashboardPageContent() {
@@ -71,33 +143,13 @@ function DashboardPageContent() {
      )
   }
 
-  const renderDashboard = () => {
-    switch (role) {
-      case 'admin':
-        return <AdminDashboard />;
-      case 'dispatcher':
-        return <DispatcherDashboard />;
-      case 'technician':
-        return <TechnicianDashboard />;
-      default:
-        return <p>Invalid role selected.</p>;
-    }
-  };
-
-  return (
-    <div className="space-y-4">
-      <h1 className="text-3xl font-bold font-headline">
-        {capitalize(role)} Dashboard
-      </h1>
-      {renderDashboard()}
-    </div>
-  );
+  // For now, we only have one dashboard layout based on the screenshot.
+  // We can add role-specific dashboards later.
+  return <DispatcherDashboard />;
 }
 
 export default function DashboardPage() {
     return (
-        <Suspense fallback={<div>Loading...</div>}>
-            <DashboardPageContent />
-        </Suspense>
+        <DashboardPageContent />
     )
 }
