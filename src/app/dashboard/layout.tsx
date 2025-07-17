@@ -34,7 +34,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
           <div className="flex items-center justify-start group-data-[collapsible=icon]:hidden">
              <div className="flex items-start justify-start gap-2">
                 <div className="relative">
-                    <Logo className="h-10 w-auto" />
+                    <Logo className="h-7 w-auto" />
                     <Flame className="absolute -top-1 left-1/2 -translate-x-1/2 w-4 h-4 text-orange-500 animate-pulse" />
                 </div>
                 <Image
@@ -49,7 +49,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
           </div>
            <div className="hidden items-center justify-center p-2 group-data-[collapsible=icon]:flex">
              <div className="relative">
-                <Logo className="h-8 w-auto" />
+                <Logo className="h-7 w-auto" />
                 <Flame className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-3 h-3 text-orange-500 animate-pulse" />
             </div>
           </div>
