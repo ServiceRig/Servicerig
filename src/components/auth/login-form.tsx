@@ -56,7 +56,7 @@ export function LoginForm() {
   }
 
   return (
-    <Card>
+    <Card className="shadow-md rounded-xl ring-1 ring-inset ring-black/5">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <CardContent className="space-y-4 pt-6">
