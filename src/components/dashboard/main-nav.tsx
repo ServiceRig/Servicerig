@@ -46,12 +46,12 @@ export function MainNav({ role }: { role: UserRole }) {
         <SidebarMenu className="flex-1">
             {navItems.map((item) => (
                 <SidebarMenuItem key={item.href}>
-                <Link href={item.href} passHref>
                     <SidebarMenuButton asChild isActive={pathname === item.href} tooltip={item.label}>
-                        <item.icon/>
-                        <span>{item.label}</span>
+                        <Link href={item.href}>
+                            <item.icon/>
+                            <span>{item.label}</span>
+                        </Link>
                     </SidebarMenuButton>
-                </Link>
                 </SidebarMenuItem>
             ))}
         </SidebarMenu>
@@ -59,12 +59,12 @@ export function MainNav({ role }: { role: UserRole }) {
         <SidebarMenu>
              {settingsItems.map((item) => (
                 <SidebarMenuItem key={item.href}>
-                <Link href={item.href} passHref>
                     <SidebarMenuButton asChild isActive={pathname === item.href} tooltip={item.label}>
-                        <item.icon/>
-                        <span>{item.label}</span>
+                        <Link href={item.href}>
+                            <item.icon/>
+                            <span>{item.label}</span>
+                        </Link>
                     </SidebarMenuButton>
-                </Link>
                 </SidebarMenuItem>
             ))}
         </SidebarMenu>
