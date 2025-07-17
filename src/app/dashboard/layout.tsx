@@ -44,7 +44,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
                     width={156}
                     height={39}
                     priority
-                    className="w-28 h-auto filter dark:invert"
+                    className="w-28 h-auto filter brightness-0 invert"
                 />
             </div>
           </div>
