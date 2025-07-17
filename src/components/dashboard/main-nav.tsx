@@ -46,7 +46,7 @@ export function MainNav({ role }: { role: UserRole }) {
         <SidebarMenu className="flex-1">
             {navItems.map((item) => (
                 <SidebarMenuItem key={item.href}>
-                <Link href={item.href} legacyBehavior passHref>
+                <Link href={item.href} passHref>
                     <SidebarMenuButton asChild isActive={pathname === item.href} tooltip={item.label}>
                         <item.icon/>
                         <span>{item.label}</span>
@@ -59,7 +59,7 @@ export function MainNav({ role }: { role: UserRole }) {
         <SidebarMenu>
              {settingsItems.map((item) => (
                 <SidebarMenuItem key={item.href}>
-                <Link href={item.href} legacyBehavior passHref>
+                <Link href={item.href} passHref>
                     <SidebarMenuButton asChild isActive={pathname === item.href} tooltip={item.label}>
                         <item.icon/>
                         <span>{item.label}</span>
