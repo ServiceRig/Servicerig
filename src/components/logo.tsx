@@ -4,16 +4,15 @@
 
 import Image from 'next/image';
 
-export function Logo(props: React.HTMLAttributes<HTMLDivElement>) {
+export function Logo(props: Omit<React.ComponentProps<typeof Image>, 'src' | 'alt'>) {
   return (
-    <div className={props.className}>
-      <Image
-        src="/logo-app.png"
-        alt="ServiceRig Logo"
-        width={160}
-        height={40}
-        priority
-      />
-    </div>
+    <Image
+      src="/logo-app.png"
+      alt="ServiceRig Logo"
+      width={80}
+      height={80}
+      priority
+      {...props}
+    />
   );
 }
