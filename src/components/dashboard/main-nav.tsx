@@ -1,3 +1,4 @@
+
 'use client';
 import {
   SidebarMenu,
@@ -40,12 +41,12 @@ export function MainNav({ role }: { role: UserRole }) {
     <SidebarMenu>
       {items.map((item) => (
         <SidebarMenuItem key={item.href}>
-          <Link href={item.href} passHref legacyBehavior>
-            <SidebarMenuButton asChild isActive={pathname === item.href} tooltip={item.label}>
+          <SidebarMenuButton asChild isActive={pathname === item.href} tooltip={item.label}>
+            <Link href={item.href}>
                 <item.icon/>
                 <span>{item.label}</span>
-            </SidebarMenuButton>
-          </Link>
+            </Link>
+          </SidebarMenuButton>
         </SidebarMenuItem>
       ))}
     </SidebarMenu>
