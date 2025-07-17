@@ -2,9 +2,8 @@
 'use client'
 import React, { Suspense } from 'react';
 import Image from 'next/image';
-import { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarFooter, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainNav } from '@/components/dashboard/main-nav';
-import { UserNav } from '@/components/dashboard/user-nav';
 import { Logo } from '@/components/logo';
 import { useRole } from '@/hooks/use-role';
 import { useRouter } from 'next/navigation';
@@ -31,8 +30,8 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
       <Sidebar>
-        <SidebarHeader>
-          <div className="flex items-center justify-start p-2 group-data-[collapsible=icon]:hidden">
+        <SidebarHeader className="p-4">
+          <div className="flex items-center justify-start group-data-[collapsible=icon]:hidden">
              <div className="flex items-start justify-start gap-2">
                 <div className="relative">
                     <Logo className="h-10 w-auto" />
@@ -60,7 +59,11 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
             <MainNav role={role} />
           </Suspense>
         </SidebarContent>
-        <UserNav />
+        <SidebarFooter>
+            <div className="text-xs text-sidebar-foreground/50 group-data-[collapsible=icon]:hidden">
+                Version v0.1.0
+            </div>
+        </SidebarFooter>
       </Sidebar>
       <SidebarInset>
         <div className="p-4 md:p-6">

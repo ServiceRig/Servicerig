@@ -1,3 +1,4 @@
+
 'use client';
 import {
   DropdownMenu,
@@ -34,12 +35,7 @@ function UserNavContent() {
     }
 
     return (
-        <SidebarFooter>
-            <Button variant="ghost" className="h-auto w-full justify-start p-2 text-left group-data-[collapsible=icon]:justify-center" onClick={handleSignOut}>
-                <LogOut className="h-4 w-4" />
-                <span className="ml-2 group-data-[collapsible=icon]:hidden">Logout</span>
-            </Button>
-        </SidebarFooter>
+       null
     )
 }
 

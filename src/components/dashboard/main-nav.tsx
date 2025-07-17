@@ -7,9 +7,9 @@ import {
   SidebarSeparator,
 } from "@/components/ui/sidebar";
 import { UserRole } from "@/lib/types";
-import { LayoutDashboard, Calendar, UserSquare, Users, BarChart3, Book, Warehouse, Calculator, FileText, FileDiff, FileSignature, ClipboardList, DollarSign, Clock, AppWindow, Settings, LifeBuoy } from "lucide-react";
+import { LayoutDashboard, Calendar, UserSquare, Users, BarChart3, Book, Warehouse, Calculator, FileText, FileDiff, FileSignature, ClipboardList, DollarSign, Clock, AppWindow, Settings, LifeBuoy, LogOut } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
 
 const navItems = [
@@ -38,6 +38,12 @@ const settingsItems = [
 
 export function MainNav({ role }: { role: UserRole }) {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleSignOut = () => {
+    router.push('/');
+  }
+
   // For now, all roles see the same nav items based on the screenshot.
   // This can be customized later by filtering `navItems` based on `role`.
 
@@ -67,6 +73,13 @@ export function MainNav({ role }: { role: UserRole }) {
                     </SidebarMenuButton>
                 </SidebarMenuItem>
             ))}
+             <SidebarSeparator />
+             <SidebarMenuItem>
+                <SidebarMenuButton onClick={handleSignOut} tooltip="Logout">
+                    <LogOut />
+                    <span>Logout</span>
+                </SidebarMenuButton>
+            </SidebarMenuItem>
         </SidebarMenu>
     </>
   );
