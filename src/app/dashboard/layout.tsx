@@ -32,8 +32,8 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
     <SidebarProvider>
       <Sidebar>
         <SidebarHeader>
-          <div className="flex items-center justify-center p-2 group-data-[collapsible=icon]:hidden">
-             <div className="flex items-start justify-center gap-2">
+          <div className="flex items-center justify-start p-2 group-data-[collapsible=icon]:hidden">
+             <div className="flex items-start justify-start gap-2">
                 <div className="relative">
                     <Logo className="h-10 w-auto" />
                     <Flame className="absolute -top-1 left-1/2 -translate-x-1/2 w-4 h-4 text-orange-500 animate-pulse" />
