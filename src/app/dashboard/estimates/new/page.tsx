@@ -60,7 +60,6 @@ export default function NewEstimatePage() {
   const [isFormSubmittable, setIsFormSubmittable] = useState(false);
 
   useEffect(() => {
-    // In a real app, you would fetch this from Firestore
     setCustomers(mockCustomers);
     setJobs(mockJobs);
     setTemplates(mockEstimateTemplates);

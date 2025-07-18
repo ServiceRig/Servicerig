@@ -102,13 +102,11 @@ export async function addEstimate(prevState: any, formData: FormData) {
         await addEstimateToDb(finalEstimate);
         revalidatePath('/dashboard/estimates');
         revalidatePath(`/dashboard/estimates/${finalEstimate.id}`);
-        // Instead of returning, we redirect here. The client will handle the navigation based on the form action result.
     } catch (error) {
         console.error(error);
         return { success: false, message: 'Failed to create estimate.' };
     }
     
-    // On success, redirect to the estimates page.
     redirect('/dashboard/estimates');
 }
 
@@ -118,7 +116,6 @@ export async function convertEstimateToInvoice(estimateId: string) {
         throw new Error("Estimate ID is required.");
     }
 
-    // In a real app, you'd fetch from Firestore
     const estimate = await getEstimateById(estimateId);
 
     if (!estimate) {
@@ -129,8 +126,6 @@ export async function convertEstimateToInvoice(estimateId: string) {
         throw new Error("Cannot convert a rejected estimate.");
     }
     
-    // In a real app, you would use addDoc to create a new invoice in Firestore.
-    // Here, we simulate it by creating a new object and pushing it to our mock data array.
     const newInvoiceId = `inv_${Math.random().toString(36).substring(2, 9)}`;
     const newInvoice = {
         id: newInvoiceId,
@@ -150,11 +145,9 @@ export async function convertEstimateToInvoice(estimateId: string) {
     mockInvoices.push(newInvoice);
     console.log(`Created new invoice ${newInvoiceId} from estimate ${estimateId}`);
 
-    // Revalidate paths to ensure UI updates if user navigates back.
     revalidatePath('/dashboard/invoices');
     revalidatePath(`/dashboard/estimates/${estimateId}`);
 
-    // Redirect to the newly created invoice's detail page.
     redirect(`/dashboard/invoices/${newInvoiceId}`);
 }
 
@@ -175,7 +168,6 @@ export async function updateEstimateStatus(prevState: any, formData: FormData) {
   
   const { estimateId, newStatus } = validatedFields.data;
 
-  // In a real app, you'd use updateDoc here.
   const estimate = await getEstimateById(estimateId);
   if (!estimate) {
     return { message: "Estimate not found." };
