@@ -8,7 +8,6 @@ import { Check, Signature, Loader2 } from 'lucide-react';
 import type { TierData } from './ai-tier-generator';
 import { cn } from '@/lib/utils';
 import { Label } from '../ui/label';
-import { useFormStatus } from 'react';
 
 
 const formatCurrency = (amount?: number) => {
@@ -17,11 +16,25 @@ const formatCurrency = (amount?: number) => {
 };
 
 function AcceptButton() {
-    const { pending } = useFormStatus();
+    const [isPending, setIsPending] = useState(false);
+
+    const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+        if (e.currentTarget.form && !e.currentTarget.form.checkValidity()) {
+            return;
+        }
+        setIsPending(true);
+    };
+
     return (
-        <Button size="lg" type="submit" disabled={pending} className="w-full max-w-md bg-accent hover:bg-accent/90 text-xl py-7">
-            {pending ? <Loader2 className="mr-2 h-6 w-6 animate-spin" /> : <Signature className="mr-2 h-6 w-6" />}
-            {pending ? 'Accepting...' : 'Accept Estimate'}
+        <Button 
+            size="lg" 
+            type="submit" 
+            disabled={isPending} 
+            onClick={handleClick}
+            className="w-full max-w-md bg-accent hover:bg-accent/90 text-xl py-7"
+        >
+            {isPending ? <Loader2 className="mr-2 h-6 w-6 animate-spin" /> : <Signature className="mr-2 h-6 w-6" />}
+            {isPending ? 'Accepting...' : 'Accept Estimate'}
         </Button>
     )
 }
