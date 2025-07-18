@@ -35,8 +35,8 @@ const formatCurrency = (amount: number) => {
 export default function EstimatesPage() {
     const { role } = useRole();
 
-    const getHref = (estimateId: string) => {
-        return `/dashboard/estimates/${estimateId}?role=${role || UserRole.Admin}`
+    const getHref = (path: string) => {
+        return `${path}?role=${role || UserRole.Admin}`
     }
 
   return (
@@ -47,7 +47,7 @@ export default function EstimatesPage() {
           <CardDescription>Manage your estimates.</CardDescription>
         </div>
         <Button asChild>
-            <Link href="/dashboard/estimates/new">
+            <Link href={getHref("/dashboard/estimates/new")}>
                 <Plus className="mr-2 h-4 w-4" />
                 Create Estimate
             </Link>
@@ -79,7 +79,7 @@ export default function EstimatesPage() {
                   </TableCell>
                   <TableCell className="text-right">
                     <Button asChild variant="outline" size="sm">
-                       <Link href={getHref(estimate.id)}>
+                       <Link href={getHref(`/dashboard/estimates/${estimate.id}`)}>
                         View Details
                       </Link>
                     </Button>
