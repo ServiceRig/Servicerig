@@ -1,8 +1,8 @@
 
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
-import { useFormStatus, useActionState } from 'react';
+import { useState, useEffect, useMemo, useCallback, useActionState } from 'react';
+import { useFormStatus } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -188,6 +188,8 @@ export default function NewEstimatePage() {
 
   const handleAcceptEstimate = useCallback((formData: FormData) => {
       setShowPresentation(false);
+      
+      const newFormData = new FormData();
 
       const acceptedTierString = formData.get('acceptedTier') as string;
       if (!acceptedTierString) {
@@ -202,7 +204,6 @@ export default function NewEstimatePage() {
 
       const payload = getEstimatePayload('accepted', acceptedLineItems, acceptedTitle);
       
-      const newFormData = new FormData();
       newFormData.append('estimateData', JSON.stringify(payload));
       
       toast({
