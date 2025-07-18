@@ -42,8 +42,9 @@ const InfoCard = ({ icon: Icon, label, children }: { icon: React.ElementType, la
 );
 
 
-export default async function EstimateDetailsPage({ params }: { params: { estimateId: string } }) {
+export default async function EstimateDetailsPage({ params, searchParams }: { params: { estimateId: string }, searchParams: { [key: string]: string | string[] | undefined } }) {
   const estimateId = params.estimateId;
+  const role = searchParams.role || 'admin';
   const data = await getEstimateData(estimateId);
 
   if (!data) {
@@ -161,11 +162,11 @@ export default async function EstimateDetailsPage({ params }: { params: { estima
                     {format(new Date(estimate.updatedAt), 'MMMM d, yyyy h:mm a')}
                 </InfoCard>
                  <InfoCard icon={User} label="Customer">
-                    <Link href={`/dashboard/customers/${customer.id}`} className="text-primary hover:underline">{customer.primaryContact.name}</Link>
+                    <Link href={`/dashboard/customers/${customer.id}?role=${role}`} className="text-primary hover:underline">{customer.primaryContact.name}</Link>
                 </InfoCard>
                 {job && (
                      <InfoCard icon={Tag} label="Linked Job">
-                        <Link href={`/dashboard/jobs/${job.id}`} className="text-primary hover:underline">{job.title}</Link>
+                        <Link href={`/dashboard/jobs/${job.id}?role=${role}`} className="text-primary hover:underline">{job.title}</Link>
                     </InfoCard>
                 )}
             </CardContent>
