@@ -1,4 +1,5 @@
 
+
 // This file contains the TypeScript types for your Firestore collections.
 
 // A generic type for Firestore Timestamps. In Firestore, these are objects,
@@ -15,6 +16,16 @@ export enum UserRole {
   Technician = 'technician',
 }
 
+// User model from /users/{uid}
+export interface User {
+  name: string;
+  email: string;
+  role: UserRole;
+  active: boolean;
+  teamId: string;
+  avatarUrl?: string;
+}
+
 // This is a simplified Technician type for UI purposes, distinct from the main User type
 export type Technician = {
   id: string;
@@ -22,45 +33,185 @@ export type Technician = {
   role: UserRole.Technician;
 }
 
-// Simplified Customer for UI purposes
+// Customer model from /customers/{customerId}
 export type Customer = {
   id: string;
-  primaryContact: {
-    name: string;
-    email: string;
-    phone: string;
-  };
-  companyInfo: {
-    name: string;
-    address: string;
-  };
-}
+  name: string;
+  phone: string;
+  email: string;
+  address: string;
+  notes?: string;
+  equipmentIds?: string[];
+  createdAt: Timestamp | Date;
+  updatedAt: Timestamp | Date;
+  // For UI enrichment
+  primaryContact: { name: string; email: string; phone: string };
+  companyInfo: { name: string; address: string };
+};
 
-// This is a simplified Job type for UI purposes
+
+// Job model from /jobs/{jobId}
 export type Job = {
   id: string;
   customerId: string;
   technicianId: string;
+  serviceType: string;
+  status: 'unscheduled' | 'scheduled' | 'in_progress' | 'complete';
   schedule: {
     start: Date;
     end: Date;
   };
-  status: 'scheduled' | 'in_progress' | 'complete' | 'unscheduled';
+  duration: number;
   title: string;
   description: string;
+  createdAt: Timestamp | Date;
+  updatedAt: Timestamp | Date;
+  invoiceId?: string;
+  agreementId?: string;
+  tags?: string[];
+  color?: string;
+  // For UI enrichment
+  customerName?: string;
+  technicianName?: string;
   details: {
     serviceType: string;
   };
+};
+
+
+// ServiceAgreement model from /serviceAgreements/{agreementId}
+export interface ServiceAgreement {
+  customerId: string;
+  recurringInterval: 'monthly' | 'quarterly' | 'annual' | 'one_time';
+  startDate: Timestamp;
+  endDate?: Timestamp;
+  linkedJobIds: string[];
+  billingAmount: number;
+  billingFrequency: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
 }
 
-// This is a simplified Invoice type for UI purposes
+// Invoice model from /invoices/{invoiceId}
 export type Invoice = {
   id: string;
-  invoiceNumber: string;
+  jobId: string;
   customerId: string;
-  customerName: string;
   amount: number;
-  status: 'Paid' | 'Overdue';
-  issueDate: Date;
-  dueDate: Date;
+  status: 'draft' | 'sent' | 'paid' | 'overdue';
+  stripePaymentLink?: string;
+  dueDate: Timestamp | Date;
+  createdAt: Timestamp | Date;
+  // For UI enrichment
+  invoiceNumber?: string;
+  customerName?: string;
+  issueDate?: Date;
 };
+
+
+// Equipment model from /equipment/{equipmentId}
+export interface Equipment {
+  customerId: string;
+  type: string;
+  model: string;
+  serialNumber: string;
+  notes?: string;
+  installedDate?: Timestamp;
+}
+
+// Timecard model from /timecards/{userId}_{weekId}
+export interface Timecard {
+  entries: {
+    clockIn: Timestamp;
+    clockOut: Timestamp;
+    jobId?: string;
+  }[];
+  weekStart: Timestamp;
+  userId: string;
+}
+
+// GbbEstimate model from /gbbEstimates/{estimateId}
+export interface GbbEstimate {
+  customerId: string;
+  jobId?: string;
+  tiers: {
+    good: string;
+    better: string;
+    best: string;
+  };
+  selectedTier?: 'good' | 'better' | 'best';
+  aiTrained: boolean;
+  createdAt: Timestamp;
+}
+
+// ChangeOrder model from /changeOrders/{changeOrderId}
+export interface ChangeOrder {
+  jobId: string;
+  customerId: string;
+  description: string;
+  amountDelta: number;
+  approved: boolean;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+// PurchaseOrder model from /purchaseOrders/{poId}
+export interface PurchaseOrder {
+  requestedBy: string;
+  approvedBy?: string;
+  vendor: string;
+  items: {
+    name: string;
+    quantity: number;
+    unitCost: number;
+  }[];
+  totalAmount: number;
+  jobId?: string;
+  status: 'requested' | 'approved' | 'ordered' | 'received';
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+// Pricebook model from /pricebook/{itemId}
+export interface PricebookItem {
+  category: string;
+  name: string;
+  description: string;
+  basePrice: number;
+  cost: number;
+  taxable: boolean;
+  sku?: string;
+  createdAt: Timestamp;
+}
+
+// Form model from /forms/{formId}
+export interface Form {
+  name: string;
+  type: 'inspection' | 'safety' | 'custom';
+  fields: any[]; // Field JSON schema
+  linkedJobId?: string;
+  submittedBy: string;
+  submittedAt: Timestamp;
+}
+
+// Automation model from /automations/{automationId}
+export interface Automation {
+  trigger: string; // e.g. "invoice_paid"
+  action: string; // e.g. "send_email"
+  config: any;
+  active: boolean;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+// Timesheet model from /timesheets/{userId}_{weekId}
+export interface Timesheet {
+  userId: string;
+  weekStart: Timestamp;
+  summary: {
+    totalHours: number;
+    overtimeHours: number;
+    jobsWorked: number;
+  };
+  reviewed: boolean;
+}
