@@ -122,6 +122,7 @@ export default async function EstimateDetailsPage({ params, searchParams }: { pa
                 <Card>
                     <CardHeader>
                         <CardTitle>Good / Better / Best Tiers</CardTitle>
+                        <CardDescription>AI-generated pricing tiers for this estimate.</CardDescription>
                     </CardHeader>
                     <CardContent>
                          <Tabs defaultValue="good" className="w-full">
@@ -130,9 +131,15 @@ export default async function EstimateDetailsPage({ params, searchParams }: { pa
                                 <TabsTrigger value="better">Better</TabsTrigger>
                                 <TabsTrigger value="best">Best</TabsTrigger>
                             </TabsList>
-                            <TabsContent value="good" className="pt-4">{estimate.gbbTier.good}</TabsContent>
-                            <TabsContent value="better" className="pt-4">{estimate.gbbTier.better}</TabsContent>
-                            <TabsContent value="best" className="pt-4">{estimate.gbbTier.best}</TabsContent>
+                            <TabsContent value="good" className="pt-4 border rounded-md p-4 mt-2">
+                                <p className="text-sm text-muted-foreground">{estimate.gbbTier.good}</p>
+                            </TabsContent>
+                            <TabsContent value="better" className="pt-4 border rounded-md p-4 mt-2">
+                                <p className="text-sm text-muted-foreground">{estimate.gbbTier.better}</p>
+                            </TabsContent>
+                            <TabsContent value="best" className="pt-4 border rounded-md p-4 mt-2">
+                                <p className="text-sm text-muted-foreground">{estimate.gbbTier.best}</p>
+                            </TabsContent>
                         </Tabs>
                     </CardContent>
                 </Card>
