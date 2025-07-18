@@ -1,5 +1,6 @@
 
 
+
 // This file contains the TypeScript types for your Firestore collections.
 
 // A generic type for Firestore Timestamps. In Firestore, these are objects,
@@ -78,6 +79,12 @@ export type LineItem = {
     unitPrice: number;
 };
 
+export type GbbTier = {
+    good: string;
+    better: string;
+    best: string;
+};
+
 export type Estimate = {
     id: string;
     estimateNumber: string;
@@ -91,11 +98,7 @@ export type Estimate = {
     tax: number;
     total: number;
     notes?: string;
-    gbbTier?: {
-        good: string;
-        better: string;
-        best: string;
-    } | null;
+    gbbTier?: GbbTier | null;
     createdBy: string; // userId or technicianId
     createdAt: Timestamp | Date;
     updatedAt: Timestamp | Date;
@@ -278,4 +281,13 @@ export interface EstimateData {
     estimate: Estimate;
     customer: Customer;
     job: Job | null;
+}
+
+
+// --- Template Types ---
+export type EstimateTemplate = {
+    id: string;
+    title: string;
+    lineItems: LineItem[];
+    gbbTier?: GbbTier | null;
 }

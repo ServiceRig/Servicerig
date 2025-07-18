@@ -1,3 +1,51 @@
+
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { FilePlus, Palette, Users } from "lucide-react";
+import Link from "next/link";
+
+const settingsLinks = [
+    {
+        href: '/dashboard/settings/estimates',
+        icon: FilePlus,
+        title: 'Estimate Templates',
+        description: 'Create and manage reusable estimate templates for common jobs.'
+    },
+    {
+        href: '#',
+        icon: Users,
+        title: 'User Management',
+        description: 'Add, remove, and manage user roles and permissions.'
+    },
+    {
+        href: '#',
+        icon: Palette,
+        title: 'Appearance',
+        description: 'Customize the look and feel of the application.'
+    }
+]
+
 export default function SettingsPage() {
-  return <div className="p-4">Settings Page – Coming Soon</div>;
+  return (
+    <div className="space-y-6">
+        <div>
+            <h1 className="text-3xl font-bold">Settings</h1>
+            <p className="text-muted-foreground">Manage your organization's settings.</p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {settingsLinks.map(link => (
+                <Link href={link.href} key={link.title}>
+                    <Card className="hover:border-primary transition-colors h-full">
+                        <CardHeader className="flex flex-row items-center gap-4">
+                            <link.icon className="h-8 w-8 text-primary" />
+                            <div>
+                                <CardTitle>{link.title}</CardTitle>
+                                <CardDescription>{link.description}</CardDescription>
+                            </div>
+                        </CardHeader>
+                    </Card>
+                </Link>
+            ))}
+        </div>
+    </div>
+  );
 }

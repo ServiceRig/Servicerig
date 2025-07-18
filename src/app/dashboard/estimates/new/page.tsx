@@ -12,10 +12,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Trash2, PlusCircle } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { mockCustomers, mockJobs } from '@/lib/mock-data';
-import type { Customer, Job, Estimate } from '@/lib/types';
+import type { Customer, Job, Estimate, EstimateTemplate } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { AITierGenerator } from '@/components/dashboard/ai-tier-generator';
-import { estimateTemplates } from '@/lib/templates/estimates';
+import { getEstimateTemplates } from '@/lib/firestore/templates';
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
@@ -27,6 +27,7 @@ export default function NewEstimatePage() {
   
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [jobs, setJobs] = useState<Job[]>([]);
+  const [templates, setTemplates] = useState<EstimateTemplate[]>([]);
   
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>('');
   const [selectedJobId, setSelectedJobId] = useState<string>('');
@@ -44,6 +45,11 @@ export default function NewEstimatePage() {
     // In a real app, you would fetch this from Firestore
     setCustomers(mockCustomers);
     setJobs(mockJobs);
+    const fetchTemplates = async () => {
+        const fetchedTemplates = await getEstimateTemplates();
+        setTemplates(fetchedTemplates);
+    }
+    fetchTemplates();
   }, []);
 
   const filteredJobs = useMemo(() => {
@@ -110,7 +116,7 @@ export default function NewEstimatePage() {
   }, []);
 
   const handleLoadTemplate = (templateId: string) => {
-    const template = estimateTemplates.find(t => t.id === templateId);
+    const template = templates.find(t => t.id === templateId);
     if (!template) return;
 
     setEstimateTitle(template.title);
@@ -153,7 +159,7 @@ export default function NewEstimatePage() {
                         <SelectValue placeholder="Select a template" />
                     </SelectTrigger>
                     <SelectContent>
-                        {estimateTemplates.map(template => (
+                        {templates.map(template => (
                         <SelectItem key={template.id} value={template.id}>
                             {template.title}
                         </SelectItem>

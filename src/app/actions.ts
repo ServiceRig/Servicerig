@@ -6,7 +6,8 @@ import { getEstimateById } from "@/lib/firestore/estimates";
 import { mockEstimates, mockInvoices } from "@/lib/mock-data";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import type { Estimate } from "@/lib/types";
+import type { Estimate, EstimateTemplate } from "@/lib/types";
+import { addEstimateTemplate } from "@/lib/firestore/templates";
 
 const tieredEstimatesSchema = z.object({
   jobDetails: z.string().min(10, "Job details must be at least 10 characters long."),
@@ -153,4 +154,34 @@ export async function updateEstimateStatus(prevState: any, formData: FormData) {
   
   revalidatePath(`/dashboard/estimates/${estimateId}`);
   return { message: `Estimate status updated to ${newStatus}.` };
+}
+
+const createTemplateSchema = z.object({
+    title: z.string().min(1, 'Title is required.'),
+    lineItems: z.string().transform(str => JSON.parse(str)),
+    gbbTier: z.string().optional().transform(str => str ? JSON.parse(str) : null),
+});
+
+export async function createEstimateTemplateAction(prevState: any, formData: FormData) {
+    const validatedFields = createTemplateSchema.safeParse({
+        title: formData.get('title'),
+        lineItems: formData.get('lineItems'),
+        gbbTier: formData.get('gbbTier'),
+    });
+
+    if (!validatedFields.success) {
+        return {
+            errors: validatedFields.error.flatten().fieldErrors,
+            message: 'Validation failed.',
+        };
+    }
+
+    try {
+        await addEstimateTemplate(validatedFields.data);
+        revalidatePath('/dashboard/settings/estimates');
+        redirect('/dashboard/settings/estimates');
+    } catch (error) {
+        console.error(error);
+        return { message: 'Failed to create template.' };
+    }
 }
