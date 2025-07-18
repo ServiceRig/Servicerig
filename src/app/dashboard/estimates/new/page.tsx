@@ -9,13 +9,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Trash2, PlusCircle } from 'lucide-react';
+import { Trash2, PlusCircle, Presentation } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { mockCustomers, mockJobs } from '@/lib/mock-data';
-import type { Customer, Job, Estimate, EstimateTemplate } from '@/lib/types';
+import type { Customer, Job, Estimate, EstimateTemplate, GbbTier } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { AITierGenerator } from '@/components/dashboard/ai-tier-generator';
+import { AITierGenerator, TierData } from '@/components/dashboard/ai-tier-generator';
 import { getEstimateTemplates } from '@/lib/firestore/templates';
+import { CustomerPresentationView } from '@/components/dashboard/customer-presentation-view';
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
@@ -39,7 +40,8 @@ export default function NewEstimatePage() {
   
   const [taxRate, setTaxRate] = useState(0);
   const [discountRate, setDiscountRate] = useState(0);
-  const [gbbTiers, setGbbTiers] = useState<Estimate['gbbTier'] | null>(null);
+  const [gbbTiers, setGbbTiers] = useState<TierData[] | null>(null);
+  const [showPresentation, setShowPresentation] = useState(false);
 
   useEffect(() => {
     // In a real app, you would fetch this from Firestore
@@ -97,7 +99,7 @@ export default function NewEstimatePage() {
       discount: discountAmount,
       tax: taxAmount,
       total: grandTotal,
-      gbbTier: gbbTiers,
+      gbbTier: gbbTiers, // This would now be the edited tier data
       status: 'draft',
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -111,8 +113,13 @@ export default function NewEstimatePage() {
     router.push('/dashboard/estimates');
   };
   
-  const handleTiersGenerated = useCallback((tiers: Estimate['gbbTier']) => {
+  const handleTiersFinalized = useCallback((tiers: TierData[]) => {
     setGbbTiers(tiers);
+    setShowPresentation(true);
+    toast({
+        title: "Displaying to Customer",
+        description: "Presentation mode activated.",
+    });
   }, []);
 
   const handleLoadTemplate = (templateId: string) => {
@@ -121,18 +128,39 @@ export default function NewEstimatePage() {
 
     setEstimateTitle(template.title);
     setLineItems(template.lineItems);
-    if (template.gbbTier) {
-      setGbbTiers(template.gbbTier);
-    } else {
-      setGbbTiers(null);
-    }
+    // Note: this part needs adjustment if templates have full TierData
+    // For now, we clear GBB tiers when loading a template
+    setGbbTiers(null); 
     toast({
       title: "Template Loaded",
       description: `Loaded the "${template.title}" template.`,
     });
   };
 
+  const handleAcceptEstimate = (selectedTier: TierData) => {
+      setShowPresentation(false);
+      // Here you would finalize the estimate
+      // For now, let's just log it and show a toast
+      console.log("Customer accepted tier:", selectedTier);
+      toast({
+          title: "Estimate Accepted!",
+          description: `Customer selected the "${selectedTier.title}" option for ${formatCurrency(selectedTier.price || 0)}.`,
+      });
+      // You could now set the main line items and price from the selected tier
+      setLineItems([{ description: selectedTier.description, quantity: 1, unitPrice: selectedTier.price || 0 }]);
+      setEstimateTitle(`${estimateTitle} - ${selectedTier.title}`);
+      setGbbTiers(null); // Clear tiers after selection
+  }
+
+
   return (
+    <>
+    <CustomerPresentationView 
+        isOpen={showPresentation}
+        onOpenChange={setShowPresentation}
+        tiers={gbbTiers || []}
+        onAccept={handleAcceptEstimate}
+    />
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
@@ -272,9 +300,10 @@ export default function NewEstimatePage() {
             </Card>
         </div>
         <div className="lg:col-span-1">
-             <AITierGenerator onTiersGenerated={handleTiersGenerated} />
+             <AITierGenerator onTiersFinalized={handleTiersFinalized} />
         </div>
       </div>
     </div>
+    </>
   );
 }

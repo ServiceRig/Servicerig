@@ -1,3 +1,4 @@
+
 'use client';
 import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
@@ -7,29 +8,40 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Wand2, AlertCircle, CheckCircle2, Loader } from 'lucide-react';
-import { useEffect } from 'react';
+import { Wand2, Loader, Presentation } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import type { Estimate } from '@/lib/types';
+import { Input } from '../ui/input';
 
-function SubmitButton() {
+const formatCurrency = (amount: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+
+
+function GenerateButton() {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" disabled={pending} className="w-full bg-accent hover:bg-accent/90">
+    <Button type="submit" disabled={pending} className="w-full">
       {pending ? <Loader className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
       {pending ? 'Generating...' : 'Generate Tiers'}
     </Button>
   );
 }
 
-interface AITierGeneratorProps {
-    onTiersGenerated: (tiers: Estimate['gbbTier']) => void;
+export type TierData = {
+    title: string;
+    description: string;
+    price?: number;
 }
 
-export function AITierGenerator({ onTiersGenerated }: AITierGeneratorProps) {
+interface AITierGeneratorProps {
+    onTiersFinalized: (tiers: TierData[]) => void;
+}
+
+export function AITierGenerator({ onTiersFinalized }: AITierGeneratorProps) {
   const initialState = { message: null, errors: null, data: null };
   const [state, dispatch] = useActionState(runGenerateTieredEstimates, initialState);
   const { toast } = useToast();
+
+  const [editableTiers, setEditableTiers] = useState<TierData[] | null>(null);
 
   useEffect(() => {
     if (state.message) {
@@ -42,15 +54,32 @@ export function AITierGenerator({ onTiersGenerated }: AITierGeneratorProps) {
     if (state.data) {
         toast({
             title: "Success",
-            description: "AI Tiers generated successfully.",
+            description: "AI Tiers generated successfully. You can now edit them.",
         });
-        onTiersGenerated({
-            good: state.data.goodEstimate,
-            better: state.data.betterEstimate,
-            best: state.data.bestEstimate,
-        });
+        setEditableTiers([
+            { title: 'Good', description: state.data.goodEstimate, price: 0 },
+            { title: 'Better', description: state.data.betterEstimate, price: 0 },
+            { title: 'Best', description: state.data.bestEstimate, price: 0 },
+        ]);
     }
-  }, [state, toast, onTiersGenerated]);
+  }, [state, toast]);
+
+  const handleTierChange = (index: number, field: 'description' | 'price', value: string | number) => {
+      if (!editableTiers) return;
+      const newTiers = [...editableTiers];
+      if (field === 'price') {
+          newTiers[index][field] = parseFloat(value as string) || 0;
+      } else {
+          newTiers[index][field] = value as string;
+      }
+      setEditableTiers(newTiers);
+  }
+
+  const handleDisplayToCustomer = () => {
+    if (editableTiers) {
+        onTiersFinalized(editableTiers);
+    }
+  }
 
   return (
     <Card>
@@ -70,32 +99,41 @@ export function AITierGenerator({ onTiersGenerated }: AITierGeneratorProps) {
                 />
                 {state?.errors?.jobDetails && <p className="text-sm font-medium text-destructive">{state.errors.jobDetails[0]}</p>}
             </div>
-            {state?.data && (
-                <div className="space-y-4">
-                     <Alert className="border-green-500 text-green-700">
-                        <CheckCircle2 className="h-4 w-4 !text-green-500" />
-                        <AlertTitle>Tiers Generated</AlertTitle>
-                        <AlertDescription>Review the tiers below. They will be saved with the estimate.</AlertDescription>
-                    </Alert>
-                    <div>
-                        <Label className="font-semibold">Good Tier</Label>
-                        <p className="text-sm p-2 bg-muted rounded-md">{state.data.goodEstimate}</p>
-                    </div>
-                     <div>
-                        <Label className="font-semibold">Better Tier</Label>
-                        <p className="text-sm p-2 bg-muted rounded-md">{state.data.betterEstimate}</p>
-                    </div>
-                     <div>
-                        <Label className="font-semibold">Best Tier</Label>
-                        <p className="text-sm p-2 bg-muted rounded-md">{state.data.bestEstimate}</p>
-                    </div>
-                </div>
-            )}
+             <GenerateButton />
         </CardContent>
-        <CardFooter>
-          <SubmitButton />
-        </CardFooter>
       </form>
+      {editableTiers && (
+        <>
+            <CardContent className="space-y-4 border-t pt-4">
+                 {editableTiers.map((tier, index) => (
+                    <div key={index} className="space-y-2">
+                        <Label className="font-semibold text-lg">{tier.title}</Label>
+                        <Textarea 
+                            value={tier.description}
+                            onChange={(e) => handleTierChange(index, 'description', e.target.value)}
+                            rows={4}
+                        />
+                        <div className="grid gap-2">
+                             <Label htmlFor={`price-${index}`}>Price</Label>
+                             <Input 
+                                id={`price-${index}`}
+                                type="number"
+                                value={tier.price}
+                                onChange={(e) => handleTierChange(index, 'price', e.target.value)}
+                                placeholder="Enter price"
+                             />
+                        </div>
+                    </div>
+                 ))}
+            </CardContent>
+            <CardFooter>
+                <Button onClick={handleDisplayToCustomer} className="w-full bg-accent hover:bg-accent/90">
+                    <Presentation className="mr-2 h-4 w-4" />
+                    Display To Customer
+                </Button>
+            </CardFooter>
+        </>
+        )}
     </Card>
   );
 }

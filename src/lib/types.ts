@@ -1,6 +1,7 @@
 
 
 
+
 // This file contains the TypeScript types for your Firestore collections.
 
 // A generic type for Firestore Timestamps. In Firestore, these are objects,
