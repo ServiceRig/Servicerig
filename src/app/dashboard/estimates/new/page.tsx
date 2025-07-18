@@ -12,10 +12,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Trash2, PlusCircle } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { mockCustomers, mockJobs, mockEstimateTemplates } from '@/lib/mock-data';
-import type { Customer, Job, EstimateTemplate, GbbTier, LineItem } from '@/lib/types';
+import type { Customer, Job, EstimateTemplate, GbbTier, LineItem, UserRole } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { AITierGenerator, TierData } from '@/components/dashboard/ai-tier-generator';
 import { CustomerPresentationView } from '@/components/dashboard/customer-presentation-view';
+import { useRole } from '@/hooks/use-role';
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
@@ -24,6 +25,7 @@ const formatCurrency = (amount: number) => {
 export default function NewEstimatePage() {
   const router = useRouter();
   const { toast } = useToast();
+  const { role } = useRole();
   
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -105,7 +107,7 @@ export default function NewEstimatePage() {
         description: `Estimate "${estimateTitle || 'Untitled Estimate'}" has been saved as a draft.`,
     });
 
-    router.push('/dashboard/estimates');
+    router.push(`/dashboard/estimates?role=${role || UserRole.Admin}`);
   };
   
   const handleTiersFinalized = useCallback((tiers: TierData[]) => {
