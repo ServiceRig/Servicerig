@@ -12,9 +12,7 @@ import { User, Calendar, Tag, FileText, Printer } from 'lucide-react';
 import { cn, getEstimateStatusStyles } from '@/lib/utils';
 import type { Estimate } from '@/lib/types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { convertEstimateToInvoice } from '@/app/actions';
-import { SubmitButton } from './SubmitButton';
-import { StatusUpdateButtons } from './StatusUpdateButtons';
+import { EstimateActions } from './EstimateActions';
 import { Logo } from '@/components/logo';
 
 
@@ -43,7 +41,6 @@ export default async function EstimateDetailsPage({ params, searchParams }: { pa
   }
 
   const { estimate, customer, job } = data;
-  const convertAction = convertEstimateToInvoice.bind(null, estimate.id);
 
 
   return (
@@ -90,23 +87,7 @@ export default async function EstimateDetailsPage({ params, searchParams }: { pa
             </Badge>
           </div>
         </div>
-        <div className="flex gap-2">
-            <Button variant="outline">Edit Estimate</Button>
-            <Button variant="outline" onClick={() => window.print()}>
-                <Printer className="mr-2 h-4 w-4" />
-                Print / PDF
-            </Button>
-            <StatusUpdateButtons estimate={estimate} />
-             {estimate.status === 'accepted' && (
-                <form action={convertAction}>
-                    <SubmitButton
-                        label="Convert to Invoice"
-                        loadingLabel="Converting..."
-                        disabled={estimate.status !== 'accepted'}
-                    />
-                </form>
-             )}
-        </div>
+        <EstimateActions estimate={estimate} />
       </div>
       
       <Separator className="print:hidden" />
