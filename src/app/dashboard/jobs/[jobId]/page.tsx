@@ -40,8 +40,9 @@ const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
 }
 
-export default async function JobDetailsPage({ params }: { params: { jobId: string } }) {
+export default async function JobDetailsPage({ params, searchParams }: { params: { jobId: string }, searchParams: { [key: string]: string | string[] | undefined } }) {
   const jobId = params.jobId;
+  const role = searchParams.role || 'admin';
   const data = await getJobData(jobId);
 
   if (!data) {
@@ -50,6 +51,7 @@ export default async function JobDetailsPage({ params }: { params: { jobId: stri
 
   const { job, customer, technician, estimates } = data;
   const duration = (new Date(job.schedule.end).getTime() - new Date(job.schedule.start).getTime()) / (1000 * 60);
+  const getHref = (path: string) => `${path}?role=${role}`;
 
   return (
     <div className="space-y-6">
@@ -125,12 +127,12 @@ export default async function JobDetailsPage({ params }: { params: { jobId: stri
                                     <TableCell>{estimate.estimateNumber}</TableCell>
                                     <TableCell className="font-medium">{estimate.title}</TableCell>
                                     <TableCell>
-                                        <Badge variant={estimate.status === 'accepted' ? 'default' : 'secondary'} className={cn({'bg-green-500': estimate.status === 'accepted'})}>{estimate.status}</Badge>
+                                        <Badge variant={estimate.status === 'accepted' ? 'default' : 'secondary'} className={cn({'bg-green-500 text-white': estimate.status === 'accepted', 'capitalize': true})}>{estimate.status}</Badge>
                                     </TableCell>
                                     <TableCell className="text-right">{formatCurrency(estimate.total)}</TableCell>
                                     <TableCell className="text-right">
                                         <Button asChild variant="outline" size="sm">
-                                            <Link href={`/dashboard/estimates/${estimate.id}`}>View Estimate</Link>
+                                            <Link href={getHref(`/dashboard/estimates/${estimate.id}`)}>View Estimate</Link>
                                         </Button>
                                     </TableCell>
                                 </TableRow>
@@ -151,7 +153,7 @@ export default async function JobDetailsPage({ params }: { params: { jobId: stri
             </CardHeader>
             <CardContent className="space-y-4">
                 <InfoRow icon={Building} label="Name">
-                     <Link href={`/dashboard/customers/${customer.id}`} className="flex items-center text-primary hover:underline">
+                     <Link href={getHref(`/dashboard/customers/${customer.id}`)} className="flex items-center text-primary hover:underline">
                         {customer.primaryContact.name}
                         <ChevronRight className="h-4 w-4 ml-1" />
                     </Link>
