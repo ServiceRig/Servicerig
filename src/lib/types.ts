@@ -82,8 +82,8 @@ export type Estimate = {
     id: string;
     estimateNumber: string;
     title: string;
-    customerId: string;
-    jobId?: string;
+    customerId: string; // Reference to customer
+    jobId?: string; // Optional reference to a job
     status: 'draft' | 'sent' | 'accepted' | 'rejected';
     lineItems: LineItem[];
     subtotal: number;
@@ -96,6 +96,7 @@ export type Estimate = {
         better: string;
         best: string;
     } | null;
+    createdBy: string; // userId or technicianId
     createdAt: Timestamp | Date;
     updatedAt: Timestamp | Date;
 }

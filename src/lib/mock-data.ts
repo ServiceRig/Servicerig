@@ -236,6 +236,7 @@ export const mockEstimates: Estimate[] = [
             better: "Upgraded, high-efficiency unit with a smart thermostat. Includes full system flush and balancing.",
             best: "Top-of-the-line, variable-speed system with zoning capabilities, advanced air purification, and a 10-year extended warranty.",
         },
+        createdBy: 'user_admin_01',
         createdAt: new Date('2024-07-10T10:00:00Z'),
         updatedAt: new Date('2024-07-11T14:30:00Z'),
     },
@@ -260,6 +261,7 @@ export const mockEstimates: Estimate[] = [
             better: "Replace the entire faucet with a new, mid-grade Delta model.",
             best: "Upgrade to a premium Kohler faucet with a lifetime warranty and new supply lines.",
         },
+        createdBy: 'tech1',
         createdAt: new Date('2024-07-15T09:00:00Z'),
         updatedAt: new Date('2024-07-15T09:30:00Z'),
     }
