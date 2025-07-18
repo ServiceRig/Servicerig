@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useMemo, useCallback, useActionState, useFormStatus } from 'react';
+import { useState, useEffect, useMemo, useCallback, useActionState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,11 +25,25 @@ const formatCurrency = (amount: number) => {
 };
 
 function SubmitButton({ disabled }: { disabled?: boolean }) {
-    const { pending } = useFormStatus();
+    const [isPending, setIsPending] = useState(false);
+
+    const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+        // We only set pending if the form is actually going to submit
+        if (e.currentTarget.form && !e.currentTarget.form.checkValidity()) {
+            return;
+        }
+        setIsPending(true);
+    };
+
     return (
-        <Button type="submit" disabled={pending || disabled} form="estimate-form">
-            {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-            {pending ? 'Saving...' : 'Save as Draft'}
+        <Button 
+            type="submit" 
+            disabled={isPending || disabled} 
+            form="estimate-form"
+            onClick={handleClick}
+        >
+            {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+            {isPending ? 'Saving...' : 'Save as Draft'}
         </Button>
     )
 }
