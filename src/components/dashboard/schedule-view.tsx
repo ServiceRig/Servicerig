@@ -216,7 +216,7 @@ const TechnicianView = ({ jobs, technicians, onJobDrop, onJobStatusChange, curre
                     ))}
                 </div>
             </div>
-            <ScrollArea className="flex-grow pr-4" style={{height: 'calc(100% - 41px)'}}>
+            <ScrollArea className="flex-grow pr-4" viewportClassName="h-full" style={{height: 'calc(100% - 41px)'}}>
                 {technicians.map(tech => (
                     <div key={tech.id} className="flex border-b">
                         <div className="w-40 px-2 py-2 font-semibold border-r">{tech.name}</div>
@@ -339,5 +339,3 @@ export function ScheduleView({
     </div>
   );
 }
-
-    
