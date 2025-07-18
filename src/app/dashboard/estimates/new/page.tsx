@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Trash2, PlusCircle, Loader2, Save } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import { mockCustomers, mockJobs, mockEstimateTemplates } from '@/lib/mock-data';
+import { mockData } from '@/lib/mock-data';
 import type { Customer, Job, EstimateTemplate, GbbTier, LineItem, Estimate } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { AITierGenerator, TierData } from '@/components/dashboard/ai-tier-generator';
@@ -60,13 +60,13 @@ export default function NewEstimatePage() {
   const [isFormSubmittable, setIsFormSubmittable] = useState(false);
 
   useEffect(() => {
-    setCustomers(mockCustomers);
-    setJobs(mockJobs);
-    setTemplates(mockEstimateTemplates);
+    setCustomers(mockData.customers);
+    setJobs(mockData.jobs);
+    setTemplates(mockData.estimateTemplates);
   }, []);
   
   useEffect(() => {
-    if (addEstimateState?.message) {
+    if (addEstimateState?.message && !addEstimateState.success) {
       toast({
         variant: 'destructive',
         title: 'Error',
@@ -170,7 +170,15 @@ export default function NewEstimatePage() {
 
     setEstimateTitle(template.title);
     setLineItems(template.lineItems);
-    setGbbTiers(null); 
+    if (template.gbbTier) {
+      setGbbTiers([
+        { title: 'Good', description: template.gbbTier.good, price: undefined },
+        { title: 'Better', description: template.gbbTier.better, price: undefined },
+        { title: 'Best', description: template.gbbTier.best, price: undefined },
+      ]);
+    } else {
+      setGbbTiers(null);
+    }
     toast({
       title: "Template Loaded",
       description: `Loaded the "${template.title}" template.`,
@@ -193,18 +201,6 @@ export default function NewEstimatePage() {
           description: `Creating estimate "${acceptedTitle}"...`,
       });
 
-      // We manually create a form and submit it to trigger the server action
-      const form = document.createElement('form');
-      form.action = formAction.toString();
-      form.method = 'post';
-      
-      const hiddenInput = document.createElement('input');
-      hiddenInput.type = 'hidden';
-      hiddenInput.name = 'estimateData';
-      hiddenInput.value = JSON.stringify(payload);
-      form.appendChild(hiddenInput);
-
-      document.body.appendChild(form);
       formAction(formData);
 
   }, [estimateTitle, getEstimatePayload, formAction, toast]);

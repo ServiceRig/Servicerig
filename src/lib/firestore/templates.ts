@@ -3,11 +3,11 @@
 // import { db } from './firebase'; 
 // import { collection, getDocs, addDoc } from 'firebase/firestore';
 
-import { mockEstimateTemplates } from "@/lib/mock-data";
+import { mockData } from "@/lib/mock-data";
 import { EstimateTemplate, GbbTier, LineItem } from "@/lib/types";
 
 // This is a mock implementation. In a real app, you'd use Firebase.
-let templates: EstimateTemplate[] = [...mockEstimateTemplates];
+let templates: EstimateTemplate[] = mockData.estimateTemplates;
 
 /**
  * Fetches all estimate templates.
