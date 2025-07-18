@@ -11,7 +11,7 @@ import { addDays } from 'date-fns';
 
 // This is a placeholder for a real Firestore hook
 const useMockFirestore = () => {
-  const [jobs, setJobs] = useState<Job[]>(mockJobs);
+  const [allJobs, setAllJobs] = useState<Job[]>(mockJobs);
   const [customers, setCustomers] = useState<Customer[]>(mockCustomers);
   const [technicians, setTechnicians] = useState<Technician[]>(mockTechnicians);
   const [loading, setLoading] = useState(true);
@@ -24,7 +24,7 @@ const useMockFirestore = () => {
   }, []);
   
   const moveJob = useCallback((jobId: string, newTechnicianId: string, newStartTime: Date) => {
-    setJobs(prevJobs => {
+    setAllJobs(prevJobs => {
         const jobToMove = prevJobs.find(j => j.id === jobId);
         if (!jobToMove) return prevJobs;
 
@@ -55,12 +55,12 @@ const useMockFirestore = () => {
   }, []);
 
   const updateJobStatus = useCallback((jobId: string, newStatus: Job['status']) => {
-    setJobs(prevJobs => prevJobs.map(j => j.id === jobId ? { ...j, status: newStatus } : j));
+    setAllJobs(prevJobs => prevJobs.map(j => j.id === jobId ? { ...j, status: newStatus } : j));
      console.log(`Updated job ${jobId} status to ${newStatus}`);
   }, []);
 
   return { 
-    jobs, 
+    jobs: allJobs, 
     customers, 
     technicians, 
     loading, 
