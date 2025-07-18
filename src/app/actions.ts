@@ -1,9 +1,10 @@
+
 'use server';
 
 import { generateTieredEstimates, type GenerateTieredEstimatesInput, type GenerateTieredEstimatesOutput } from "@/ai/flows/generate-tiered-estimates";
 import { z } from "zod";
 import { getEstimateById } from "@/lib/firestore/estimates";
-import { mockInvoices } from "@/lib/mock-data";
+import { mockEstimates, mockInvoices } from "@/lib/mock-data";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import type { Estimate, EstimateTemplate } from "@/lib/types";
@@ -167,6 +168,7 @@ export async function createEstimateTemplateAction(prevState: any, formData: For
 
     if (!validatedFields.success) {
         return {
+            success: false,
             errors: validatedFields.error.flatten().fieldErrors,
             message: 'Validation failed.',
         };
@@ -175,9 +177,9 @@ export async function createEstimateTemplateAction(prevState: any, formData: For
     try {
         await addEstimateTemplate(validatedFields.data);
         revalidatePath('/dashboard/settings/estimates');
-        redirect('/dashboard/settings/estimates');
+        return { success: true, message: 'Template created successfully.' };
     } catch (error) {
         console.error(error);
-        return { message: 'Failed to create template.' };
+        return { success: false, message: 'Failed to create template.' };
     }
 }

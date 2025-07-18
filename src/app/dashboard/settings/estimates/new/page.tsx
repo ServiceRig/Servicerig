@@ -1,6 +1,6 @@
 
 'use client';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
@@ -12,9 +12,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Trash2, PlusCircle, Loader2, Save } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import { LineItem, GbbTier } from '@/lib/types';
+import { LineItem, GbbTier, UserRole } from '@/lib/types';
 import { createEstimateTemplateAction } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
+import { useRole } from '@/hooks/use-role';
 
 const formatCurrency = (amount: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
 
@@ -29,12 +30,30 @@ function SubmitButton() {
 }
 
 export default function NewEstimateTemplatePage() {
+    const router = useRouter();
+    const { role } = useRole();
     const { toast } = useToast();
-    const [state, formAction] = useActionState(createEstimateTemplateAction, { message: null });
+    const [state, formAction] = useActionState(createEstimateTemplateAction, { success: false, message: null, errors: null });
 
     const [title, setTitle] = useState('');
     const [lineItems, setLineItems] = useState<LineItem[]>([{ description: '', quantity: 1, unitPrice: 0 }]);
     const [gbbTier, setGbbTier] = useState<GbbTier>({ good: '', better: '', best: '' });
+
+    useEffect(() => {
+        if (state.success) {
+            toast({
+                title: 'Success!',
+                description: state.message,
+            });
+            router.push(`/dashboard/settings/estimates?role=${role || UserRole.Admin}`);
+        } else if (state.message) {
+            toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: state.message,
+            });
+        }
+    }, [state, router, toast, role]);
 
     const handleAddLineItem = () => setLineItems([...lineItems, { description: '', quantity: 1, unitPrice: 0 }]);
     const handleRemoveLineItem = (index: number) => setLineItems(lineItems.filter((_, i) => i !== index));
