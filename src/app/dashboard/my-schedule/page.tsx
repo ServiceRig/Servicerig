@@ -140,10 +140,10 @@ export default function MySchedulePage() {
 
   useEffect(() => {
     // Simulate fetching and enriching data from Firestore
-    const techJobs = mockJobs.filter(job => job.technicianId === LOGGED_IN_TECHNICIAN_ID);
+    const techJobs = (mockJobs ?? []).filter(job => job.technicianId === LOGGED_IN_TECHNICIAN_ID);
     const enriched = techJobs.map(job => ({
       ...job,
-      customer: mockCustomers.find(c => c.id === job.customerId),
+      customer: (mockCustomers ?? []).find(c => c.id === job.customerId),
     }));
     setJobs(enriched);
   }, []);
