@@ -14,6 +14,7 @@ const getStatusColor = (status: Job['status']) => {
         case 'scheduled': return 'bg-blue-200 border-blue-400 text-blue-800';
         case 'in_progress': return 'bg-yellow-200 border-yellow-400 text-yellow-800';
         case 'complete': return 'bg-green-200 border-green-400 text-green-800';
+        case 'unscheduled': return 'bg-gray-200 border-gray-400 text-gray-800';
         default: return 'bg-gray-200 border-gray-400 text-gray-800';
     }
 };

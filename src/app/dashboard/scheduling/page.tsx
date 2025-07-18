@@ -28,12 +28,25 @@ const useMockFirestore = () => {
         const jobToMove = prevJobs.find(j => j.id === jobId);
         if (!jobToMove) return prevJobs;
 
-        const duration = jobToMove.schedule.end.getTime() - jobToMove.schedule.start.getTime();
-        const newEndTime = new Date(newStartTime.getTime() + duration);
+        // Snap to nearest 15-minute interval
+        const minutes = newStartTime.getMinutes();
+        const roundedMinutes = Math.round(minutes / 15) * 15;
+        const snappedStartTime = new Date(newStartTime);
+        snappedStartTime.setMinutes(roundedMinutes, 0, 0);
+
+        // Default duration for unscheduled jobs, otherwise keep original duration
+        let durationMs: number;
+        if (jobToMove.status === 'unscheduled') {
+            durationMs = 60 * 60 * 1000; // 1 hour
+        } else {
+            durationMs = jobToMove.schedule.end.getTime() - jobToMove.schedule.start.getTime();
+        }
+
+        const newEndTime = new Date(snappedStartTime.getTime() + durationMs);
 
         return prevJobs.map(j => 
             j.id === jobId 
-            ? { ...j, technicianId: newTechnicianId, schedule: { start: newStartTime, end: newEndTime }, status: 'scheduled' } 
+            ? { ...j, technicianId: newTechnicianId, schedule: { start: snappedStartTime, end: newEndTime }, status: 'scheduled' } 
             : j
         );
     });
@@ -95,8 +108,8 @@ export default function SchedulingPage() {
               onJobStatusChange={updateJobStatus}
               currentDate={currentDate}
               onCurrentDateChange={setCurrentDate}
-              onPrevious={handleDateNavigation.bind(null, 'prev')}
-              onNext={handleDateNavigation.bind(null, 'next')}
+              onPrevious={() => handleDateNavigation('prev')}
+              onNext={() => handleDateNavigation('next')}
               activeView={activeView}
               onActiveViewChange={setActiveView}
           />
