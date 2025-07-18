@@ -11,8 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Trash2, PlusCircle } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import { mockCustomers, mockJobs, mockEstimateTemplates } from '@/lib/mock-data';
-import type { Customer, Job, EstimateTemplate, GbbTier, LineItem, UserRole } from '@/lib/types';
+import { mockCustomers, mockJobs, mockEstimateTemplates, mockEstimates } from '@/lib/mock-data';
+import type { Customer, Job, EstimateTemplate, GbbTier, LineItem, UserRole, Estimate } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { AITierGenerator, TierData } from '@/components/dashboard/ai-tier-generator';
 import { CustomerPresentationView } from '@/components/dashboard/customer-presentation-view';
@@ -86,8 +86,19 @@ export default function NewEstimatePage() {
   const grandTotal = useMemo(() => subtotalAfterDiscount + taxAmount, [subtotalAfterDiscount, taxAmount]);
 
   const handleSaveEstimate = () => {
-    // In a real app, this would write to Firestore using addDoc
-    console.log('Saving estimate:', {
+    if (!selectedCustomerId || !estimateTitle) {
+      toast({
+        variant: 'destructive',
+        title: "Missing Information",
+        description: "Please select a customer and provide an estimate title.",
+      });
+      return;
+    }
+
+    // This is where we create the new estimate object and add it to our mock data.
+    const newEstimate: Estimate = {
+      id: `est_${Math.random().toString(36).substring(2, 9)}`,
+      estimateNumber: `EST-${Math.floor(Math.random() * 9000) + 1000}`,
       customerId: selectedCustomerId,
       jobId: selectedJobId,
       title: estimateTitle,
@@ -96,11 +107,19 @@ export default function NewEstimatePage() {
       discount: discountAmount,
       tax: taxAmount,
       total: grandTotal,
-      gbbTier: gbbTiers, // This would now be the edited tier data
+      gbbTier: gbbTiers ? {
+        good: gbbTiers.find(t => t.title === 'Good')?.description || '',
+        better: gbbTiers.find(t => t.title === 'Better')?.description || '',
+        best: gbbTiers.find(t => t.title === 'Best')?.description || '',
+      } : null,
       status: 'draft',
+      createdBy: 'admin_user', // This would be the logged in user's ID
       createdAt: new Date(),
       updatedAt: new Date(),
-    });
+    };
+
+    // In a real app, this would be an API call to Firestore (e.g., addDoc)
+    mockEstimates.unshift(newEstimate);
     
     toast({
         title: "Estimate Created",
