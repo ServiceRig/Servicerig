@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import Link from 'next/link';
+import Image from 'next/image';
 
 type EnrichedJob = Job & {
   customer?: Customer;
@@ -174,13 +175,13 @@ export default function MySchedulePage() {
             </CardHeader>
             <CardContent>
             <div className="h-96 bg-muted rounded-lg flex items-center justify-center">
-                <img src="https://placehold.co/600x400.png" alt="Map placeholder" data-ai-hint="map usa" className="w-full h-full object-cover rounded-lg" />
+                <Image src="https://placehold.co/600x400.png" alt="Map placeholder" data-ai-hint="map usa" width={600} height={400} className="w-full h-full object-cover rounded-lg" />
             </div>
             </CardContent>
         </Card>
         <Card>
             <CardHeader>
-                <CardTitle>Today's Jobs</CardTitle>
+                <CardTitle>Today&apos;s Jobs</CardTitle>
                 <CardDescription>Your scheduled jobs for today, {format(today, 'MMMM d, yyyy')}.</CardDescription>
             </CardHeader>
             <CardContent>

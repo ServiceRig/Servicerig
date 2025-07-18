@@ -1,9 +1,9 @@
+
 'use client';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { capitalize } from '@/lib/utils';
 import { useRole } from "@/hooks/use-role";
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Terminal, Calendar, User, Wrench, FileText, BarChart, Book, Warehouse, FileDiff, FileSignature, ClipboardList, DollarSign, Clock, AppWindow, Mic, Plus } from 'lucide-react';
+import { Terminal, Calendar, User, Wrench, FileText, BarChart, DollarSign, Mic, Plus } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 

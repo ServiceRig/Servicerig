@@ -1,13 +1,14 @@
+
 'use client';
 import { useFormState, useFormStatus } from 'react-dom';
 import { getTieredEstimates } from '@/app/actions';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Wand2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Wand2, CheckCircle2 } from 'lucide-react';
 import { useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -80,15 +81,15 @@ export function AiEstimator() {
                 <Accordion type="single" collapsible defaultValue="item-1" className="w-full">
                     <AccordionItem value="item-1">
                         <AccordionTrigger className="font-bold">Good Estimate</AccordionTrigger>
-                        <AccordionContent>{state.data.goodEstimate}</AccordionContent>
+                        <AccordionContent>{state.data.good.description}</AccordionContent>
                     </AccordionItem>
                     <AccordionItem value="item-2">
                         <AccordionTrigger className="font-bold">Better Estimate</AccordionTrigger>
-                        <AccordionContent>{state.data.betterEstimate}</AccordionContent>
+                        <AccordionContent>{state.data.better.description}</AccordionContent>
                     </AccordionItem>
                     <AccordionItem value="item-3">
                         <AccordionTrigger className="font-bold">Best Estimate</AccordionTrigger>
-                        <AccordionContent>{state.data.bestEstimate}</AccordionContent>
+                        <AccordionContent>{state.data.best.description}</AccordionContent>
                     </AccordionItem>
                 </Accordion>
             </div>

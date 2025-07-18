@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useActionState } from 'react';
@@ -11,12 +12,11 @@ import { useEffect, useState } from 'react';
 
 interface StatusButtonProps {
   newStatus: Estimate['status'];
-  estimateId: string;
   children: React.ReactNode;
   variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link" | null | undefined;
 }
 
-function StatusButton({ newStatus, estimateId, children, variant }: StatusButtonProps) {
+function StatusButton({ newStatus, children, variant }: StatusButtonProps) {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" name="newStatus" value={newStatus} disabled={pending} variant={variant}>
@@ -58,17 +58,17 @@ export function StatusUpdateButtons({ estimate }: { estimate: Estimate }) {
       {!isFinal && (
         <>
             {canBeSent && (
-                <StatusButton newStatus="sent" estimateId={estimate.id}>
+                <StatusButton newStatus="sent">
                     <Send className="mr-2 h-4 w-4" /> Send to Customer
                 </StatusButton>
             )}
 
             {canBeAcceptedOrRejected && (
                 <>
-                    <StatusButton newStatus="accepted" estimateId={estimate.id}>
+                    <StatusButton newStatus="accepted">
                         <Check className="mr-2 h-4 w-4" /> Approve
                     </StatusButton>
-                     <StatusButton newStatus="rejected" estimateId={estimate.id} variant="destructive">
+                     <StatusButton newStatus="rejected" variant="destructive">
                         <X className="mr-2 h-4 w-4" /> Reject
                     </StatusButton>
                 </>

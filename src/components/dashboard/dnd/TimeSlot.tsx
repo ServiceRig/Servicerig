@@ -4,7 +4,6 @@
 import React from 'react';
 import { useDrop } from 'react-dnd';
 import { ItemTypes } from '@/lib/constants';
-import { cn } from '@/lib/utils';
 
 interface TimeSlotProps {
   technicianId: string;

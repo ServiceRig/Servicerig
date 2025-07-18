@@ -1,5 +1,5 @@
 
-import { mockCustomers, mockJobs, mockEquipment, mockInvoices, mockTechnicians, mockEstimates } from './mock-data';
+import { mockCustomers, mockJobs, mockEquipment, mockInvoices, mockTechnicians } from './mock-data';
 import { getJobsByCustomerId } from './firestore/jobs';
 import { getEstimatesByCustomerId, getEstimatesByJobId, getEstimateById } from './firestore/estimates';
 import type { CustomerData, JobData, EstimateData } from './types';

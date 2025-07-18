@@ -1,16 +1,15 @@
 
 import { getJobData } from '@/lib/firestore';
 import { notFound } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { Clock, Calendar, User, Building, Phone, Mail, MapPin, Wrench, FileText, ChevronRight, Calculator } from 'lucide-react';
+import { Clock, Calendar, User, Building, Phone, MapPin, Wrench, FileText, ChevronRight } from 'lucide-react';
 import { cn, getEstimateStatusStyles } from '@/lib/utils';
-import type { Job, Estimate } from '@/lib/types';
+import type { Job } from '@/lib/types';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
 
 const getStatusStyles = (status: Job['status']) => {

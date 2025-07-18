@@ -1,7 +1,4 @@
 
-
-
-
 // This file contains the TypeScript types for your Firestore collections.
 
 // A generic type for Firestore Timestamps. In Firestore, these are objects,
@@ -219,7 +216,7 @@ export interface PricebookItem {
 export interface Form {
   name: string;
   type: 'inspection' | 'safety' | 'custom';
-  fields: any[]; // Field JSON schema
+  fields: unknown[]; // Field JSON schema
   linkedJobId?: string;
   submittedBy: string;
   submittedAt: Timestamp;
@@ -229,7 +226,7 @@ export interface Form {
 export interface Automation {
   trigger: string; // e.g. "invoice_paid"
   action: string; // e.g. "send_email"
-  config: any;
+  config: unknown;
   active: boolean;
   createdAt: Timestamp;
   updatedAt: Timestamp;

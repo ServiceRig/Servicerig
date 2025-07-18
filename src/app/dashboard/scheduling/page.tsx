@@ -12,8 +12,8 @@ import { addDays } from 'date-fns';
 // This is a placeholder for a real Firestore hook
 const useMockFirestore = () => {
   const [allJobs, setAllJobs] = useState<Job[]>(mockJobs);
-  const [customers, setCustomers] = useState<Customer[]>(mockCustomers);
-  const [technicians, setTechnicians] = useState<Technician[]>(mockTechnicians);
+  const [customers, ] = useState<Customer[]>(mockCustomers);
+  const [technicians, ] = useState<Technician[]>(mockTechnicians);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

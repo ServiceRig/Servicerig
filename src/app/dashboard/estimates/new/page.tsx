@@ -2,7 +2,6 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
 import { useActionState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,7 +16,6 @@ import type { Customer, Job, EstimateTemplate, LineItem } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { AITierGenerator, TierData } from '@/components/dashboard/ai-tier-generator';
 import { CustomerPresentationView } from '@/components/dashboard/customer-presentation-view';
-import { useRole } from '@/hooks/use-role';
 import { addEstimate } from '@/app/actions';
 import { SubmitButton } from './SubmitButton';
 
@@ -28,9 +26,7 @@ const formatCurrency = (amount: number) => {
 
 
 export default function NewEstimatePage() {
-  const router = useRouter();
   const { toast } = useToast();
-  const { role } = useRole();
   const [addEstimateState, formAction] = useActionState(addEstimate, { success: false, message: null });
   
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -81,13 +77,12 @@ export default function NewEstimatePage() {
     setLineItems(newItems);
   };
 
-  const handleLineItemChange = (index: number, field: string, value: string | number) => {
+  const handleLineItemChange = (index: number, field: keyof LineItem, value: string | number) => {
     const newItems = [...lineItems];
-    const item = newItems[index];
     if(field === 'quantity' || field === 'unitPrice') {
-        (item as any)[field] = parseFloat(value as string) || 0;
+        (newItems[index] as any)[field] = parseFloat(value as string) || 0;
     } else {
-        (item as any)[field] = value;
+        (newItems[index] as any)[field] = value;
     }
     setLineItems(newItems);
   };
@@ -99,7 +94,7 @@ export default function NewEstimatePage() {
   const discountAmount = useMemo(() => subtotal * (discountRate / 100), [subtotal, discountRate]);
   const subtotalAfterDiscount = useMemo(() => subtotal - discountAmount, [subtotal, discountAmount]);
   const taxAmount = useMemo(() => subtotalAfterDiscount * (taxRate / 100), [subtotalAfterDiscount, taxRate]);
-  const grandTotal = useMemo(() => subtotalAfterDiscount + taxAmount, [subtotalAfterDiscount, taxRate]);
+  const grandTotal = useMemo(() => subtotalAfterDiscount + taxAmount, [subtotalAfterDiscount, taxAmount]);
 
   useEffect(() => {
     if (selectedCustomerId && estimateTitle) {

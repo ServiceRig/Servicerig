@@ -1,7 +1,6 @@
 
 import { Customer, Invoice, Job, Technician, UserRole, Equipment, Estimate, EstimateTemplate } from './types';
 
-const today = new Date();
 const getDay = (day: number) => {
     const newDate = new Date();
     const currentDay = newDate.getDay();

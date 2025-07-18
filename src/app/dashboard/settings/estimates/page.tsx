@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { getEstimateTemplates } from "@/lib/firestore/templates";
-import { EstimateTemplate } from "@/lib/types";
 import { Plus } from "lucide-react";
 import Link from "next/link";
 

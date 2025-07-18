@@ -44,7 +44,8 @@ export async function getTieredEstimates(
     const input: GenerateTieredEstimatesInput = validatedFields.data;
     const result = await generateTieredEstimates(input);
     return { message: 'Estimates generated successfully.', data: result };
-  } catch (e) {
+  } catch (error) {
+    console.error(error);
     return { message: 'An error occurred while generating estimates.' };
   }
 }
@@ -62,7 +63,7 @@ type GenerateTiersState = {
     message?: string | null;
 }
 
-export async function runGenerateTieredEstimates(prevState: GenerateTiersState, formData: FormData) {
+export async function runGenerateTieredEstimates(prevState: GenerateTiersState, formData: FormData): Promise<GenerateTiersState> {
   const validatedFields = generateTiersSchema.safeParse({
     jobDetails: formData.get('jobDetails'),
     customerHistory: formData.get('customerHistory') || 'N/A',
@@ -201,21 +202,7 @@ export async function convertEstimateToInvoice(estimateId: string) {
     }
     
     const newInvoiceId = `inv_${Math.random().toString(36).substring(2, 9)}`;
-    const newInvoice = {
-        id: newInvoiceId,
-        invoiceNumber: `INV-${Math.floor(Math.random() * 9000) + 1000}`,
-        customerId: estimate.customerId,
-        jobId: estimate.jobId,
-        linkedEstimateId: estimate.id,
-        title: estimate.title,
-        lineItems: estimate.lineItems,
-        amount: estimate.total,
-        status: 'draft' as const,
-        issueDate: new Date(),
-        dueDate: new Date(new Date().setDate(new Date().getDate() + 30)), // Due in 30 days
-        createdAt: new Date(),
-    };
-
+    
     // In a real app, you would save this to the 'invoices' collection in Firestore
     console.log(`Created new invoice ${newInvoiceId} from estimate ${estimateId}`);
 
