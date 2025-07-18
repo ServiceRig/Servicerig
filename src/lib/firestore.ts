@@ -1,5 +1,6 @@
 
 import { mockCustomers, mockJobs, mockEquipment, mockInvoices, mockTechnicians } from './mock-data';
+import { getJobsByCustomerId } from './firestore/jobs';
 import type { CustomerData, JobData } from './types';
 
 // In a real app, these would be Firestore SDK calls (getDoc, getDocs, query, where).
@@ -13,7 +14,7 @@ export async function getCustomerData(customerId: string): Promise<CustomerData 
   }
 
   // Simulate fetching related data
-  const jobsForCustomer = mockJobs.filter(j => j.customerId === customerId);
+  const jobsForCustomer = await getJobsByCustomerId(customerId);
   const equipmentForCustomer = mockEquipment.filter(e => e.customerId === customerId);
   const invoicesForCustomer = mockInvoices.filter(i => i.customerId === customerId);
   
