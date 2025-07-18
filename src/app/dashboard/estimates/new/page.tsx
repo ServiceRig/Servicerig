@@ -1,8 +1,9 @@
 
 'use client';
 
-import { useState, useEffect, useMemo, useCallback, useActionState } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { useActionState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -215,15 +216,15 @@ export default function NewEstimatePage() {
 
       const payload = getEstimatePayload('accepted', acceptedLineItems, acceptedTitle);
       
-      const newFormData = new FormData();
-      newFormData.append('estimateData', JSON.stringify(payload));
+      const submissionFormData = new FormData();
+      submissionFormData.append('estimateData', JSON.stringify(payload));
       
       toast({
           title: "Estimate Accepted",
           description: `Creating estimate "${acceptedTitle}"...`,
       });
 
-      formAction(newFormData);
+      formAction(submissionFormData);
 
   }, [estimateTitle, getEstimatePayload, formAction, toast]);
 
