@@ -75,14 +75,40 @@ export async function runGenerateTieredEstimates(prevState: any, formData: FormD
   }
 }
 
+function safeJsonParse(val: any, fallback: any) {
+    if (typeof val !== 'string' || !val || val === 'null') {
+        return fallback;
+    }
+    try {
+        return JSON.parse(val);
+    } catch (e) {
+        return fallback;
+    }
+}
+
+
+const lineItemSchema = z.object({
+    description: z.string(),
+    quantity: z.number(),
+    unitPrice: z.number(),
+});
+
+const gbbTierSchema = z.object({
+    good: z.string(),
+    better: z.string(),
+    best: z.string(),
+}).nullable();
+
+
 const addEstimateSchema = z.object({
     customerId: z.string().min(1, { message: 'Customer is required.' }),
     title: z.string().min(1, { message: 'Title is required.' }),
     status: z.enum(['draft', 'sent', 'accepted', 'rejected']),
     jobId: z.string().optional(),
-    lineItems: z.string().default('[]').transform(val => val ? JSON.parse(val) : []).pipe(z.array(z.any())),
-    gbbTier: z.string().optional().transform((str) => (str && str !== 'null') ? JSON.parse(str) : null),
+    lineItems: z.preprocess((val) => safeJsonParse(val, []), z.array(lineItemSchema)),
+    gbbTier: z.preprocess((val) => safeJsonParse(val, null), gbbTierSchema),
 });
+
 
 export async function addEstimate(prevState: any, formData: FormData) {
     let newEstimateId = '';
