@@ -3,14 +3,14 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { useActionState, useFormStatus } from 'react';
+import { useActionState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Trash2, PlusCircle, Loader2, Save } from 'lucide-react';
+import { Trash2, PlusCircle } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { mockData } from '@/lib/mock-data';
 import type { Customer, Job, EstimateTemplate, LineItem, Estimate } from '@/lib/types';
@@ -19,25 +19,12 @@ import { AITierGenerator, TierData } from '@/components/dashboard/ai-tier-genera
 import { CustomerPresentationView } from '@/components/dashboard/customer-presentation-view';
 import { useRole } from '@/hooks/use-role';
 import { addEstimate } from '@/app/actions';
+import { SubmitButton } from './SubmitButton';
 
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
 };
-
-function SubmitButton({ disabled }: { disabled?: boolean }) {
-    const { pending } = useFormStatus();
-    return (
-        <Button 
-            type="submit" 
-            disabled={pending || disabled} 
-            form="estimate-form"
-        >
-            {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-            {pending ? 'Saving...' : 'Save as Draft'}
-        </Button>
-    )
-}
 
 
 export default function NewEstimatePage() {
@@ -141,7 +128,7 @@ export default function NewEstimatePage() {
       createdBy: 'admin_user', // This would be the logged in user's ID
     };
     return payload;
-  }, [estimateTitle, lineItems, discountRate, taxRate, selectedCustomerId, selectedJobId, gbbTiers, subtotal, discountAmount, taxAmount, grandTotal]);
+  }, [estimateTitle, lineItems, gbbTiers, subtotal, discountAmount, taxAmount, grandTotal, selectedCustomerId, selectedJobId]);
   
   const handleTiersFinalized = useCallback((tiers: TierData[]) => {
     if (!selectedCustomerId) {
