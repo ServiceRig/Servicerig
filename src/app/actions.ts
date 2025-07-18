@@ -80,8 +80,8 @@ const addEstimateSchema = z.object({
     title: z.string().min(1, { message: 'Title is required.' }),
     status: z.enum(['draft', 'sent', 'accepted', 'rejected']),
     jobId: z.string().optional(),
-    lineItems: z.string().default('[]').transform(str => JSON.parse(str) as LineItem[]),
-    gbbTier: z.string().optional().transform((str) => str ? JSON.parse(str) : null),
+    lineItems: z.string().default('[]').transform(val => val ? JSON.parse(val) : []).pipe(z.array(z.any())),
+    gbbTier: z.string().optional().transform((str) => (str && str !== 'null') ? JSON.parse(str) : null),
 });
 
 export async function addEstimate(prevState: any, formData: FormData) {
