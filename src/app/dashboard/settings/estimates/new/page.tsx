@@ -2,8 +2,7 @@
 'use client';
 import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useActionState } from 'react';
-import { useFormStatus } from 'react-dom';
+import { useActionState, useFormStatus } from 'react-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -60,7 +59,12 @@ export default function NewEstimateTemplatePage() {
     
     const handleLineItemChange = (index: number, field: keyof LineItem, value: string | number) => {
         const newItems = [...lineItems];
-        (newItems[index] as any)[field] = value;
+        const item = newItems[index];
+        if (field === 'description') {
+            item[field] = value as string;
+        } else {
+            item[field] = parseFloat(value as string) || 0;
+        }
         setLineItems(newItems);
     };
 

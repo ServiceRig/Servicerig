@@ -2,14 +2,14 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { useActionState } from 'react';
+import { useActionState, useFormStatus } from 'react-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Trash2, PlusCircle } from 'lucide-react';
+import { Trash2, PlusCircle, Loader2, Save } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { mockData } from '@/lib/mock-data';
 import type { Customer, Job, EstimateTemplate, LineItem } from '@/lib/types';
@@ -17,8 +17,20 @@ import { useToast } from '@/hooks/use-toast';
 import { AITierGenerator, TierData } from '@/components/dashboard/ai-tier-generator';
 import { CustomerPresentationView } from '@/components/dashboard/customer-presentation-view';
 import { addEstimate } from '@/app/actions';
-import { SubmitButton } from './SubmitButton';
 
+function SubmitButton({ disabled }: { disabled?: boolean }) {
+    const { pending } = useFormStatus();
+    return (
+        <Button 
+            type="submit" 
+            disabled={pending || disabled} 
+            form="estimate-form"
+        >
+            {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+            {pending ? 'Saving...' : 'Save as Draft'}
+        </Button>
+    )
+}
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
@@ -79,10 +91,12 @@ export default function NewEstimatePage() {
 
   const handleLineItemChange = (index: number, field: keyof LineItem, value: string | number) => {
     const newItems = [...lineItems];
-    if(field === 'quantity' || field === 'unitPrice') {
-        (newItems[index] as any)[field] = parseFloat(value as string) || 0;
+    const item = newItems[index];
+
+    if (field === 'quantity' || field === 'unitPrice') {
+        item[field] = parseFloat(value as string) || 0;
     } else {
-        (newItems[index] as any)[field] = value;
+        item[field] = value as string;
     }
     setLineItems(newItems);
   };

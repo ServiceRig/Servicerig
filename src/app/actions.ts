@@ -90,7 +90,7 @@ function safeJsonParse<T>(val: unknown, fallback: T): T {
     }
     try {
         return JSON.parse(val) as T;
-    } catch (e) {
+    } catch {
         return fallback;
     }
 }
@@ -251,7 +251,7 @@ export async function updateEstimateStatus(prevState: UpdateStatusState, formDat
 
 const createTemplateSchema = z.object({
     title: z.string().min(1, 'Title is required.'),
-    lineItems: z.string().transform(str => JSON.parse(str)),
+    lineItems: z.string().transform(val => JSON.parse(val)),
     gbbTier: z.string().optional().transform(str => str ? JSON.parse(str) : null),
 });
 
