@@ -11,25 +11,35 @@ import { addDays } from 'date-fns';
 
 // This is a placeholder for a real Firestore hook
 const useMockFirestore = () => {
-  const [allJobs, setAllJobs] = useState<Job[]>([]);
-  const [customers, ] = useState<Customer[]>(mockCustomers);
-  const [technicians, ] = useState<Technician[]>(mockTechnicians);
+  const [data, setData] = useState<{
+    jobs: Job[];
+    customers: Customer[];
+    technicians: Technician[];
+  }>({
+    jobs: [],
+    customers: [],
+    technicians: [],
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Simulate fetching data
     setTimeout(() => {
-      setAllJobs(mockJobs);
+      setData({
+          jobs: mockJobs,
+          customers: mockCustomers,
+          technicians: mockTechnicians
+      });
       setLoading(false);
     }, 500);
   }, []);
   
   const moveJob = useCallback((jobId: string, newTechnicianId: string, newStartTime: Date) => {
-    setAllJobs(prevJobs => {
-        const jobToMove = prevJobs.find(j => j.id === jobId);
+    setData(prevData => {
+        const jobToMove = prevData.jobs.find(j => j.id === jobId);
         if (!jobToMove) {
             console.error(`Job with id ${jobId} not found!`);
-            return prevJobs;
+            return prevData;
         }
 
         // Snap to nearest 15-minute interval
@@ -48,25 +58,29 @@ const useMockFirestore = () => {
 
         const newEndTime = new Date(snappedStartTime.getTime() + durationMs);
 
-        return prevJobs.map(j => 
-            j.id === jobId 
-            ? { ...j, technicianId: newTechnicianId, schedule: { start: snappedStartTime, end: newEndTime }, status: 'scheduled' } 
-            : j
-        );
+        return {
+            ...prevData,
+            jobs: prevData.jobs.map(j => 
+                j.id === jobId 
+                ? { ...j, technicianId: newTechnicianId, schedule: { start: snappedStartTime, end: newEndTime }, status: 'scheduled' } 
+                : j
+            )
+        };
     });
     // In a real app, you would update Firestore here.
     console.log(`Moved job ${jobId} to tech ${newTechnicianId} at ${newStartTime}`);
   }, []);
 
   const updateJobStatus = useCallback((jobId: string, newStatus: Job['status']) => {
-    setAllJobs(prevJobs => prevJobs.map(j => j.id === jobId ? { ...j, status: newStatus } : j));
+    setData(prevData => ({
+        ...prevData,
+        jobs: prevData.jobs.map(j => j.id === jobId ? { ...j, status: newStatus } : j)
+    }));
      console.log(`Updated job ${jobId} status to ${newStatus}`);
   }, []);
 
   return { 
-    jobs: allJobs, 
-    customers, 
-    technicians, 
+    ...data,
     loading, 
     moveJob,
     updateJobStatus
@@ -84,7 +98,7 @@ export default function SchedulingPage() {
     setCurrentDate(prevDate => addDays(prevDate, increment * sign));
   };
 
-  const enrichedJobs = (jobs || []).map(job => {
+  const enrichedJobs = jobs.map(job => {
     const customer = customers.find(c => c.id === job.customerId);
     const technician = technicians.find(t => t.id === job.technicianId);
     return {
