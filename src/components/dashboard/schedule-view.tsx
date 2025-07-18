@@ -11,9 +11,10 @@ import { DraggableJob } from './dnd/DraggableJob';
 import { TimeSlot } from './dnd/TimeSlot';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Button } from '../ui/button';
-import { Calendar as CalendarIcon } from 'lucide-react';
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Calendar } from '../ui/calendar';
 import { format, addDays, startOfWeek, isSameDay, isWithinInterval } from 'date-fns';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 
 const hours = Array.from({ length: 16 }, (_, i) => i + 7); // 7 AM to 10 PM
 
@@ -196,10 +197,22 @@ interface ScheduleViewProps {
     onJobStatusChange: (jobId: string, newStatus: Job['status']) => void;
     currentDate: Date;
     onCurrentDateChange: (date: Date) => void;
+    onPreviousWeek: () => void;
+    onNextWeek: () => void;
 }
 
 
-export function ScheduleView({ jobs, unscheduledJobs, technicians, onJobDrop, onJobStatusChange, currentDate, onCurrentDateChange }: ScheduleViewProps) {
+export function ScheduleView({ 
+    jobs, 
+    unscheduledJobs, 
+    technicians, 
+    onJobDrop, 
+    onJobStatusChange, 
+    currentDate, 
+    onCurrentDateChange,
+    onPreviousWeek,
+    onNextWeek
+}: ScheduleViewProps) {
     return (
         <div className="flex flex-col md:flex-row gap-4 h-full">
             <UnscheduledJobsPanel jobs={unscheduledJobs} />
@@ -211,28 +224,46 @@ export function ScheduleView({ jobs, unscheduledJobs, technicians, onJobDrop, on
                                 <CardTitle>Schedule</CardTitle>
                                 <CardDescription>Drag, drop, and resize jobs to schedule your team.</CardDescription>
                             </div>
-                             <Popover>
-                                <PopoverTrigger asChild>
-                                <Button
-                                    variant={"outline"}
-                                    className={cn(
-                                    "w-[240px] justify-start text-left font-normal",
-                                    !currentDate && "text-muted-foreground"
-                                    )}
-                                >
-                                    <CalendarIcon className="mr-2 h-4 w-4" />
-                                    {currentDate ? format(currentDate, "PPP") : <span>Pick a date</span>}
-                                </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar
-                                    mode="single"
-                                    selected={currentDate}
-                                    onSelect={(date) => date && onCurrentDateChange(date)}
-                                    initialFocus
-                                />
-                                </PopoverContent>
-                            </Popover>
+                            <div className="flex items-center gap-2">
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button variant="outline" size="icon" onClick={onPreviousWeek}><ChevronLeft className="h-4 w-4" /></Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent><p>Previous Week</p></TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                                 <Popover>
+                                    <PopoverTrigger asChild>
+                                    <Button
+                                        variant={"outline"}
+                                        className={cn(
+                                        "w-[240px] justify-start text-left font-normal",
+                                        !currentDate && "text-muted-foreground"
+                                        )}
+                                    >
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        {currentDate ? format(currentDate, "PPP") : <span>Pick a date</span>}
+                                    </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0" align="start">
+                                    <Calendar
+                                        mode="single"
+                                        selected={currentDate}
+                                        onSelect={(date) => date && onCurrentDateChange(date)}
+                                        initialFocus
+                                    />
+                                    </PopoverContent>
+                                </Popover>
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button variant="outline" size="icon" onClick={onNextWeek}><ChevronRight className="h-4 w-4" /></Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent><p>Next Week</p></TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                            </div>
                         </div>
                         <TabsList>
                             <TabsTrigger value="day">Daily</TabsTrigger>

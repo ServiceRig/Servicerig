@@ -7,7 +7,7 @@ import { ScheduleView } from "@/components/dashboard/schedule-view";
 import { mockCustomers, mockJobs, mockTechnicians } from "@/lib/mock-data";
 import { Job, Customer, Technician } from "@/lib/types";
 import { useEffect, useState, useCallback } from "react";
-import { addDays, isSameDay } from 'date-fns';
+import { addDays } from 'date-fns';
 
 // This is a placeholder for a real Firestore hook
 const useMockFirestore = () => {
@@ -60,6 +60,14 @@ export default function SchedulingPage() {
   const { jobs, customers, technicians, loading, moveJob, updateJobStatus } = useMockFirestore();
   const [currentDate, setCurrentDate] = useState(new Date());
 
+  const handlePreviousWeek = () => {
+    setCurrentDate(prevDate => addDays(prevDate, -7));
+  };
+
+  const handleNextWeek = () => {
+    setCurrentDate(prevDate => addDays(prevDate, 7));
+  };
+
   const enrichedJobs = jobs.map(job => {
     const customer = customers.find(c => c.id === job.customerId);
     const technician = technicians.find(t => t.id === job.technicianId);
@@ -88,6 +96,8 @@ export default function SchedulingPage() {
               onJobStatusChange={updateJobStatus}
               currentDate={currentDate}
               onCurrentDateChange={setCurrentDate}
+              onPreviousWeek={handlePreviousWeek}
+              onNextWeek={handleNextWeek}
           />
       </div>
     </DndProvider>
