@@ -11,7 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Trash2, PlusCircle } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import { mockCustomers, mockJobs, mockEstimateTemplates, mockEstimates } from '@/lib/mock-data';
+import { mockCustomers, mockJobs, mockEstimateTemplates } from '@/lib/mock-data';
+import { addEstimate } from '@/lib/firestore/estimates';
 import type { Customer, Job, EstimateTemplate, GbbTier, LineItem, UserRole, Estimate } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { AITierGenerator, TierData } from '@/components/dashboard/ai-tier-generator';
@@ -119,7 +120,7 @@ export default function NewEstimatePage() {
     };
 
     // In a real app, this would be an API call to Firestore (e.g., addDoc)
-    mockEstimates.unshift(newEstimate);
+    addEstimate(newEstimate);
     
     toast({
         title: "Estimate Created",

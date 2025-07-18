@@ -53,3 +53,11 @@ export async function getEstimatesByJobId(jobId: string): Promise<Estimate[]> {
 
     return estimates;
 }
+
+/**
+ * Adds a new estimate to the mock data.
+ * @param estimate The estimate object to add.
+ */
+export function addEstimate(estimate: Estimate) {
+    mockEstimates.unshift(estimate);
+}

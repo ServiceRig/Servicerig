@@ -12,6 +12,7 @@ import type { Estimate } from '@/lib/types';
 import { useRole } from '@/hooks/use-role';
 import { UserRole } from '@/lib/types';
 import { Plus } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
@@ -19,6 +20,12 @@ const formatCurrency = (amount: number) => {
 
 export default function EstimatesPage() {
     const { role } = useRole();
+    // This is a bit of a hack to force a re-render when mock data changes
+    const [estimates, setEstimates] = useState(mockEstimates);
+    useEffect(() => {
+        setEstimates(mockEstimates);
+    }, []);
+
 
     const getHref = (path: string) => {
         return `${path}?role=${role || UserRole.Admin}`
@@ -51,7 +58,7 @@ export default function EstimatesPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {mockEstimates.map((estimate) => (
+              {estimates.map((estimate) => (
                 <TableRow key={estimate.id}>
                   <TableCell className="font-medium">{estimate.estimateNumber}</TableCell>
                    <TableCell>{estimate.title}</TableCell>
