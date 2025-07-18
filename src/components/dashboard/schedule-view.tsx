@@ -122,26 +122,24 @@ const WeeklyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDa
     const weekStart = startOfWeek(currentDate, { weekStartsOn });
     const days = Array.from({length: 7}).map((_, i) => addDays(weekStart, i));
     
-    const jobsThisWeek = jobs.filter(j => isWithinInterval(j.schedule.start, { start: weekStart, end: addDays(weekStart, 6) }));
+    const jobsThisWeek = jobs.filter(j => isWithinInterval(j.schedule.start, { start: days[0], end: addDays(days[6], 1) }));
     
     return (
     <div className="flex-grow grid grid-cols-[auto_1fr] gap-4">
         <div className="w-16"><TimeAxis/></div>
         <ScrollArea className="w-full whitespace-nowrap">
             <div className="grid grid-cols-7 gap-px w-max bg-border">
-                {days.map((day, dayIndex) => {
-                    return (
-                        <div key={day.toISOString()} className="w-48 bg-background">
-                            <h3 className="font-semibold text-center my-2">{format(day, 'EEE')} {format(day, 'd')}</h3>
-                            <div className="relative min-h-[calc(16*60px)]">
-                                 <div className="absolute inset-0 border-r border-border"></div>
-                                 {jobsThisWeek.filter(j => isSameDay(j.schedule.start, day)).map(job => (
-                                     <DraggableJob key={job.id} job={job} onStatusChange={onJobStatusChange} />
-                                ))}
-                            </div>
+                {days.map((day) => (
+                    <div key={day.toISOString()} className="w-48 bg-background">
+                        <h3 className="font-semibold text-center my-2">{format(day, 'EEE')} {format(day, 'd')}</h3>
+                        <div className="relative min-h-[calc(16*60px)]">
+                                <div className="absolute inset-0 border-r border-border"></div>
+                                {jobsThisWeek.filter(j => isSameDay(j.schedule.start, day)).map(job => (
+                                    <DraggableJob key={job.id} job={job} onStatusChange={onJobStatusChange} />
+                               ))}
                         </div>
-                    )
-                })}
+                    </div>
+                ))}
             </div>
             <div className="h-4"></div>
         </ScrollArea>
@@ -154,7 +152,7 @@ const TechnicianView = ({ jobs, technicians, onJobDrop, onJobStatusChange, curre
     const weekStart = startOfWeek(currentDate, { weekStartsOn });
     const days = Array.from({length: 7}).map((_, i) => addDays(weekStart, i));
     
-    const jobsThisWeek = jobs.filter(j => isWithinInterval(j.schedule.start, { start: weekStart, end: addDays(weekStart, 6) }));
+    const jobsThisWeek = jobs.filter(j => isWithinInterval(j.schedule.start, { start: days[0], end: addDays(days[6], 1) }));
     
     return (
      <div className="flex-grow grid grid-cols-[auto_1fr] gap-4">
