@@ -211,7 +211,7 @@ export interface Timesheet {
   reviewed: boolean;
 }
 
-// --- Specific to Customer Details Page ---
+// --- Specific Page Data Shapes ---
 
 export interface CustomerTotals {
   totalBilled: number;
@@ -232,4 +232,10 @@ export interface CustomerData {
   jobs: (Job & { technicianName: string })[];
   totals: CustomerTotals;
   linkedRecords: CustomerLinkedRecords;
+}
+
+export interface JobData {
+    job: Job;
+    customer: Customer;
+    technician: Technician | null;
 }

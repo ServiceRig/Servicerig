@@ -13,6 +13,7 @@ import type { Job, Customer } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import Link from 'next/link';
 
 type EnrichedJob = Job & {
   customer?: Customer;
@@ -55,8 +56,12 @@ const JobCard = ({ job }: { job: EnrichedJob }) => {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem>View Job Details</DropdownMenuItem>
-            <DropdownMenuItem>View Customer</DropdownMenuItem>
+            <DropdownMenuItem asChild>
+                <Link href={`/dashboard/jobs/${job.id}`}>View Job Details</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+                <Link href={`/dashboard/customers/${job.customerId}`}>View Customer</Link>
+            </DropdownMenuItem>
             <DropdownMenuItem>Change Status</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -97,20 +102,22 @@ const TodaysJobListItem = ({ job }: { job: EnrichedJob }) => {
     const customerAddress = job.customer?.companyInfo.address || 'No address';
 
     return (
-        <div className="flex items-center gap-4 py-3 border-b">
-            <div className="flex items-center justify-center h-10 w-10 bg-muted rounded-full">
-                <Clock className="h-5 w-5 text-muted-foreground" />
+        <Link href={`/dashboard/jobs/${job.id}`} className="block hover:bg-muted/50 rounded-lg">
+            <div className="flex items-center gap-4 py-3 px-2 border-b">
+                <div className="flex items-center justify-center h-10 w-10 bg-muted rounded-full">
+                    <Clock className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <div className="flex-grow">
+                    <p className="font-semibold">{job.title}</p>
+                    <p className="text-sm text-muted-foreground">{customerName}</p>
+                    <p className="text-xs text-muted-foreground">{customerAddress}</p>
+                </div>
+                 <div className="text-right">
+                    <p className="text-sm font-medium">{format(new Date(job.schedule.start), 'h:mm a')}</p>
+                    <Badge variant="outline" className={cn(getStatusStyles(job.status), "mt-1")}>{job.status.replace('_', ' ')}</Badge>
+                </div>
             </div>
-            <div className="flex-grow">
-                <p className="font-semibold">{job.title}</p>
-                <p className="text-sm text-muted-foreground">{customerName}</p>
-                <p className="text-xs text-muted-foreground">{customerAddress}</p>
-            </div>
-             <div className="text-right">
-                <p className="text-sm font-medium">{format(new Date(job.schedule.start), 'h:mm a')}</p>
-                <Badge variant="outline" className={cn(getStatusStyles(job.status), "mt-1")}>{job.status.replace('_', ' ')}</Badge>
-            </div>
-        </div>
+        </Link>
     )
 }
 

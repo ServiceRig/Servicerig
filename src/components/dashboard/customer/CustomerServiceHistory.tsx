@@ -53,7 +53,7 @@ export function CustomerServiceHistory({ jobs }: { jobs: (Job & { technicianName
                   </TableCell>
                   <TableCell className="text-right">
                     <Button asChild variant="outline" size="sm">
-                      <Link href="#">View Job</Link>
+                      <Link href={`/dashboard/jobs/${job.id}`}>View Job</Link>
                     </Button>
                   </TableCell>
                 </TableRow>

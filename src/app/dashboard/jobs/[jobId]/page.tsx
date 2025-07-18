@@ -1,0 +1,152 @@
+
+import { getJobData } from '@/lib/firestore';
+import { notFound } from 'next/navigation';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Separator } from '@/components/ui/separator';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import { format } from 'date-fns';
+import { Clock, Calendar, User, Building, Phone, Mail, MapPin, Wrench, FileText, ChevronRight } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import type { Job } from '@/lib/types';
+
+const getStatusStyles = (status: Job['status']) => {
+  switch (status) {
+    case 'in_progress':
+      return 'bg-yellow-500 hover:bg-yellow-600 text-white';
+    case 'complete':
+      return 'bg-green-500 hover:bg-green-600 text-white';
+    case 'scheduled':
+      return 'bg-blue-500 hover:bg-blue-600 text-white';
+    default:
+      return 'bg-gray-500 hover:bg-gray-600 text-white';
+  }
+};
+
+const InfoRow = ({ icon: Icon, label, children }: { icon: React.ElementType, label: string, children: React.ReactNode }) => (
+    <div className="flex items-start gap-4">
+        <Icon className="h-5 w-5 text-muted-foreground mt-1" />
+        <div className="flex-grow">
+            <p className="text-sm text-muted-foreground">{label}</p>
+            <p className="font-medium">{children}</p>
+        </div>
+    </div>
+);
+
+export default async function JobDetailsPage({ params }: { params: { jobId: string } }) {
+  const jobId = params.jobId;
+  const data = await getJobData(jobId);
+
+  if (!data) {
+    notFound();
+  }
+
+  const { job, customer, technician } = data;
+  const duration = (new Date(job.schedule.end).getTime() - new Date(job.schedule.start).getTime()) / (1000 * 60);
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold">{job.title}</h1>
+          <div className="flex items-center gap-2 mt-1">
+            <p className="text-muted-foreground">JOB-{job.id.toUpperCase()}</p>
+            <Badge className={cn("capitalize", getStatusStyles(job.status))}>
+              {job.status.replace('_', ' ')}
+            </Badge>
+          </div>
+        </div>
+        <div className="flex gap-2">
+            <Button variant="outline">Edit Job</Button>
+            <Button>Create Invoice</Button>
+        </div>
+      </div>
+      
+      <Separator />
+
+      <div className="grid md:grid-cols-3 gap-6">
+        {/* Main Content - Left Column */}
+        <div className="md:col-span-2 space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Job Details</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <InfoRow icon={Wrench} label="Service Type">
+                    {job.details.serviceType}
+                </InfoRow>
+                <InfoRow icon={FileText} label="Description">
+                    <p className="whitespace-pre-wrap">{job.description}</p>
+                </InfoRow>
+            </CardContent>
+          </Card>
+
+           <Card>
+            <CardHeader>
+              <CardTitle>Schedule</CardTitle>
+            </CardHeader>
+            <CardContent className="grid sm:grid-cols-2 gap-4">
+                <InfoRow icon={Calendar} label="Date">
+                    {format(new Date(job.schedule.start), 'eeee, MMMM d, yyyy')}
+                </InfoRow>
+                <InfoRow icon={Clock} label="Time">
+                    {format(new Date(job.schedule.start), 'h:mm a')} - {format(new Date(job.schedule.end), 'h:mm a')} ({duration} mins)
+                </InfoRow>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Side Content - Right Column */}
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+                <CardTitle>Customer</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <InfoRow icon={Building} label="Name">
+                     <Link href={`/dashboard/customers/${customer.id}`} className="flex items-center text-primary hover:underline">
+                        {customer.primaryContact.name}
+                        <ChevronRight className="h-4 w-4 ml-1" />
+                    </Link>
+                </InfoRow>
+                <InfoRow icon={Phone} label="Phone">
+                    <a href={`tel:${customer.primaryContact.phone}`} className="text-primary hover:underline">{customer.primaryContact.phone}</a>
+                </InfoRow>
+                 <InfoRow icon={MapPin} label="Address">
+                    {customer.companyInfo.address}
+                </InfoRow>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader>
+                <CardTitle>Technician</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                 <InfoRow icon={User} label="Assigned To">
+                    {technician ? technician.name : 'Unassigned'}
+                </InfoRow>
+            </CardContent>
+          </Card>
+
+          <Card>
+             <CardHeader>
+                <CardTitle>Linked Documents</CardTitle>
+            </CardHeader>
+            <CardContent>
+                 <Button variant="outline" className="w-full justify-between" asChild>
+                    <Link href="#">
+                        <span>View Estimate</span>
+                        <ChevronRight className="h-4 w-4" />
+                    </Link>
+                </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}

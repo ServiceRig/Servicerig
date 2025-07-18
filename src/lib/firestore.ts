@@ -1,6 +1,6 @@
 
 import { mockCustomers, mockJobs, mockEquipment, mockInvoices, mockTechnicians } from './mock-data';
-import type { CustomerData } from './types';
+import type { CustomerData, JobData } from './types';
 
 // In a real app, these would be Firestore SDK calls (getDoc, getDocs, query, where).
 // For now, we simulate the data fetching and shaping.
@@ -54,4 +54,30 @@ export async function getCustomerData(customerId: string): Promise<CustomerData 
   await new Promise(resolve => setTimeout(resolve, 500));
 
   return customerData;
+}
+
+
+export async function getJobData(jobId: string): Promise<JobData | null> {
+  const job = mockJobs.find(j => j.id === jobId);
+  if (!job) {
+    return null;
+  }
+
+  const customer = mockCustomers.find(c => c.id === job.customerId);
+  if (!customer) {
+    return null; // Or handle as an error, a job must have a customer
+  }
+
+  const technician = mockTechnicians.find(t => t.id === job.technicianId);
+
+  const jobData: JobData = {
+    job,
+    customer,
+    technician: technician || null, // A job might not have a technician
+  };
+
+  // Simulate network delay
+  await new Promise(resolve => setTimeout(resolve, 500));
+
+  return jobData;
 }
