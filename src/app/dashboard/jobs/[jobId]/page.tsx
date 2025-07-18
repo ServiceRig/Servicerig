@@ -9,8 +9,8 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { Clock, Calendar, User, Building, Phone, Mail, MapPin, Wrench, FileText, ChevronRight, Calculator } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import type { Job } from '@/lib/types';
+import { cn, getEstimateStatusStyles } from '@/lib/utils';
+import type { Job, Estimate } from '@/lib/types';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
 
 const getStatusStyles = (status: Job['status']) => {
@@ -127,7 +127,9 @@ export default async function JobDetailsPage({ params, searchParams }: { params:
                                     <TableCell>{estimate.estimateNumber}</TableCell>
                                     <TableCell className="font-medium">{estimate.title}</TableCell>
                                     <TableCell>
-                                        <Badge variant={estimate.status === 'accepted' ? 'default' : 'secondary'} className={cn({'bg-green-500 text-white': estimate.status === 'accepted', 'capitalize': true})}>{estimate.status}</Badge>
+                                        <Badge className={cn("capitalize", getEstimateStatusStyles(estimate.status))}>
+                                          {estimate.status}
+                                        </Badge>
                                     </TableCell>
                                     <TableCell className="text-right">{formatCurrency(estimate.total)}</TableCell>
                                     <TableCell className="text-right">

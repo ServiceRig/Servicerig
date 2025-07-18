@@ -7,26 +7,11 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { mockEstimates } from '@/lib/mock-data';
 import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
+import { cn, getEstimateStatusStyles } from '@/lib/utils';
 import type { Estimate } from '@/lib/types';
 import { useRole } from '@/hooks/use-role';
 import { UserRole } from '@/lib/types';
 import { Plus } from 'lucide-react';
-
-
-const getStatusStyles = (status: Estimate['status']) => {
-  switch (status) {
-    case 'sent':
-      return 'bg-blue-500 hover:bg-blue-600 text-white';
-    case 'accepted':
-      return 'bg-green-500 hover:bg-green-600 text-white';
-    case 'rejected':
-      return 'bg-red-500 hover:bg-red-600 text-white';
-    case 'draft':
-    default:
-      return 'bg-gray-500 hover:bg-gray-600 text-white';
-  }
-};
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
@@ -73,7 +58,7 @@ export default function EstimatesPage() {
                    <TableCell>{format(new Date(estimate.createdAt), 'MMM d, yyyy')}</TableCell>
                    <TableCell>{formatCurrency(estimate.total)}</TableCell>
                   <TableCell>
-                    <Badge className={cn("capitalize", getStatusStyles(estimate.status))}>
+                    <Badge className={cn("capitalize", getEstimateStatusStyles(estimate.status))}>
                       {estimate.status}
                     </Badge>
                   </TableCell>

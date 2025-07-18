@@ -9,27 +9,13 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { User, Calendar, Tag, FileText } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, getEstimateStatusStyles } from '@/lib/utils';
 import type { Estimate } from '@/lib/types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { convertEstimateToInvoice } from '@/app/actions';
 import { SubmitButton } from './SubmitButton';
 import { StatusUpdateButtons } from './StatusUpdateButtons';
 
-
-const getStatusStyles = (status: Estimate['status']) => {
-  switch (status) {
-    case 'sent':
-      return 'bg-blue-500 hover:bg-blue-600 text-white';
-    case 'accepted':
-      return 'bg-green-500 hover:bg-green-600 text-white';
-    case 'rejected':
-      return 'bg-red-500 hover:bg-red-600 text-white';
-    case 'draft':
-    default:
-      return 'bg-gray-500 hover:bg-gray-600 text-white';
-  }
-};
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
@@ -67,7 +53,7 @@ export default async function EstimateDetailsPage({ params, searchParams }: { pa
           <h1 className="text-3xl font-bold">{estimate.title}</h1>
           <div className="flex items-center gap-2 mt-1">
             <p className="text-muted-foreground">ESTIMATE-{estimate.estimateNumber}</p>
-            <Badge className={cn("capitalize", getStatusStyles(estimate.status))}>
+            <Badge className={cn("capitalize", getEstimateStatusStyles(estimate.status))}>
               {estimate.status}
             </Badge>
           </div>
