@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { useActionState } from 'react';
+import { useActionState, useFormStatus } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,25 +26,15 @@ const formatCurrency = (amount: number) => {
 };
 
 function SubmitButton({ disabled }: { disabled?: boolean }) {
-    const [isPending, setIsPending] = useState(false);
-
-    const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-        // We only set pending if the form is actually going to submit
-        if (e.currentTarget.form && !e.currentTarget.form.checkValidity()) {
-            return;
-        }
-        setIsPending(true);
-    };
-
+    const { pending } = useFormStatus();
     return (
         <Button 
             type="submit" 
-            disabled={isPending || disabled} 
+            disabled={pending || disabled} 
             form="estimate-form"
-            onClick={handleClick}
         >
-            {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-            {isPending ? 'Saving...' : 'Save as Draft'}
+            {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+            {pending ? 'Saving...' : 'Save as Draft'}
         </Button>
     )
 }
@@ -125,31 +115,23 @@ export default function NewEstimatePage() {
   const grandTotal = useMemo(() => subtotalAfterDiscount + taxAmount, [subtotalAfterDiscount, taxRate]);
 
   useEffect(() => {
-    if (selectedCustomerId) {
+    if (selectedCustomerId && estimateTitle) {
       setIsFormSubmittable(true);
     } else {
       setIsFormSubmittable(false);
     }
-  }, [selectedCustomerId]);
+  }, [selectedCustomerId, estimateTitle]);
 
-  const getEstimatePayload = useCallback((status: Estimate['status'] = 'draft', customLineItems?: LineItem[], customTitle?: string) => {
-     const finalTitle = customTitle || estimateTitle;
-     const finalLineItems = customLineItems || lineItems;
-     const finalSubtotal = finalLineItems.reduce((acc, item) => acc + (item.quantity * item.unitPrice), 0);
-     const finalDiscount = finalSubtotal * (discountRate / 100);
-     const finalSubtotalAfterDiscount = finalSubtotal - finalDiscount;
-     const finalTax = finalSubtotalAfterDiscount * (taxRate / 100);
-     const finalTotal = finalSubtotalAfterDiscount + finalTax;
-
+  const getEstimatePayload = useCallback((status: Estimate['status'] = 'draft') => {
      const payload: Omit<Estimate, 'id' | 'estimateNumber' | 'createdAt' | 'updatedAt'> = {
       customerId: selectedCustomerId,
       jobId: selectedJobId,
-      title: finalTitle,
-      lineItems: finalLineItems,
-      subtotal: finalSubtotal,
-      discount: finalDiscount,
-      tax: finalTax,
-      total: finalTotal,
+      title: estimateTitle,
+      lineItems: lineItems,
+      subtotal: subtotal,
+      discount: discountAmount,
+      tax: taxAmount,
+      total: grandTotal,
       gbbTier: gbbTiers ? {
         good: gbbTiers.find(t => t.title === 'Good')?.description || '',
         better: gbbTiers.find(t => t.title === 'Better')?.description || '',
@@ -158,9 +140,8 @@ export default function NewEstimatePage() {
       status: status,
       createdBy: 'admin_user', // This would be the logged in user's ID
     };
-
     return payload;
-  }, [estimateTitle, lineItems, discountRate, taxRate, selectedCustomerId, selectedJobId, gbbTiers]);
+  }, [estimateTitle, lineItems, discountRate, taxRate, selectedCustomerId, selectedJobId, gbbTiers, subtotal, discountAmount, taxAmount, grandTotal]);
   
   const handleTiersFinalized = useCallback((tiers: TierData[]) => {
     if (!selectedCustomerId) {
@@ -200,42 +181,18 @@ export default function NewEstimatePage() {
     });
   };
 
-  const handleAcceptEstimate = useCallback((formData: FormData) => {
-      setShowPresentation(false);
-      
-      const acceptedTierString = formData.get('acceptedTier') as string;
-      if (!acceptedTierString) {
-        toast({ variant: 'destructive', title: 'Error', description: 'No accepted tier data found.' });
-        return;
-      }
-      
-      const selectedTier = JSON.parse(acceptedTierString);
-      
-      const acceptedLineItems = [{ description: selectedTier.description, quantity: 1, unitPrice: selectedTier.price || 0 }];
-      const acceptedTitle = `${estimateTitle || 'Service Estimate'} - ${selectedTier.title} Option`;
-
-      const payload = getEstimatePayload('accepted', acceptedLineItems, acceptedTitle);
-      
-      const submissionFormData = new FormData();
-      submissionFormData.append('estimateData', JSON.stringify(payload));
-      
-      toast({
-          title: "Estimate Accepted",
-          description: `Creating estimate "${acceptedTitle}"...`,
-      });
-
-      formAction(submissionFormData);
-
-  }, [estimateTitle, getEstimatePayload, formAction, toast]);
-
-
   return (
     <>
     <CustomerPresentationView 
         isOpen={showPresentation}
         onOpenChange={setShowPresentation}
         tiers={gbbTiers || []}
-        onAccept={handleAcceptEstimate}
+        onAccept={formAction}
+        baseEstimateData={{
+          customerId: selectedCustomerId,
+          jobId: selectedJobId,
+          title: estimateTitle
+        }}
     />
     <div className="space-y-6">
       <form id="estimate-form" action={formAction}>
@@ -306,7 +263,7 @@ export default function NewEstimatePage() {
                   </div>
                   <div className="grid gap-2 md:col-span-2 lg:col-span-3">
                       <Label htmlFor="title">Estimate Title</Label>
-                      <Input id="title" placeholder="e.g., HVAC Repair" value={estimateTitle} onChange={e => setEstimateTitle(e.target.value)} />
+                      <Input id="title" placeholder="e.g., HVAC Repair" value={estimateTitle} onChange={e => setEstimateTitle(e.target.value)} required />
                   </div>
                 </CardContent>
             </Card>
