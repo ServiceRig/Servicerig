@@ -8,8 +8,7 @@ import { Check, Signature, Loader2 } from 'lucide-react';
 import type { TierData } from './ai-tier-generator';
 import { cn } from '@/lib/utils';
 import { Label } from '../ui/label';
-import { ScrollArea } from '../ui/scroll-area';
-import { useFormStatus } from 'react-dom';
+import { useFormStatus } from 'react';
 
 
 const formatCurrency = (amount?: number) => {
@@ -56,63 +55,60 @@ export function CustomerPresentationView({ isOpen, onOpenChange, tiers, onAccept
 
     return (
         <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-            <DialogContent className="max-w-6xl p-0">
-                 <form action={onAccept}>
-                    <ScrollArea className="max-h-[90vh]">
-                        <div className="p-8">
-                            <DialogHeader>
-                                <DialogTitle className="text-center text-4xl font-bold">Please Choose an Option</DialogTitle>
-                                <DialogDescription className="text-center text-lg">Review the options below and make a selection.</DialogDescription>
-                            </DialogHeader>
-                            
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 py-4 px-2">
-                            {tiers.map((tier) => {
-                                const colors = tierColors[tier.title as keyof typeof tierColors] || tierColors.Good;
-                                const isSelected = selectedTier?.title === tier.title;
+            <DialogContent className="max-w-6xl p-0 max-h-[95vh] flex flex-col">
+                 <DialogHeader className="p-8 pb-0">
+                    <DialogTitle className="text-center text-4xl font-bold">Please Choose an Option</DialogTitle>
+                    <DialogDescription className="text-center text-lg">Review the options below and make a selection.</DialogDescription>
+                </DialogHeader>
+                 <form action={onAccept} className="overflow-y-auto">
+                    <div className="p-8 pt-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 py-4 px-2">
+                        {tiers.map((tier) => {
+                            const colors = tierColors[tier.title as keyof typeof tierColors] || tierColors.Good;
+                            const isSelected = selectedTier?.title === tier.title;
 
-                                return (
-                                    <Card key={tier.title} className={cn(
-                                        "flex flex-col transition-all duration-300", 
-                                        colors.border, 
-                                        isSelected ? `ring-4 ${colors.ring} shadow-2xl` : 'shadow-md'
-                                    )}>
-                                        <CardHeader className="text-center">
-                                            <CardTitle className={cn("text-3xl font-bold", colors.text)}>{tier.title}</CardTitle>
-                                        </CardHeader>
-                                        <CardContent className="flex-grow flex flex-col items-center justify-center text-center space-y-4">
-                                            <p className="text-5xl font-bold">{formatCurrency(tier.price)}</p>
-                                            <p className="text-muted-foreground flex-grow">{tier.description}</p>
-                                        </CardContent>
-                                        <CardFooter>
-                                                <Button 
-                                                    type="button"
-                                                    className="w-full text-lg py-6" 
-                                                    onClick={() => handleSelectTier(tier)}
-                                                    variant={isSelected ? 'default' : 'outline'}
-                                                >
-                                                    {isSelected && <Check className="mr-2 h-5 w-5" />}
-                                                    Accept Option
-                                                </Button>
-                                        </CardFooter>
-                                    </Card>
-                                )
-                            })}
-                            </div>
-                        
-                            {selectedTier && (
-                                <DialogFooter className="border-t pt-6 mt-4 flex-col sm:flex-col sm:justify-center items-center gap-4">
-                                    <input type="hidden" name="acceptedTier" value={JSON.stringify(selectedTier)} />
-                                    <div className="w-full max-w-md">
-                                        <Label htmlFor="signature" className="text-lg font-semibold">Customer Signature (Required)</Label>
-                                        <div id="signature" className="w-full h-32 mt-2 bg-muted rounded-md flex items-center justify-center border-2 border-dashed">
-                                            <p className="text-muted-foreground">Signature Pad Placeholder</p>
-                                        </div>
-                                    </div>
-                                    <AcceptButton />
-                                </DialogFooter>
-                            )}
+                            return (
+                                <Card key={tier.title} className={cn(
+                                    "flex flex-col transition-all duration-300", 
+                                    colors.border, 
+                                    isSelected ? `ring-4 ${colors.ring} shadow-2xl` : 'shadow-md'
+                                )}>
+                                    <CardHeader className="text-center">
+                                        <CardTitle className={cn("text-3xl font-bold", colors.text)}>{tier.title}</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="flex-grow flex flex-col items-center justify-center text-center space-y-4">
+                                        <p className="text-5xl font-bold">{formatCurrency(tier.price)}</p>
+                                        <p className="text-muted-foreground flex-grow">{tier.description}</p>
+                                    </CardContent>
+                                    <CardFooter>
+                                            <Button 
+                                                type="button"
+                                                className="w-full text-lg py-6" 
+                                                onClick={() => handleSelectTier(tier)}
+                                                variant={isSelected ? 'default' : 'outline'}
+                                            >
+                                                {isSelected && <Check className="mr-2 h-5 w-5" />}
+                                                Accept Option
+                                            </Button>
+                                    </CardFooter>
+                                </Card>
+                            )
+                        })}
                         </div>
-                    </ScrollArea>
+                    
+                        {selectedTier && (
+                            <DialogFooter className="border-t pt-6 mt-4 flex-col sm:flex-col sm:justify-center items-center gap-4">
+                                <input type="hidden" name="acceptedTier" value={JSON.stringify(selectedTier)} />
+                                <div className="w-full max-w-md">
+                                    <Label htmlFor="signature" className="text-lg font-semibold">Customer Signature (Required)</Label>
+                                    <div id="signature" className="w-full h-32 mt-2 bg-muted rounded-md flex items-center justify-center border-2 border-dashed">
+                                        <p className="text-muted-foreground">Signature Pad Placeholder</p>
+                                    </div>
+                                </div>
+                                <AcceptButton />
+                            </DialogFooter>
+                        )}
+                    </div>
                 </form>
             </DialogContent>
         </Dialog>
