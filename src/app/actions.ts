@@ -8,7 +8,7 @@ const tieredEstimatesSchema = z.object({
   customerHistory: z.string().min(10, "Customer history must be at least 10 characters long."),
 });
 
-type State = {
+type TieredEstimatesState = {
   message?: string | null;
   errors?: {
     jobDetails?: string[];
@@ -22,9 +22,9 @@ type State = {
 }
 
 export async function getTieredEstimates(
-  prevState: State,
+  prevState: TieredEstimatesState,
   formData: FormData
-): Promise<State> {
+): Promise<TieredEstimatesState> {
   const validatedFields = tieredEstimatesSchema.safeParse({
     jobDetails: formData.get('jobDetails'),
     customerHistory: formData.get('customerHistory'),
@@ -43,5 +43,31 @@ export async function getTieredEstimates(
     return { message: 'Estimates generated successfully.', data: result };
   } catch (e) {
     return { message: 'An error occurred while generating estimates.' };
+  }
+}
+
+const generateTiersSchema = z.object({
+  jobDetails: z.string().min(10, { message: "Please provide more details about the job."}),
+  customerHistory: z.string(),
+});
+
+export async function runGenerateTieredEstimates(prevState: any, formData: FormData) {
+  const validatedFields = generateTiersSchema.safeParse({
+    jobDetails: formData.get('jobDetails'),
+    customerHistory: formData.get('customerHistory') || 'N/A',
+  });
+
+  if (!validatedFields.success) {
+    return {
+      errors: validatedFields.error.flatten().fieldErrors,
+    };
+  }
+
+  try {
+    const result = await generateTieredEstimates(validatedFields.data);
+    return { data: result };
+  } catch (error) {
+    console.error(error);
+    return { message: "Failed to generate tiers. Please try again." };
   }
 }

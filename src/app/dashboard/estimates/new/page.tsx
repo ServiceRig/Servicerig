@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,8 +12,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Trash2, PlusCircle } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { mockCustomers, mockJobs } from '@/lib/mock-data';
-import type { Customer, Job } from '@/lib/types';
+import type { Customer, Job, Estimate } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
+import { AITierGenerator } from '@/components/dashboard/ai-tier-generator';
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
@@ -36,6 +37,7 @@ export default function NewEstimatePage() {
   
   const [taxRate, setTaxRate] = useState(0);
   const [discountRate, setDiscountRate] = useState(0);
+  const [gbbTiers, setGbbTiers] = useState<Estimate['gbbTier'] | null>(null);
 
   useEffect(() => {
     // In a real app, you would fetch this from Firestore
@@ -88,6 +90,7 @@ export default function NewEstimatePage() {
       discount: discountAmount,
       tax: taxAmount,
       total: grandTotal,
+      gbbTier: gbbTiers,
       status: 'draft',
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -100,6 +103,10 @@ export default function NewEstimatePage() {
 
     router.push('/dashboard/estimates');
   };
+  
+  const handleTiersGenerated = useCallback((tiers: Estimate['gbbTier']) => {
+    setGbbTiers(tiers);
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -113,115 +120,122 @@ export default function NewEstimatePage() {
 
       <Separator />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Details</CardTitle>
-          <CardDescription>Select customer, job, and give the estimate a title.</CardDescription>
-        </CardHeader>
-        <CardContent className="grid md:grid-cols-3 gap-6">
-          <div className="grid gap-2">
-            <Label htmlFor="customer">Customer</Label>
-            <Select value={selectedCustomerId} onValueChange={setSelectedCustomerId}>
-              <SelectTrigger id="customer">
-                <SelectValue placeholder="Select a customer" />
-              </SelectTrigger>
-              <SelectContent>
-                {customers.map(customer => (
-                  <SelectItem key={customer.id} value={customer.id}>
-                    {customer.primaryContact.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="job">Job (Optional)</Label>
-            <Select value={selectedJobId} onValueChange={setSelectedJobId} disabled={!selectedCustomerId}>
-              <SelectTrigger id="job">
-                <SelectValue placeholder="Select a job" />
-              </SelectTrigger>
-              <SelectContent>
-                {filteredJobs.map(job => (
-                  <SelectItem key={job.id} value={job.id}>
-                    {job.title} (ID: {job.id})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="title">Estimate Title</Label>
-            <Input id="title" placeholder="e.g., HVAC Repair" value={estimateTitle} onChange={e => setEstimateTitle(e.target.value)} />
-          </div>
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
+            <Card>
+                <CardHeader>
+                <CardTitle>Details</CardTitle>
+                <CardDescription>Select customer, job, and give the estimate a title.</CardDescription>
+                </CardHeader>
+                <CardContent className="grid md:grid-cols-3 gap-6">
+                <div className="grid gap-2">
+                    <Label htmlFor="customer">Customer</Label>
+                    <Select value={selectedCustomerId} onValueChange={setSelectedCustomerId}>
+                    <SelectTrigger id="customer">
+                        <SelectValue placeholder="Select a customer" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {customers.map(customer => (
+                        <SelectItem key={customer.id} value={customer.id}>
+                            {customer.primaryContact.name}
+                        </SelectItem>
+                        ))}
+                    </SelectContent>
+                    </Select>
+                </div>
+                <div className="grid gap-2">
+                    <Label htmlFor="job">Job (Optional)</Label>
+                    <Select value={selectedJobId} onValueChange={setSelectedJobId} disabled={!selectedCustomerId}>
+                    <SelectTrigger id="job">
+                        <SelectValue placeholder="Select a job" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {filteredJobs.map(job => (
+                        <SelectItem key={job.id} value={job.id}>
+                            {job.title} (ID: {job.id})
+                        </SelectItem>
+                        ))}
+                    </SelectContent>
+                    </Select>
+                </div>
+                <div className="grid gap-2">
+                    <Label htmlFor="title">Estimate Title</Label>
+                    <Input id="title" placeholder="e.g., HVAC Repair" value={estimateTitle} onChange={e => setEstimateTitle(e.target.value)} />
+                </div>
+                </CardContent>
+            </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Line Items</CardTitle>
-          <CardDescription>Add services and parts to this estimate.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[60%]">Description</TableHead>
-                <TableHead className="text-center">Quantity</TableHead>
-                <TableHead className="text-right">Unit Price</TableHead>
-                <TableHead className="text-right">Total</TableHead>
-                <TableHead className="w-[50px]"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {lineItems.map((item, index) => (
-                <TableRow key={index}>
-                  <TableCell>
-                    <Input placeholder="Service or Part Description" value={item.description} onChange={e => handleLineItemChange(index, 'description', e.target.value)} />
-                  </TableCell>
-                  <TableCell>
-                    <Input type="number" placeholder="1" value={item.quantity} onChange={e => handleLineItemChange(index, 'quantity', e.target.value)} className="text-center" />
-                  </TableCell>
-                  <TableCell>
-                    <Input type="number" placeholder="0.00" value={item.unitPrice} onChange={e => handleLineItemChange(index, 'unitPrice', e.target.value)} className="text-right" />
-                  </TableCell>
-                  <TableCell className="text-right font-medium">
-                    {formatCurrency(item.quantity * item.unitPrice)}
-                  </TableCell>
-                  <TableCell>
-                    <Button variant="ghost" size="icon" onClick={() => handleRemoveLineItem(index)} disabled={lineItems.length <= 1}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-          <Button variant="link" onClick={handleAddLineItem} className="mt-4">
-            <PlusCircle className="mr-2 h-4 w-4" /> Add Line Item
-          </Button>
-        </CardContent>
-        <CardFooter className="flex justify-end">
-            <div className="w-full max-w-sm space-y-2">
-                <div className="flex justify-between">
-                    <span className="text-muted-foreground">Subtotal</span>
-                    <span>{formatCurrency(subtotal)}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                    <Label htmlFor="discount" className="text-muted-foreground">Discount (%)</Label>
-                    <Input id="discount" type="number" value={discountRate} onChange={e => setDiscountRate(parseFloat(e.target.value) || 0)} className="w-24 h-8 text-right" />
-                </div>
-                 <div className="flex justify-between items-center">
-                    <Label htmlFor="tax" className="text-muted-foreground">Tax (%)</Label>
-                    <Input id="tax" type="number" value={taxRate} onChange={e => setTaxRate(parseFloat(e.target.value) || 0)} className="w-24 h-8 text-right" />
-                </div>
-                <Separator />
-                <div className="flex justify-between text-xl font-bold">
-                    <span>Grand Total</span>
-                    <span>{formatCurrency(grandTotal)}</span>
-                </div>
-            </div>
-        </CardFooter>
-      </Card>
+            <Card>
+                <CardHeader>
+                <CardTitle>Line Items</CardTitle>
+                <CardDescription>Add services and parts to this estimate.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                <Table>
+                    <TableHeader>
+                    <TableRow>
+                        <TableHead className="w-[60%]">Description</TableHead>
+                        <TableHead className="text-center">Quantity</TableHead>
+                        <TableHead className="text-right">Unit Price</TableHead>
+                        <TableHead className="text-right">Total</TableHead>
+                        <TableHead className="w-[50px]"></TableHead>
+                    </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                    {lineItems.map((item, index) => (
+                        <TableRow key={index}>
+                        <TableCell>
+                            <Input placeholder="Service or Part Description" value={item.description} onChange={e => handleLineItemChange(index, 'description', e.target.value)} />
+                        </TableCell>
+                        <TableCell>
+                            <Input type="number" placeholder="1" value={item.quantity} onChange={e => handleLineItemChange(index, 'quantity', e.target.value)} className="text-center" />
+                        </TableCell>
+                        <TableCell>
+                            <Input type="number" placeholder="0.00" value={item.unitPrice} onChange={e => handleLineItemChange(index, 'unitPrice', e.target.value)} className="text-right" />
+                        </TableCell>
+                        <TableCell className="text-right font-medium">
+                            {formatCurrency(item.quantity * item.unitPrice)}
+                        </TableCell>
+                        <TableCell>
+                            <Button variant="ghost" size="icon" onClick={() => handleRemoveLineItem(index)} disabled={lineItems.length <= 1}>
+                            <Trash2 className="h-4 w-4" />
+                            </Button>
+                        </TableCell>
+                        </TableRow>
+                    ))}
+                    </TableBody>
+                </Table>
+                <Button variant="link" onClick={handleAddLineItem} className="mt-4">
+                    <PlusCircle className="mr-2 h-4 w-4" /> Add Line Item
+                </Button>
+                </CardContent>
+                <CardFooter className="flex justify-end">
+                    <div className="w-full max-w-sm space-y-2">
+                        <div className="flex justify-between">
+                            <span className="text-muted-foreground">Subtotal</span>
+                            <span>{formatCurrency(subtotal)}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                            <Label htmlFor="discount" className="text-muted-foreground">Discount (%)</Label>
+                            <Input id="discount" type="number" value={discountRate} onChange={e => setDiscountRate(parseFloat(e.target.value) || 0)} className="w-24 h-8 text-right" />
+                        </div>
+                        <div className="flex justify-between items-center">
+                            <Label htmlFor="tax" className="text-muted-foreground">Tax (%)</Label>
+                            <Input id="tax" type="number" value={taxRate} onChange={e => setTaxRate(parseFloat(e.target.value) || 0)} className="w-24 h-8 text-right" />
+                        </div>
+                        <Separator />
+                        <div className="flex justify-between text-xl font-bold">
+                            <span>Grand Total</span>
+                            <span>{formatCurrency(grandTotal)}</span>
+                        </div>
+                    </div>
+                </CardFooter>
+            </Card>
+        </div>
+        <div className="lg:col-span-1">
+             <AITierGenerator onTiersGenerated={handleTiersGenerated} />
+        </div>
+      </div>
     </div>
   );
 }

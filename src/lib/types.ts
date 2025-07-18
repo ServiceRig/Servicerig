@@ -93,7 +93,7 @@ export type Estimate = {
         good: string;
         better: string;
         best: string;
-    };
+    } | null;
     createdAt: Timestamp | Date;
     updatedAt: Timestamp | Date;
 }
