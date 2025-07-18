@@ -7,14 +7,10 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Wand2, Loader, Presentation } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '../ui/input';
-
-const formatCurrency = (amount: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
-
 
 function GenerateButton() {
   const { pending } = useFormStatus();
@@ -104,17 +100,18 @@ export function AITierGenerator({ onTiersFinalized }: AITierGeneratorProps) {
       </form>
       {editableTiers && (
         <>
-            <CardContent className="space-y-4 border-t pt-4">
+            <CardContent className="space-y-4 border-t pt-4 mt-4">
                  {editableTiers.map((tier, index) => (
-                    <div key={index} className="space-y-2">
+                    <div key={index} className="space-y-2 p-3 border rounded-lg">
                         <Label className="font-semibold text-lg">{tier.title}</Label>
                         <Textarea 
                             value={tier.description}
                             onChange={(e) => handleTierChange(index, 'description', e.target.value)}
                             rows={4}
+                            className="text-sm"
                         />
                         <div className="grid gap-2">
-                             <Label htmlFor={`price-${index}`}>Price</Label>
+                             <Label htmlFor={`price-${index}`} className="text-sm">Price</Label>
                              <Input 
                                 id={`price-${index}`}
                                 type="number"

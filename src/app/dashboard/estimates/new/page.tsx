@@ -9,13 +9,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Trash2, PlusCircle, Presentation } from 'lucide-react';
+import { Trash2, PlusCircle } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import { mockCustomers, mockJobs } from '@/lib/mock-data';
-import type { Customer, Job, Estimate, EstimateTemplate, GbbTier } from '@/lib/types';
+import { mockCustomers, mockJobs, mockEstimateTemplates } from '@/lib/mock-data';
+import type { Customer, Job, EstimateTemplate, GbbTier, LineItem } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { AITierGenerator, TierData } from '@/components/dashboard/ai-tier-generator';
-import { getEstimateTemplates } from '@/lib/firestore/templates';
 import { CustomerPresentationView } from '@/components/dashboard/customer-presentation-view';
 
 const formatCurrency = (amount: number) => {
@@ -34,7 +33,7 @@ export default function NewEstimatePage() {
   const [selectedJobId, setSelectedJobId] = useState<string>('');
   const [estimateTitle, setEstimateTitle] = useState('');
   
-  const [lineItems, setLineItems] = useState([
+  const [lineItems, setLineItems] = useState<LineItem[]>([
     { description: '', quantity: 1, unitPrice: 0 },
   ]);
   
@@ -47,11 +46,7 @@ export default function NewEstimatePage() {
     // In a real app, you would fetch this from Firestore
     setCustomers(mockCustomers);
     setJobs(mockJobs);
-    const fetchTemplates = async () => {
-        const fetchedTemplates = await getEstimateTemplates();
-        setTemplates(fetchedTemplates);
-    }
-    fetchTemplates();
+    setTemplates(mockEstimateTemplates);
   }, []);
 
   const filteredJobs = useMemo(() => {
@@ -128,8 +123,6 @@ export default function NewEstimatePage() {
 
     setEstimateTitle(template.title);
     setLineItems(template.lineItems);
-    // Note: this part needs adjustment if templates have full TierData
-    // For now, we clear GBB tiers when loading a template
     setGbbTiers(null); 
     toast({
       title: "Template Loaded",
@@ -139,17 +132,18 @@ export default function NewEstimatePage() {
 
   const handleAcceptEstimate = (selectedTier: TierData) => {
       setShowPresentation(false);
-      // Here you would finalize the estimate
-      // For now, let's just log it and show a toast
       console.log("Customer accepted tier:", selectedTier);
       toast({
           title: "Estimate Accepted!",
-          description: `Customer selected the "${selectedTier.title}" option for ${formatCurrency(selectedTier.price || 0)}.`,
+          description: `Customer selected the "${selectedTier.title}" option for ${formatCurrency(selectedTier.price || 0)}. The details have been added to the estimate.`,
       });
-      // You could now set the main line items and price from the selected tier
+      // Set the main line items and price from the selected tier
       setLineItems([{ description: selectedTier.description, quantity: 1, unitPrice: selectedTier.price || 0 }]);
-      setEstimateTitle(`${estimateTitle} - ${selectedTier.title}`);
+      setEstimateTitle(`${estimateTitle || 'Estimate'} - ${selectedTier.title} Option`);
       setGbbTiers(null); // Clear tiers after selection
+      // Reset tax and discount as they may not apply to the new total
+      setTaxRate(0);
+      setDiscountRate(0);
   }
 
 
