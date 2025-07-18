@@ -7,7 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/componen
 import { Button } from '@/components/ui/button';
 import { Check, Signature, Loader2 } from 'lucide-react';
 import type { TierData } from './ai-tier-generator';
-import type { Estimate } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Label } from '../ui/label';
 
@@ -64,26 +63,11 @@ export function CustomerPresentationView({ isOpen, onOpenChange, tiers, onAccept
         Better: { border: 'border-primary', text: 'text-primary', ring: 'ring-primary' },
         Best: { border: 'border-amber-500', text: 'text-amber-500', ring: 'ring-amber-500' },
     }
-
-    const getAcceptedEstimatePayload = () => {
-        if (!selectedTier) return null;
-
-        const acceptedLineItems = [{ description: selectedTier.description, quantity: 1, unitPrice: selectedTier.price || 0 }];
-        const subtotal = acceptedLineItems.reduce((acc, item) => acc + (item.quantity * item.unitPrice), 0);
-
-        const payload: Omit<Estimate, 'id' | 'estimateNumber' | 'createdAt' | 'updatedAt'> = {
-            ...baseEstimateData,
-            title: `${baseEstimateData.title || 'Service Estimate'} - ${selectedTier.title} Option`,
-            lineItems: acceptedLineItems,
-            subtotal: subtotal,
-            discount: 0,
-            tax: 0,
-            total: subtotal,
-            status: 'accepted',
-            createdBy: 'customer_accepted'
-        };
-        return payload;
-    };
+    
+    const getAcceptedLineItems = () => {
+        if (!selectedTier) return [];
+        return [{ description: selectedTier.description, quantity: 1, unitPrice: selectedTier.price || 0 }];
+    }
 
     return (
         <Dialog open={isOpen} onOpenChange={handleOpenChange}>
@@ -93,6 +77,13 @@ export function CustomerPresentationView({ isOpen, onOpenChange, tiers, onAccept
                     <DialogDescription className="text-center text-lg">Review the options below and make a selection.</DialogDescription>
                 </DialogHeader>
                  <form action={onAccept} className="overflow-y-auto">
+                    {/* Hidden fields for the accepted estimate */}
+                    <input type="hidden" name="customerId" value={baseEstimateData.customerId} />
+                    <input type="hidden" name="jobId" value={baseEstimateData.jobId} />
+                    <input type="hidden" name="title" value={selectedTier ? `${baseEstimateData.title} - ${selectedTier.title}` : baseEstimateData.title} />
+                    <input type="hidden" name="status" value="accepted" />
+                    <input type="hidden" name="lineItems" value={JSON.stringify(getAcceptedLineItems())} />
+
                     <div className="p-8 pt-4">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 py-4 px-2">
                         {tiers.map((tier) => {
@@ -130,7 +121,6 @@ export function CustomerPresentationView({ isOpen, onOpenChange, tiers, onAccept
                     
                         {selectedTier && (
                             <DialogFooter className="border-t pt-6 mt-4 flex-col sm:flex-col sm:justify-center items-center gap-4">
-                                <input type="hidden" name="estimateData" value={JSON.stringify(getAcceptedEstimatePayload())} />
                                 <div className="w-full max-w-md">
                                     <Label htmlFor="signature" className="text-lg font-semibold">Customer Signature (Required)</Label>
                                     <div id="signature" className="w-full h-32 mt-2 bg-muted rounded-md flex items-center justify-center border-2 border-dashed">

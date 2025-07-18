@@ -6,7 +6,7 @@ import { z } from "zod";
 import { getEstimateById, addEstimate as addEstimateToDb } from "@/lib/firestore/estimates";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import type { Estimate } from "@/lib/types";
+import type { Estimate, LineItem } from "@/lib/types";
 import { addEstimateTemplate } from "@/lib/firestore/templates";
 import { mockCustomers } from "@/lib/mock-data";
 
@@ -76,38 +76,60 @@ export async function runGenerateTieredEstimates(prevState: any, formData: FormD
 }
 
 const addEstimateSchema = z.object({
-    estimateData: z.string().transform(str => JSON.parse(str)),
+    customerId: z.string().min(1, { message: 'Customer is required.' }),
+    title: z.string().min(1, { message: 'Title is required.' }),
+    status: z.enum(['draft', 'sent', 'accepted', 'rejected']),
+    jobId: z.string().optional(),
+    lineItems: z.string().transform(str => JSON.parse(str) as LineItem[]),
+    gbbTier: z.string().optional().transform(str => str ? JSON.parse(str) : null),
 });
 
 export async function addEstimate(prevState: any, formData: FormData) {
     let newEstimateId = '';
     try {
         const validatedFields = addEstimateSchema.safeParse({
-            estimateData: formData.get('estimateData'),
+            customerId: formData.get('customerId'),
+            title: formData.get('title'),
+            status: formData.get('status'),
+            jobId: formData.get('jobId'),
+            lineItems: formData.get('lineItems'),
+            gbbTier: formData.get('gbbTier'),
         });
         
         if (!validatedFields.success) {
-             console.error("Validation failed:", validatedFields.error);
+            console.error("Validation failed:", validatedFields.error.flatten().fieldErrors);
             return { success: false, message: 'Invalid estimate data provided.' };
         }
 
-        const newEstimate: Omit<Estimate, 'id' | 'estimateNumber' | 'createdAt' | 'updatedAt'> = validatedFields.data.estimateData;
+        const { customerId, title, status, jobId, lineItems, gbbTier } = validatedFields.data;
         
-        if (!newEstimate.customerId) {
-            return { success: false, message: 'Customer ID is missing.' };
-        }
-        
-        const customer = mockCustomers.find(c => c.id === newEstimate.customerId);
+        const customer = mockCustomers.find(c => c.id === customerId);
         if (!customer) {
             return { success: false, message: 'Customer not found.' };
         }
+        
+        const subtotal = lineItems.reduce((acc, item) => acc + item.quantity * item.unitPrice, 0);
+        // For simplicity, discount and tax are not calculated from form in this version.
+        const discount = 0;
+        const tax = subtotal * 0.08; // Example 8% tax
+        const total = subtotal - discount + tax;
         
         newEstimateId = `est_${Math.random().toString(36).substring(2, 9)}`;
 
         const finalEstimate: Estimate = {
             id: newEstimateId,
             estimateNumber: `EST-${Math.floor(Math.random() * 9000) + 1000}`,
-            ...newEstimate,
+            customerId,
+            title,
+            status,
+            jobId: jobId || undefined,
+            lineItems,
+            subtotal,
+            discount,
+            tax,
+            total,
+            gbbTier,
+            createdBy: 'admin_user', // This would be the logged in user
             createdAt: new Date(),
             updatedAt: new Date(),
         };

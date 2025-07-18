@@ -13,7 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Trash2, PlusCircle } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { mockData } from '@/lib/mock-data';
-import type { Customer, Job, EstimateTemplate, LineItem, Estimate } from '@/lib/types';
+import type { Customer, Job, EstimateTemplate, LineItem } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { AITierGenerator, TierData } from '@/components/dashboard/ai-tier-generator';
 import { CustomerPresentationView } from '@/components/dashboard/customer-presentation-view';
@@ -108,27 +108,6 @@ export default function NewEstimatePage() {
       setIsFormSubmittable(false);
     }
   }, [selectedCustomerId, estimateTitle]);
-
-  const getEstimatePayload = useCallback((status: Estimate['status'] = 'draft') => {
-     const payload: Omit<Estimate, 'id' | 'estimateNumber' | 'createdAt' | 'updatedAt'> = {
-      customerId: selectedCustomerId,
-      jobId: selectedJobId,
-      title: estimateTitle,
-      lineItems: lineItems,
-      subtotal: subtotal,
-      discount: discountAmount,
-      tax: taxAmount,
-      total: grandTotal,
-      gbbTier: gbbTiers ? {
-        good: gbbTiers.find(t => t.title === 'Good')?.description || '',
-        better: gbbTiers.find(t => t.title === 'Better')?.description || '',
-        best: gbbTiers.find(t => t.title === 'Best')?.description || '',
-      } : null,
-      status: status,
-      createdBy: 'admin_user', // This would be the logged in user's ID
-    };
-    return payload;
-  }, [estimateTitle, lineItems, gbbTiers, subtotal, discountAmount, taxAmount, grandTotal, selectedCustomerId, selectedJobId]);
   
   const handleTiersFinalized = useCallback((tiers: TierData[]) => {
     if (!selectedCustomerId) {
@@ -183,7 +162,18 @@ export default function NewEstimatePage() {
     />
     <div className="space-y-6">
       <form id="estimate-form" action={formAction}>
-        <input type="hidden" name="estimateData" value={JSON.stringify(getEstimatePayload('draft'))} />
+        {/* Hidden inputs for the form action */}
+        <input type="hidden" name="customerId" value={selectedCustomerId} />
+        <input type="hidden" name="jobId" value={selectedJobId} />
+        <input type="hidden" name="title" value={estimateTitle} />
+        <input type="hidden" name="lineItems" value={JSON.stringify(lineItems)} />
+        <input type="hidden" name="gbbTier" value={gbbTiers ? JSON.stringify({
+            good: gbbTiers.find(t => t.title === 'Good')?.description || '',
+            better: gbbTiers.find(t => t.title === 'Better')?.description || '',
+            best: gbbTiers.find(t => t.title === 'Best')?.description || '',
+        }) : ''} />
+        <input type="hidden" name="status" value="draft" />
+        
         <div className="flex items-center justify-between">
             <div>
                 <h1 className="text-3xl font-bold">New Estimate</h1>
@@ -250,7 +240,7 @@ export default function NewEstimatePage() {
                   </div>
                   <div className="grid gap-2 md:col-span-2 lg:col-span-3">
                       <Label htmlFor="title">Estimate Title</Label>
-                      <Input id="title" placeholder="e.g., HVAC Repair" value={estimateTitle} onChange={e => setEstimateTitle(e.target.value)} required />
+                      <Input id="title-input" placeholder="e.g., HVAC Repair" value={estimateTitle} onChange={e => setEstimateTitle(e.target.value)} required />
                   </div>
                 </CardContent>
             </Card>
