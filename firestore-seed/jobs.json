@@ -1,0 +1,15 @@
+{
+    "job_001": {
+      "customerId": "cust_001",
+      "technicianId": "tech_001",
+      "serviceType": "Plumbing",
+      "status": "scheduled",
+      "scheduledStart": "2025-07-21T08:00:00Z",
+      "scheduledEnd": "2025-07-21T10:00:00Z",
+      "duration": 120,
+      "title": "Fix Leak",
+      "description": "Repair kitchen sink",
+      "createdAt": "2025-07-17T00:00:00Z",
+      "updatedAt": "2025-07-17T00:00:00Z"
+    }
+  }

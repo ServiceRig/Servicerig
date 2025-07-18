@@ -1,0 +1,10 @@
+{
+    "cust_001": {
+      "name": "John Doe",
+      "phone": "555-1234",
+      "email": "john@example.com",
+      "address": "123 Main St",
+      "createdAt": "2025-07-17T00:00:00Z",
+      "updatedAt": "2025-07-17T00:00:00Z"
+    }
+  }

@@ -1,0 +1,12 @@
+{
+    "est_001": {
+      "customerId": "cust_001",
+      "tiers": {
+        "good": "Basic repair",
+        "better": "Standard fix",
+        "best": "Full system upgrade"
+      },
+      "aiTrained": true,
+      "createdAt": "2025-07-17T00:00:00Z"
+    }
+  }

@@ -1,0 +1,11 @@
+{
+    "item_001": {
+      "category": "Plumbing",
+      "name": "Pipe Replacement",
+      "description": "Replace damaged pipe",
+      "basePrice": 100,
+      "cost": 60,
+      "taxable": true,
+      "createdAt": "2025-07-17T00:00:00Z"
+    }
+  }

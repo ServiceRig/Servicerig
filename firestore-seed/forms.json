@@ -1,0 +1,18 @@
+{
+    "form_001": {
+      "name": "Safety Checklist",
+      "type": "safety",
+      "fields": [
+        {
+          "label": "Wore PPE",
+          "type": "boolean"
+        },
+        {
+          "label": "Checked tools",
+          "type": "boolean"
+        }
+      ],
+      "submittedBy": "tech_001",
+      "submittedAt": "2025-07-17T00:00:00Z"
+    }
+  }

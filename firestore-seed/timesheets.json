@@ -1,0 +1,12 @@
+{
+    "ts_001": {
+      "userId": "tech_001",
+      "weekStart": "2025-07-15T00:00:00Z",
+      "summary": {
+        "totalHours": 40,
+        "overtimeHours": 5,
+        "jobsWorked": 8
+      },
+      "reviewed": false
+    }
+  }

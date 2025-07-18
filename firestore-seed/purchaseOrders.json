@@ -1,0 +1,17 @@
+{
+    "po_001": {
+      "requestedBy": "admin_001",
+      "vendor": "Ferguson",
+      "items": [
+        {
+          "name": "Pipe",
+          "quantity": 10,
+          "unitCost": 5.5
+        }
+      ],
+      "totalAmount": 55.0,
+      "status": "requested",
+      "createdAt": "2025-07-17T00:00:00Z",
+      "updatedAt": "2025-07-17T00:00:00Z"
+    }
+  }

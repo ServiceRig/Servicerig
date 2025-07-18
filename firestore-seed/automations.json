@@ -1,0 +1,12 @@
+{
+    "auto_001": {
+      "trigger": "invoice_paid",
+      "action": "send_email",
+      "config": {
+        "templateId": "email_001"
+      },
+      "active": true,
+      "createdAt": "2025-07-17T00:00:00Z",
+      "updatedAt": "2025-07-17T00:00:00Z"
+    }
+  }
