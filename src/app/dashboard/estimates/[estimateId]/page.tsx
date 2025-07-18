@@ -8,12 +8,13 @@ import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { User, Calendar, Tag, Hash, FileText, DollarSign, Percent, Receipt } from 'lucide-react';
+import { User, Calendar, Tag, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Estimate } from '@/lib/types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { convertEstimateToInvoice } from '@/app/actions';
 import { SubmitButton } from './SubmitButton';
+import { StatusUpdateButtons } from './StatusUpdateButtons';
 
 
 const getStatusStyles = (status: Estimate['status']) => {
@@ -73,13 +74,16 @@ export default async function EstimateDetailsPage({ params, searchParams }: { pa
         </div>
         <div className="flex gap-2">
             <Button variant="outline">Edit Estimate</Button>
-            <form action={convertAction}>
-                <SubmitButton
-                    label="Convert to Invoice"
-                    loadingLabel="Converting..."
-                    disabled={estimate.status === 'rejected'}
-                />
-            </form>
+            <StatusUpdateButtons estimate={estimate} />
+             {estimate.status === 'accepted' && (
+                <form action={convertAction}>
+                    <SubmitButton
+                        label="Convert to Invoice"
+                        loadingLabel="Converting..."
+                        disabled={estimate.status !== 'accepted'}
+                    />
+                </form>
+             )}
         </div>
       </div>
       

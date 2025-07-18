@@ -3,9 +3,10 @@
 import { generateTieredEstimates, type GenerateTieredEstimatesInput } from "@/ai/flows/generate-tiered-estimates";
 import { z } from "zod";
 import { getEstimateById } from "@/lib/firestore/estimates";
-import { mockInvoices } from "@/lib/mock-data";
+import { mockEstimates, mockInvoices } from "@/lib/mock-data";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import type { Estimate } from "@/lib/types";
 
 const tieredEstimatesSchema = z.object({
   jobDetails: z.string().min(10, "Job details must be at least 10 characters long."),
@@ -120,4 +121,36 @@ export async function convertEstimateToInvoice(estimateId: string) {
 
     // Redirect to the newly created invoice's detail page.
     redirect(`/dashboard/invoices/${newInvoiceId}`);
+}
+
+const updateStatusSchema = z.object({
+  estimateId: z.string(),
+  newStatus: z.enum(['draft', 'sent', 'accepted', 'rejected']),
+});
+
+export async function updateEstimateStatus(prevState: any, formData: FormData) {
+  const validatedFields = updateStatusSchema.safeParse({
+    estimateId: formData.get('estimateId'),
+    newStatus: formData.get('newStatus'),
+  });
+
+  if (!validatedFields.success) {
+    return { message: "Invalid data provided." };
+  }
+  
+  const { estimateId, newStatus } = validatedFields.data;
+
+  // In a real app, you'd use updateDoc here.
+  const estimateIndex = mockEstimates.findIndex(e => e.id === estimateId);
+  if (estimateIndex === -1) {
+    return { message: "Estimate not found." };
+  }
+
+  mockEstimates[estimateIndex].status = newStatus;
+  mockEstimates[estimateIndex].updatedAt = new Date();
+
+  console.log(`Updated estimate ${estimateId} to status ${newStatus}`);
+  
+  revalidatePath(`/dashboard/estimates/${estimateId}`);
+  return { message: `Estimate status updated to ${newStatus}.` };
 }
