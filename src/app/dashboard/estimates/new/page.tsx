@@ -133,10 +133,12 @@ export default function NewEstimatePage() {
   const handleAcceptEstimate = (selectedTier: TierData) => {
       setShowPresentation(false);
       console.log("Customer accepted tier:", selectedTier);
+      
       toast({
-          title: "Estimate Accepted!",
-          description: `Customer selected the "${selectedTier.title}" option for ${formatCurrency(selectedTier.price || 0)}. The details have been added to the estimate.`,
+          title: "Estimate Accepted by Customer!",
+          description: `The "${selectedTier.title}" option has been loaded. Review and save the final estimate.`,
       });
+
       // Set the main line items and price from the selected tier
       setLineItems([{ description: selectedTier.description, quantity: 1, unitPrice: selectedTier.price || 0 }]);
       setEstimateTitle(`${estimateTitle || 'Estimate'} - ${selectedTier.title} Option`);
