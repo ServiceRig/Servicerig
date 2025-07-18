@@ -31,7 +31,7 @@ export default function CustomersPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {mockCustomers.map((customer) => (
+              {(mockCustomers ?? []).map((customer) => (
                 <TableRow key={customer.id}>
                   <TableCell className="font-medium">{customer.primaryContact.name}</TableCell>
                   <TableCell>{customer.companyInfo.name}</TableCell>
