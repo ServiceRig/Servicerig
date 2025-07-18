@@ -277,10 +277,10 @@ export function ScheduleView({
                         <TabsContent value="day" className="h-full">
                             <DailyView jobs={jobs} technicians={technicians} onJobDrop={onJobDrop} onJobStatusChange={onJobStatusChange} currentDate={currentDate}/>
                         </TabsContent>
-                        <TabsContent value="week">
+                        <TabsContent value="week" className="h-full">
                              <WeeklyView jobs={jobs} technicians={technicians} onJobDrop={onJobDrop} onJobStatusChange={onJobStatusChange} currentDate={currentDate} />
                         </TabsContent>
-                        <TabsContent value="technician">
+                        <TabsContent value="technician" className="h-full">
                             <TechnicianView jobs={jobs} technicians={technicians} onJobDrop={onJobDrop} onJobStatusChange={onJobStatusChange} currentDate={currentDate} />
                         </TabsContent>
                     </CardContent>
