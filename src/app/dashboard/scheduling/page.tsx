@@ -11,7 +11,7 @@ import { addDays } from 'date-fns';
 
 // This is a placeholder for a real Firestore hook
 const useMockFirestore = () => {
-  const [allJobs, setAllJobs] = useState<Job[]>(mockJobs);
+  const [allJobs, setAllJobs] = useState<Job[]>([]);
   const [customers, ] = useState<Customer[]>(mockCustomers);
   const [technicians, ] = useState<Technician[]>(mockTechnicians);
   const [loading, setLoading] = useState(true);
@@ -19,6 +19,7 @@ const useMockFirestore = () => {
   useEffect(() => {
     // Simulate fetching data
     setTimeout(() => {
+      setAllJobs(mockJobs);
       setLoading(false);
     }, 500);
   }, []);
@@ -39,10 +40,10 @@ const useMockFirestore = () => {
 
         // Default duration for unscheduled jobs, otherwise keep original duration
         let durationMs: number;
-        if (jobToMove.status === 'unscheduled') {
+        if (jobToMove.status === 'unscheduled' || !jobToMove.schedule.end) {
             durationMs = 60 * 60 * 1000; // 1 hour
         } else {
-            durationMs = jobToMove.schedule.end.getTime() - jobToMove.schedule.start.getTime();
+            durationMs = new Date(jobToMove.schedule.end).getTime() - new Date(jobToMove.schedule.start).getTime();
         }
 
         const newEndTime = new Date(snappedStartTime.getTime() + durationMs);
@@ -83,7 +84,7 @@ export default function SchedulingPage() {
     setCurrentDate(prevDate => addDays(prevDate, increment * sign));
   };
 
-  const enrichedJobs = jobs.map(job => {
+  const enrichedJobs = (jobs || []).map(job => {
     const customer = customers.find(c => c.id === job.customerId);
     const technician = technicians.find(t => t.id === job.technicianId);
     return {
