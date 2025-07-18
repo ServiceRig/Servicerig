@@ -30,7 +30,7 @@ const InfoRow = ({ icon: Icon, label, children }: { icon: React.ElementType, lab
         <Icon className="h-5 w-5 text-muted-foreground mt-1" />
         <div className="flex-grow">
             <p className="text-sm text-muted-foreground">{label}</p>
-            <p className="font-medium">{children}</p>
+            <div className="font-medium">{children}</div>
         </div>
     </div>
 );
