@@ -79,7 +79,7 @@ export function CustomerPresentationView({ isOpen, onOpenChange, tiers, onAccept
                                         variant={isSelected ? 'default' : 'outline'}
                                     >
                                         {isSelected && <Check className="mr-2 h-5 w-5" />}
-                                        Select {tier.title}
+                                        Accept Option
                                     </Button>
                                </CardFooter>
                            </Card>
@@ -90,13 +90,13 @@ export function CustomerPresentationView({ isOpen, onOpenChange, tiers, onAccept
                 {selectedTier && (
                      <DialogFooter className="border-t pt-6 mt-4 flex-col sm:flex-col sm:justify-center items-center gap-4">
                         <div className="w-full max-w-md">
-                            <Label htmlFor="signature" className="text-lg font-semibold">Customer Signature</Label>
+                            <Label htmlFor="signature" className="text-lg font-semibold">Customer Signature (Required)</Label>
                             <div id="signature" className="w-full h-32 mt-2 bg-muted rounded-md flex items-center justify-center border-2 border-dashed">
                                 <p className="text-muted-foreground">Signature Pad Placeholder</p>
                             </div>
                         </div>
                         <Button size="lg" onClick={handleAccept} className="w-full max-w-md bg-accent hover:bg-accent/90 text-xl py-7">
-                           <Signature className="mr-2 h-6 w-6"/> Accept Estimate for {formatCurrency(selectedTier.price)}
+                           <Signature className="mr-2 h-6 w-6"/> Accept Estimate
                         </Button>
                      </DialogFooter>
                 )}
