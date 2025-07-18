@@ -17,7 +17,7 @@ const navItems = [
     { href: "/dashboard/scheduling", icon: Calendar, label: "Scheduling" },
     { href: "/dashboard/my-schedule", icon: UserSquare, label: "My Schedule" },
     { href: "/dashboard/customers", icon: Users, label: "Customers" },
-    { href: "/dashboard/reports", icon: BarChart3, label: "Reports" },
+    { href: "/dashboard/reports", icon: BarChart3, label: "KPIs / Reports" },
     { href: "/dashboard/price-book", icon: Book, label: "Price Book" },
     { href: "/dashboard/inventory", icon: Warehouse, label: "Inventory" },
     { href: "/dashboard/estimates", icon: Calculator, label: "Estimates" },
