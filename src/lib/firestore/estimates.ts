@@ -59,7 +59,7 @@ export async function getEstimatesByJobId(jobId: string): Promise<Estimate[]> {
  * @param estimate The estimate object to add.
  */
 export async function addEstimate(estimate: Estimate) {
-    console.log("Adding estimate via server action:", estimate.id)
+    console.log("Adding estimate to DB:", estimate.id)
     // Add to the beginning of the array so it's visible on the list
     mockEstimates.unshift(estimate);
     await new Promise(resolve => setTimeout(resolve, 100));

@@ -40,6 +40,13 @@ export default function NewEstimateTemplatePage() {
     const [gbbTier, setGbbTier] = useState<GbbTier>({ good: '', better: '', best: '' });
 
     useEffect(() => {
+        if (state?.success) {
+            toast({
+                title: 'Success',
+                description: 'Estimate template created successfully.',
+            });
+            router.push(`/dashboard/settings/estimates?role=${role || 'admin'}`);
+        }
         if (state?.message && !state.success) {
             toast({
                 variant: 'destructive',

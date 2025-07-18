@@ -181,7 +181,7 @@ export default function NewEstimatePage() {
       formData.append('estimateData', JSON.stringify(payload));
       formAction(formData);
 
-  }, [estimateTitle, getEstimatePayload, formAction]);
+  }, [estimateTitle, getEstimatePayload, formAction, toast]);
 
 
   return (

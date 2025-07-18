@@ -211,5 +211,6 @@ export async function createEstimateTemplateAction(prevState: any, formData: For
         console.error(error);
         return { success: false, message: 'Failed to create template.' };
     }
-    redirect('/dashboard/settings/estimates');
+    
+    return { success: true };
 }
