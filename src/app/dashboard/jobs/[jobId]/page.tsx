@@ -8,9 +8,10 @@ import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { Clock, Calendar, User, Building, Phone, Mail, MapPin, Wrench, FileText, ChevronRight } from 'lucide-react';
+import { Clock, Calendar, User, Building, Phone, Mail, MapPin, Wrench, FileText, ChevronRight, Calculator } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Job } from '@/lib/types';
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
 
 const getStatusStyles = (status: Job['status']) => {
   switch (status) {
@@ -35,6 +36,10 @@ const InfoRow = ({ icon: Icon, label, children }: { icon: React.ElementType, lab
     </div>
 );
 
+const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+}
+
 export default async function JobDetailsPage({ params }: { params: { jobId: string } }) {
   const jobId = params.jobId;
   const data = await getJobData(jobId);
@@ -43,7 +48,7 @@ export default async function JobDetailsPage({ params }: { params: { jobId: stri
     notFound();
   }
 
-  const { job, customer, technician } = data;
+  const { job, customer, technician, estimates } = data;
   const duration = (new Date(job.schedule.end).getTime() - new Date(job.schedule.start).getTime()) / (1000 * 60);
 
   return (
@@ -79,7 +84,7 @@ export default async function JobDetailsPage({ params }: { params: { jobId: stri
                     {job.details.serviceType}
                 </InfoRow>
                 <InfoRow icon={FileText} label="Description">
-                    <p className="whitespace-pre-wrap">{job.description}</p>
+                    <div className="whitespace-pre-wrap">{job.description}</div>
                 </InfoRow>
             </CardContent>
           </Card>
@@ -97,6 +102,45 @@ export default async function JobDetailsPage({ params }: { params: { jobId: stri
                 </InfoRow>
             </CardContent>
           </Card>
+
+          {estimates.length > 0 && (
+             <Card>
+                <CardHeader>
+                    <CardTitle>Linked Estimates</CardTitle>
+                </CardHeader>
+                <CardContent>
+                     <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Estimate #</TableHead>
+                                <TableHead>Title</TableHead>
+                                <TableHead>Status</TableHead>
+                                <TableHead className="text-right">Amount</TableHead>
+                                <TableHead className="text-right">Action</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {estimates.map((estimate) => (
+                                <TableRow key={estimate.id}>
+                                    <TableCell>{estimate.estimateNumber}</TableCell>
+                                    <TableCell className="font-medium">{estimate.title}</TableCell>
+                                    <TableCell>
+                                        <Badge variant={estimate.status === 'accepted' ? 'default' : 'secondary'} className={cn({'bg-green-500': estimate.status === 'accepted'})}>{estimate.status}</Badge>
+                                    </TableCell>
+                                    <TableCell className="text-right">{formatCurrency(estimate.total)}</TableCell>
+                                    <TableCell className="text-right">
+                                        <Button asChild variant="outline" size="sm">
+                                            <Link href={`/dashboard/estimates/${estimate.id}`}>View Estimate</Link>
+                                        </Button>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
+          )}
+
         </div>
 
         {/* Side Content - Right Column */}
@@ -139,7 +183,7 @@ export default async function JobDetailsPage({ params }: { params: { jobId: stri
             <CardContent>
                  <Button variant="outline" className="w-full justify-between" asChild>
                     <Link href="#">
-                        <span>View Estimate</span>
+                        <span>View Invoice</span>
                         <ChevronRight className="h-4 w-4" />
                     </Link>
                 </Button>

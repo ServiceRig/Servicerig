@@ -2,6 +2,7 @@
 
 import { mockCustomers, mockJobs, mockEquipment, mockInvoices, mockTechnicians, mockEstimates } from './mock-data';
 import { getJobsByCustomerId } from './firestore/jobs';
+import { getEstimatesByCustomerId, getEstimatesByJobId } from './firestore/estimates';
 import type { CustomerData, JobData, EstimateData } from './types';
 
 // In a real app, these would be Firestore SDK calls (getDoc, getDocs, query, where).
@@ -18,6 +19,7 @@ export async function getCustomerData(customerId: string): Promise<CustomerData 
   const jobsForCustomer = await getJobsByCustomerId(customerId);
   const equipmentForCustomer = mockEquipment.filter(e => e.customerId === customerId);
   const invoicesForCustomer = mockInvoices.filter(i => i.customerId === customerId);
+  const estimatesForCustomer = await getEstimatesByCustomerId(customerId);
   
   // Enrich job data with technician names
   const enrichedJobs = jobsForCustomer.map(job => {
@@ -39,6 +41,7 @@ export async function getCustomerData(customerId: string): Promise<CustomerData 
     customer,
     equipment: equipmentForCustomer,
     jobs: enrichedJobs,
+    estimates: estimatesForCustomer,
     totals: {
       totalBilled,
       totalPaid,
@@ -46,7 +49,7 @@ export async function getCustomerData(customerId: string): Promise<CustomerData 
     },
     linkedRecords: {
       purchaseOrders: 2, // Placeholder
-      estimates: 1, // Placeholder
+      estimates: estimatesForCustomer.length,
       invoices: invoicesForCustomer.length,
       completedForms: 3, // Placeholder
     },
@@ -71,11 +74,13 @@ export async function getJobData(jobId: string): Promise<JobData | null> {
   }
 
   const technician = mockTechnicians.find(t => t.id === job.technicianId);
+  const estimates = await getEstimatesByJobId(jobId);
 
   const jobData: JobData = {
     job,
     customer,
     technician: technician || null, // A job might not have a technician
+    estimates: estimates,
   };
 
   // Simulate network delay

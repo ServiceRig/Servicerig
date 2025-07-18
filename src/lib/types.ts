@@ -256,6 +256,7 @@ export interface CustomerData {
   customer: Customer;
   equipment: Equipment[];
   jobs: (Job & { technicianName: string })[];
+  estimates: Estimate[];
   totals: CustomerTotals;
   linkedRecords: CustomerLinkedRecords;
 }
@@ -264,6 +265,7 @@ export interface JobData {
     job: Job;
     customer: Customer;
     technician: Technician | null;
+    estimates: Estimate[];
 }
 
 export interface EstimateData {
