@@ -1,12 +1,14 @@
 
+'use client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Job } from "@/lib/types";
+import { Job, UserRole } from "@/lib/types";
 import { format } from "date-fns";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { useRole } from "@/hooks/use-role";
 
 const getStatusStyles = (status: Job['status']) => {
   switch (status) {
@@ -22,6 +24,12 @@ const getStatusStyles = (status: Job['status']) => {
 };
 
 export function CustomerServiceHistory({ jobs }: { jobs: (Job & { technicianName: string })[] }) {
+  const { role } = useRole();
+
+  const getHref = (jobId: string) => {
+    return `/dashboard/jobs/${jobId}?role=${role || UserRole.Admin}`
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -53,7 +61,7 @@ export function CustomerServiceHistory({ jobs }: { jobs: (Job & { technicianName
                   </TableCell>
                   <TableCell className="text-right">
                     <Button asChild variant="outline" size="sm">
-                      <Link href={`/dashboard/jobs/${job.id}`}>View Job</Link>
+                      <Link href={getHref(job.id)}>View Job</Link>
                     </Button>
                   </TableCell>
                 </TableRow>
