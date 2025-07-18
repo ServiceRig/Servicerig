@@ -59,13 +59,12 @@ const useMockFirestore = () => {
 export default function SchedulingPage() {
   const { jobs, customers, technicians, loading, moveJob, updateJobStatus } = useMockFirestore();
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [activeView, setActiveView] = useState('week');
 
-  const handlePreviousWeek = () => {
-    setCurrentDate(prevDate => addDays(prevDate, -7));
-  };
-
-  const handleNextWeek = () => {
-    setCurrentDate(prevDate => addDays(prevDate, 7));
+  const handleDateNavigation = (direction: 'prev' | 'next') => {
+    const increment = activeView === 'day' ? 1 : 7;
+    const sign = direction === 'prev' ? -1 : 1;
+    setCurrentDate(prevDate => addDays(prevDate, increment * sign));
   };
 
   const enrichedJobs = jobs.map(job => {
@@ -96,8 +95,10 @@ export default function SchedulingPage() {
               onJobStatusChange={updateJobStatus}
               currentDate={currentDate}
               onCurrentDateChange={setCurrentDate}
-              onPreviousWeek={handlePreviousWeek}
-              onNextWeek={handleNextWeek}
+              onPrevious={handleDateNavigation.bind(null, 'prev')}
+              onNext={handleDateNavigation.bind(null, 'next')}
+              activeView={activeView}
+              onActiveViewChange={setActiveView}
           />
       </div>
     </DndProvider>

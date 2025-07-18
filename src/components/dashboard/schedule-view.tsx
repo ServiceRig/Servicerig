@@ -197,8 +197,10 @@ interface ScheduleViewProps {
     onJobStatusChange: (jobId: string, newStatus: Job['status']) => void;
     currentDate: Date;
     onCurrentDateChange: (date: Date) => void;
-    onPreviousWeek: () => void;
-    onNextWeek: () => void;
+    onPrevious: () => void;
+    onNext: () => void;
+    activeView: string;
+    onActiveViewChange: (view: string) => void;
 }
 
 
@@ -210,14 +212,16 @@ export function ScheduleView({
     onJobStatusChange, 
     currentDate, 
     onCurrentDateChange,
-    onPreviousWeek,
-    onNextWeek
+    onPrevious,
+    onNext,
+    activeView,
+    onActiveViewChange,
 }: ScheduleViewProps) {
     return (
         <div className="flex flex-col md:flex-row gap-4 h-full">
             <UnscheduledJobsPanel jobs={unscheduledJobs} />
             <Card className="flex-grow h-full">
-                <Tabs defaultValue="week" className="h-full flex flex-col">
+                <Tabs value={activeView} onValueChange={onActiveViewChange} className="h-full flex flex-col">
                     <CardHeader className="flex-row items-center justify-between">
                         <div className="flex items-center gap-4">
                             <div>
@@ -228,9 +232,9 @@ export function ScheduleView({
                                 <TooltipProvider>
                                     <Tooltip>
                                         <TooltipTrigger asChild>
-                                            <Button variant="outline" size="icon" onClick={onPreviousWeek}><ChevronLeft className="h-4 w-4" /></Button>
+                                            <Button variant="outline" size="icon" onClick={onPrevious}><ChevronLeft className="h-4 w-4" /></Button>
                                         </TooltipTrigger>
-                                        <TooltipContent><p>Previous Week</p></TooltipContent>
+                                        <TooltipContent><p>Previous</p></TooltipContent>
                                     </Tooltip>
                                 </TooltipProvider>
                                  <Popover>
@@ -258,9 +262,9 @@ export function ScheduleView({
                                 <TooltipProvider>
                                     <Tooltip>
                                         <TooltipTrigger asChild>
-                                            <Button variant="outline" size="icon" onClick={onNextWeek}><ChevronRight className="h-4 w-4" /></Button>
+                                            <Button variant="outline" size="icon" onClick={onNext}><ChevronRight className="h-4 w-4" /></Button>
                                         </TooltipTrigger>
-                                        <TooltipContent><p>Next Week</p></TooltipContent>
+                                        <TooltipContent><p>Next</p></TooltipContent>
                                     </Tooltip>
                                 </TooltipProvider>
                             </div>
