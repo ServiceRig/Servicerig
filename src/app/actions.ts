@@ -8,6 +8,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import type { Estimate } from "@/lib/types";
 import { addEstimateTemplate } from "@/lib/firestore/templates";
+import { mockCustomers } from "@/lib/mock-data";
 
 const tieredEstimatesSchema = z.object({
   jobDetails: z.string().min(10, "Job details must be at least 10 characters long."),
@@ -79,19 +80,32 @@ const addEstimateSchema = z.object({
 });
 
 export async function addEstimate(prevState: any, formData: FormData) {
-    const validatedFields = addEstimateSchema.safeParse({
-        estimateData: formData.get('estimateData'),
-    });
-    
-    if (!validatedFields.success) {
-        return { success: false, message: 'Invalid estimate data provided.' };
-    }
-
+    let newEstimateId = '';
     try {
+        const validatedFields = addEstimateSchema.safeParse({
+            estimateData: formData.get('estimateData'),
+        });
+        
+        if (!validatedFields.success) {
+             console.error("Validation failed:", validatedFields.error);
+            return { success: false, message: 'Invalid estimate data provided.' };
+        }
+
         const newEstimate: Omit<Estimate, 'id' | 'estimateNumber' | 'createdAt' | 'updatedAt'> = validatedFields.data.estimateData;
         
+        if (!newEstimate.customerId) {
+            return { success: false, message: 'Customer ID is missing.' };
+        }
+        
+        const customer = mockCustomers.find(c => c.id === newEstimate.customerId);
+        if (!customer) {
+            return { success: false, message: 'Customer not found.' };
+        }
+        
+        newEstimateId = `est_${Math.random().toString(36).substring(2, 9)}`;
+
         const finalEstimate: Estimate = {
-            id: `est_${Math.random().toString(36).substring(2, 9)}`,
+            id: newEstimateId,
             estimateNumber: `EST-${Math.floor(Math.random() * 9000) + 1000}`,
             ...newEstimate,
             createdAt: new Date(),
@@ -101,12 +115,13 @@ export async function addEstimate(prevState: any, formData: FormData) {
         await addEstimateToDb(finalEstimate);
         revalidatePath('/dashboard/estimates');
         revalidatePath(`/dashboard/estimates/${finalEstimate.id}`);
+
     } catch (error) {
-        console.error(error);
+        console.error("Error in addEstimate action:", error);
         return { success: false, message: 'Failed to create estimate.' };
     }
     
-    redirect('/dashboard/estimates');
+    redirect(`/dashboard/estimates/${newEstimateId}`);
 }
 
 

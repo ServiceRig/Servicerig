@@ -27,7 +27,7 @@ const formatCurrency = (amount: number) => {
 function SubmitButton({ disabled }: { disabled?: boolean }) {
     const { pending } = useFormStatus();
     return (
-        <Button type="submit" disabled={pending || disabled}>
+        <Button type="submit" disabled={pending || disabled} form="estimate-form">
             {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
             {pending ? 'Saving...' : 'Save as Draft'}
         </Button>
@@ -193,6 +193,18 @@ export default function NewEstimatePage() {
           description: `Creating estimate "${acceptedTitle}"...`,
       });
 
+      // We manually create a form and submit it to trigger the server action
+      const form = document.createElement('form');
+      form.action = formAction.toString();
+      form.method = 'post';
+      
+      const hiddenInput = document.createElement('input');
+      hiddenInput.type = 'hidden';
+      hiddenInput.name = 'estimateData';
+      hiddenInput.value = JSON.stringify(payload);
+      form.appendChild(hiddenInput);
+
+      document.body.appendChild(form);
       formAction(formData);
 
   }, [estimateTitle, getEstimatePayload, formAction, toast]);
@@ -207,7 +219,7 @@ export default function NewEstimatePage() {
         onAccept={handleAcceptEstimate}
     />
     <div className="space-y-6">
-      <form action={formAction}>
+      <form id="estimate-form" action={formAction}>
         <input type="hidden" name="estimateData" value={JSON.stringify(getEstimatePayload('draft'))} />
         <div className="flex items-center justify-between">
             <div>

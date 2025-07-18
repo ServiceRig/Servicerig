@@ -5,7 +5,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { mockEstimates } from '@/lib/mock-data';
+import { mockData } from '@/lib/mock-data';
 import { format } from 'date-fns';
 import { cn, getEstimateStatusStyles } from '@/lib/utils';
 import type { Estimate } from '@/lib/types';
@@ -25,7 +25,7 @@ export default function EstimatesPage() {
     useEffect(() => {
         // This is a workaround for mock data to "re-fetch" when navigated to.
         // In a real app with Firestore, this would be a real-time listener or a fetch call.
-        setEstimates([...mockEstimates].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+        setEstimates([...mockData.estimates].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
     }, []);
 
 
