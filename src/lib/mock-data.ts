@@ -1,5 +1,5 @@
 
-import { Customer, Invoice, Job, Technician, UserRole } from './types';
+import { Customer, Invoice, Job, Technician, UserRole, Equipment } from './types';
 
 export const mockTechnicians: Technician[] = [
   { id: 'tech1', name: 'John Doe', role: UserRole.Technician },
@@ -12,17 +12,23 @@ export const mockCustomers: Customer[] = [
   {
     id: 'cust1',
     primaryContact: { name: 'Alice Williams', email: 'alice@example.com', phone: '123-456-7890' },
-    companyInfo: { name: 'Innovate Inc.', address: '123 Tech Park' },
+    companyInfo: { name: 'Innovate Inc.', address: '123 Tech Park, Silicon Valley, CA 94000' },
+    createdAt: new Date(),
+    updatedAt: new Date(),
   },
   {
     id: 'cust2',
     primaryContact: { name: 'Bob Davis', email: 'bob@example.com', phone: '234-567-8901' },
-    companyInfo: { name: 'Solutions Corp.', address: '456 Business Blvd' },
+    companyInfo: { name: 'Solutions Corp.', address: '456 Business Blvd, Metropolis, IL 62960' },
+    createdAt: new Date(),
+    updatedAt: new Date(),
   },
     {
     id: 'cust3',
     primaryContact: { name: 'Charlie Miller', email: 'charlie@example.com', phone: '345-678-9012' },
-    companyInfo: { name: 'Gadgets & More', address: '789 Market St' },
+    companyInfo: { name: 'Gadgets & More', address: '789 Market St, Gotham, NY 10001' },
+    createdAt: new Date(),
+    updatedAt: new Date(),
   },
 ];
 
@@ -41,10 +47,14 @@ export const mockJobs: Job[] = [
     customerId: 'cust1',
     technicianId: 'tech1',
     schedule: { start: new Date(getDay(1).setHours(9, 0, 0, 0)), end: new Date(getDay(1).setHours(11, 0, 0, 0)) },
-    status: 'scheduled',
+    status: 'complete',
     title: 'HVAC Tune-up',
     description: 'Annual maintenance for HVAC system.',
     details: { serviceType: 'HVAC Maintenance' },
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    duration: 120,
+    invoiceId: 'inv1',
   },
   {
     id: 'job2',
@@ -55,16 +65,22 @@ export const mockJobs: Job[] = [
     title: 'Leaky Faucet',
     description: 'Repair leaky faucet in master bathroom.',
     details: { serviceType: 'Plumbing Repair' },
+     createdAt: new Date(),
+    updatedAt: new Date(),
+    duration: 150,
   },
   {
     id: 'job3',
     customerId: 'cust1',
     technicianId: 'tech1',
     schedule: { start: new Date(getDay(2).setHours(13, 0, 0, 0)), end: new Date(getDay(2).setHours(14, 30, 0, 0)) },
-    status: 'complete',
+    status: 'scheduled',
     title: 'Panel Upgrade',
     description: 'Upgrade main electrical panel.',
     details: { serviceType: 'Electrical Inspection' },
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    duration: 90,
   },
    {
     id: 'job4',
@@ -75,6 +91,9 @@ export const mockJobs: Job[] = [
     title: 'Dishwasher Install',
     description: 'Install new Bosch dishwasher.',
     details: { serviceType: 'Appliance Installation' },
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    duration: 120,
   },
   {
     id: 'job5',
@@ -85,6 +104,9 @@ export const mockJobs: Job[] = [
     title: 'Router Setup',
     description: 'Setup new office network router.',
     details: { serviceType: 'Network Setup' },
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    duration: 120,
   },
   {
     id: 'job6',
@@ -95,6 +117,9 @@ export const mockJobs: Job[] = [
     title: 'Quote for AC',
     description: 'Provide quote for new AC unit.',
     details: { serviceType: 'Estimate' },
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    duration: 60,
   },
   {
     id: 'job7',
@@ -105,6 +130,9 @@ export const mockJobs: Job[] = [
     title: 'Fix Garage Door',
     description: 'Garage door opener not working.',
     details: { serviceType: 'Repair' },
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    duration: 60,
   }
 ];
 
@@ -113,11 +141,13 @@ export const mockInvoices: Invoice[] = [
     id: 'inv1',
     invoiceNumber: 'INV-001',
     customerId: 'cust1',
+    jobId: 'job1',
     customerName: 'Innovate Inc.',
     amount: 1500.00,
     status: 'Paid',
     issueDate: new Date(),
     dueDate: new Date(),
+    createdAt: new Date(),
   },
   {
     id: 'inv2',
@@ -128,6 +158,7 @@ export const mockInvoices: Invoice[] = [
     status: 'Overdue',
     issueDate: new Date(),
     dueDate: new Date(),
+    createdAt: new Date(),
   },
   {
     id: 'inv3',
@@ -138,5 +169,36 @@ export const mockInvoices: Invoice[] = [
     status: 'Paid',
     issueDate: new Date(),
     dueDate: new Date(),
+    createdAt: new Date(),
   }
 ];
+
+export const mockEquipment: Equipment[] = [
+    {
+        id: 'equip1',
+        customerId: 'cust1',
+        make: 'Carrier',
+        model: '59MN7A',
+        serial: 'SN12345ABC',
+        notes: 'Main HVAC unit for the primary building. Installed 2021.',
+        installedDate: new Date('2021-06-15'),
+    },
+    {
+        id: 'equip2',
+        customerId: 'cust1',
+        make: 'Rheem',
+        model: 'XE50M12',
+        serial: 'SN67890DEF',
+        notes: 'Water heater, 50-gallon capacity.',
+        installedDate: new Date('2021-06-15'),
+    },
+     {
+        id: 'equip3',
+        customerId: 'cust2',
+        make: 'Generac',
+        model: 'Guardian 22kW',
+        serial: 'SN55511GHI',
+        notes: 'Backup generator for server room.',
+        installedDate: new Date('2022-01-20'),
+    }
+]

@@ -36,17 +36,12 @@ export type Technician = {
 // Customer model from /customers/{customerId}
 export type Customer = {
   id: string;
-  name: string;
-  phone: string;
-  email: string;
-  address: string;
+  primaryContact: { name: string; email: string; phone: string };
+  companyInfo: { name: string; address: string };
   notes?: string;
   equipmentIds?: string[];
   createdAt: Timestamp | Date;
   updatedAt: Timestamp | Date;
-  // For UI enrichment
-  primaryContact: { name: string; email: string; phone: string };
-  companyInfo: { name: string; address: string };
 };
 
 
@@ -55,7 +50,6 @@ export type Job = {
   id: string;
   customerId: string;
   technicianId: string;
-  serviceType: string;
   status: 'unscheduled' | 'scheduled' | 'in_progress' | 'complete';
   schedule: {
     start: Date;
@@ -95,7 +89,7 @@ export interface ServiceAgreement {
 // Invoice model from /invoices/{invoiceId}
 export type Invoice = {
   id: string;
-  jobId: string;
+  jobId?: string;
   customerId: string;
   amount: number;
   status: 'draft' | 'sent' | 'paid' | 'overdue';
@@ -110,13 +104,14 @@ export type Invoice = {
 
 
 // Equipment model from /equipment/{equipmentId}
-export interface Equipment {
+export type Equipment = {
+  id: string;
   customerId: string;
-  type: string;
+  make: string;
   model: string;
-  serialNumber: string;
-  notes?: string;
-  installedDate?: Timestamp;
+  serial: string;
+  notes: string;
+  installedDate?: Timestamp | Date;
 }
 
 // Timecard model from /timecards/{userId}_{weekId}
@@ -214,4 +209,27 @@ export interface Timesheet {
     jobsWorked: number;
   };
   reviewed: boolean;
+}
+
+// --- Specific to Customer Details Page ---
+
+export interface CustomerTotals {
+  totalBilled: number;
+  totalPaid: number;
+  totalDirectExpenses: number;
+}
+
+export interface CustomerLinkedRecords {
+  purchaseOrders: number;
+  estimates: number;
+  invoices: number;
+  completedForms: number;
+}
+
+export interface CustomerData {
+  customer: Customer;
+  equipment: Equipment[];
+  jobs: (Job & { technicianName: string })[];
+  totals: CustomerTotals;
+  linkedRecords: CustomerLinkedRecords;
 }
