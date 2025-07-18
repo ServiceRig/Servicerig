@@ -1,8 +1,9 @@
 
 'use client';
 
-import { useState, useEffect, useMemo, useCallback, useActionState, useFormStatus } from 'react';
+import { useState, useEffect, useMemo, useCallback, useActionState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useFormStatus } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -110,12 +111,12 @@ export default function NewEstimatePage() {
   const grandTotal = useMemo(() => subtotalAfterDiscount + taxAmount, [subtotalAfterDiscount, taxRate]);
 
   useEffect(() => {
-    if (selectedCustomerId && estimateTitle) {
+    if (selectedCustomerId) {
       setIsFormSubmittable(true);
     } else {
       setIsFormSubmittable(false);
     }
-  }, [selectedCustomerId, estimateTitle]);
+  }, [selectedCustomerId]);
 
   const getEstimatePayload = useCallback((status: Estimate['status'] = 'draft', customLineItems?: LineItem[], customTitle?: string) => {
      const finalTitle = customTitle || estimateTitle;
@@ -188,8 +189,6 @@ export default function NewEstimatePage() {
   const handleAcceptEstimate = useCallback((formData: FormData) => {
       setShowPresentation(false);
       
-      const newFormData = new FormData();
-
       const acceptedTierString = formData.get('acceptedTier') as string;
       if (!acceptedTierString) {
         toast({ variant: 'destructive', title: 'Error', description: 'No accepted tier data found.' });
@@ -203,6 +202,7 @@ export default function NewEstimatePage() {
 
       const payload = getEstimatePayload('accepted', acceptedLineItems, acceptedTitle);
       
+      const newFormData = new FormData();
       newFormData.append('estimateData', JSON.stringify(payload));
       
       toast({
