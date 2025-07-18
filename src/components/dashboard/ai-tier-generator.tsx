@@ -1,5 +1,5 @@
 'use client';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState, useFormStatus } from 'react';
 import { runGenerateTieredEstimates } from '@/app/actions';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -27,7 +27,7 @@ interface AITierGeneratorProps {
 
 export function AITierGenerator({ onTiersGenerated }: AITierGeneratorProps) {
   const initialState = { message: null, errors: null, data: null };
-  const [state, dispatch] = useFormState(runGenerateTieredEstimates, initialState);
+  const [state, dispatch] = useActionState(runGenerateTieredEstimates, initialState);
   const { toast } = useToast();
 
   useEffect(() => {
