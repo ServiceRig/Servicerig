@@ -1,8 +1,8 @@
 
 'use client';
 
-import { useState, useEffect, useMemo, useCallback, useActionState } from 'react';
-import { useFormStatus } from 'react-dom';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useFormStatus, useActionState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,7 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Trash2, PlusCircle, Loader2, Save } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { mockData } from '@/lib/mock-data';
-import type { Customer, Job, EstimateTemplate, GbbTier, LineItem, Estimate } from '@/lib/types';
+import type { Customer, Job, EstimateTemplate, LineItem, Estimate } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { AITierGenerator, TierData } from '@/components/dashboard/ai-tier-generator';
 import { CustomerPresentationView } from '@/components/dashboard/customer-presentation-view';
@@ -186,23 +186,31 @@ export default function NewEstimatePage() {
     });
   };
 
-  const handleAcceptEstimate = useCallback((selectedTier: TierData) => {
+  const handleAcceptEstimate = useCallback((formData: FormData) => {
       setShowPresentation(false);
+
+      const acceptedTierString = formData.get('acceptedTier') as string;
+      if (!acceptedTierString) {
+        toast({ variant: 'destructive', title: 'Error', description: 'No accepted tier data found.' });
+        return;
+      }
+      
+      const selectedTier = JSON.parse(acceptedTierString);
       
       const acceptedLineItems = [{ description: selectedTier.description, quantity: 1, unitPrice: selectedTier.price || 0 }];
       const acceptedTitle = `${estimateTitle || 'Service Estimate'} - ${selectedTier.title} Option`;
 
       const payload = getEstimatePayload('accepted', acceptedLineItems, acceptedTitle);
       
-      const formData = new FormData();
-      formData.append('estimateData', JSON.stringify(payload));
+      const newFormData = new FormData();
+      newFormData.append('estimateData', JSON.stringify(payload));
       
       toast({
           title: "Estimate Accepted",
           description: `Creating estimate "${acceptedTitle}"...`,
       });
 
-      formAction(formData);
+      formAction(newFormData);
 
   }, [estimateTitle, getEstimatePayload, formAction, toast]);
 
