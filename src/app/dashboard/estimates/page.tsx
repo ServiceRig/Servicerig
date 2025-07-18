@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 import type { Estimate } from '@/lib/types';
 import { useRole } from '@/hooks/use-role';
 import { UserRole } from '@/lib/types';
+import { Plus } from 'lucide-react';
 
 
 const getStatusStyles = (status: Estimate['status']) => {
@@ -40,9 +41,17 @@ export default function EstimatesPage() {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Estimates</CardTitle>
-        <CardDescription>Manage your estimates.</CardDescription>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+          <CardTitle>Estimates</CardTitle>
+          <CardDescription>Manage your estimates.</CardDescription>
+        </div>
+        <Button asChild>
+            <Link href="/dashboard/estimates/new">
+                <Plus className="mr-2 h-4 w-4" />
+                Create Estimate
+            </Link>
+        </Button>
       </CardHeader>
       <CardContent>
           <Table>
