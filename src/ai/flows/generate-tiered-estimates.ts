@@ -18,10 +18,15 @@ const GenerateTieredEstimatesInputSchema = z.object({
 });
 export type GenerateTieredEstimatesInput = z.infer<typeof GenerateTieredEstimatesInputSchema>;
 
+const TierSchema = z.object({
+    description: z.string().describe('A comprehensive paragraph detailing the services offered in this tier.'),
+    price: z.number().describe('The total price for this tier.'),
+});
+
 const GenerateTieredEstimatesOutputSchema = z.object({
-  goodEstimate: z.string().describe('A basic estimate outlining essential services at a minimal cost.'),
-  betterEstimate: z.string().describe('A comprehensive estimate including additional services and features at a moderate cost.'),
-  bestEstimate: z.string().describe('A premium estimate offering top-tier services, enhanced features, and extended support at a higher cost.'),
+  good: TierSchema.describe('A basic estimate outlining essential services at a minimal cost.'),
+  better: TierSchema.describe('A comprehensive estimate including additional services and features at a moderate cost.'),
+  best: TierSchema.describe('A premium estimate offering top-tier services, enhanced features, and extended support at a higher cost.'),
 });
 export type GenerateTieredEstimatesOutput = z.infer<typeof GenerateTieredEstimatesOutputSchema>;
 
@@ -38,12 +43,9 @@ const prompt = ai.definePrompt({
 Job Details: {{{jobDetails}}}
 Customer History: {{{customerHistory}}}
 
-Generate a 'Good' estimate focusing on the essential services at the lowest possible price. Then, create a 'Better' estimate including additional services and features at a moderate price. Finally, develop a 'Best' estimate offering premium services, enhanced features, and extended support at a higher price. Each estimate should be a comprehensive paragraph.
+Generate a 'Good' estimate focusing on the essential services at the lowest possible price. Then, create a 'Better' estimate including additional services and features at a moderate price. Finally, develop a 'Best' estimate offering premium services, enhanced features, and extended support at a higher price. 
 
-Output should follow this format:
-Good Estimate: [Generated Good Estimate]
-Better Estimate: [Generated Better Estimate]
-Best Estimate: [Generated Best Estimate]`,
+**Crucially, each estimate MUST include a specific dollar amount for the price.** The description for each tier should be a comprehensive paragraph.`,
 });
 
 const generateTieredEstimatesFlow = ai.defineFlow(

@@ -1,9 +1,9 @@
 'use server';
 
-import { generateTieredEstimates, type GenerateTieredEstimatesInput } from "@/ai/flows/generate-tiered-estimates";
+import { generateTieredEstimates, type GenerateTieredEstimatesInput, type GenerateTieredEstimatesOutput } from "@/ai/flows/generate-tiered-estimates";
 import { z } from "zod";
 import { getEstimateById } from "@/lib/firestore/estimates";
-import { mockEstimates, mockInvoices } from "@/lib/mock-data";
+import { mockInvoices } from "@/lib/mock-data";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import type { Estimate, EstimateTemplate } from "@/lib/types";
@@ -20,11 +20,7 @@ type TieredEstimatesState = {
     jobDetails?: string[];
     customerHistory?: string[];
   } | null;
-  data?: {
-    goodEstimate: string;
-    betterEstimate: string;
-    bestEstimate: string;
-  } | null;
+  data?: GenerateTieredEstimatesOutput | null;
 }
 
 export async function getTieredEstimates(

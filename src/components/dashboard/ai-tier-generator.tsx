@@ -32,14 +32,6 @@ interface AITierGeneratorProps {
     onTiersFinalized: (tiers: TierData[]) => void;
 }
 
-const parsePrice = (description: string): number => {
-    const priceMatch = description.match(/\$(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/);
-    if (priceMatch && priceMatch[1]) {
-        return parseFloat(priceMatch[1].replace(/,/g, ''));
-    }
-    return 0;
-};
-
 export function AITierGenerator({ onTiersFinalized }: AITierGeneratorProps) {
   const initialState = { message: null, errors: null, data: null };
   const [state, dispatch] = useActionState(runGenerateTieredEstimates, initialState);
@@ -61,9 +53,9 @@ export function AITierGenerator({ onTiersFinalized }: AITierGeneratorProps) {
             description: "AI Tiers generated successfully. You can now edit them.",
         });
         setEditableTiers([
-            { title: 'Good', description: state.data.goodEstimate, price: parsePrice(state.data.goodEstimate) },
-            { title: 'Better', description: state.data.betterEstimate, price: parsePrice(state.data.betterEstimate) },
-            { title: 'Best', description: state.data.bestEstimate, price: parsePrice(state.data.bestEstimate) },
+            { title: 'Good', description: state.data.good.description, price: state.data.good.price },
+            { title: 'Better', description: state.data.better.description, price: state.data.better.price },
+            { title: 'Best', description: state.data.best.description, price: state.data.best.price },
         ]);
     }
   }, [state, toast]);
