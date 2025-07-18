@@ -95,6 +95,7 @@ export function AITierGenerator({ onTiersFinalized }: AITierGeneratorProps) {
                 />
                 {state?.errors?.jobDetails && <p className="text-sm font-medium text-destructive">{state.errors.jobDetails[0]}</p>}
             </div>
+             <input type="hidden" name="customerHistory" value="No history provided." />
              <GenerateButton />
         </CardContent>
       </form>
