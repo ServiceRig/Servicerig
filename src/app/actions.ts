@@ -101,11 +101,15 @@ export async function addEstimate(prevState: any, formData: FormData) {
 
         await addEstimateToDb(finalEstimate);
         revalidatePath('/dashboard/estimates');
-        return { success: true, message: `Estimate "${finalEstimate.title}" created successfully.` };
+        revalidatePath(`/dashboard/estimates/${finalEstimate.id}`);
+        // Instead of returning, we redirect here. The client will handle the navigation based on the form action result.
     } catch (error) {
         console.error(error);
         return { success: false, message: 'Failed to create estimate.' };
     }
+    
+    // On success, redirect to the estimates page.
+    redirect('/dashboard/estimates');
 }
 
 
@@ -211,9 +215,9 @@ export async function createEstimateTemplateAction(prevState: any, formData: For
     try {
         await addEstimateTemplate(validatedFields.data);
         revalidatePath('/dashboard/settings/estimates');
-        return { success: true, message: 'Template created successfully.' };
     } catch (error) {
         console.error(error);
         return { success: false, message: 'Failed to create template.' };
     }
+    redirect('/dashboard/settings/estimates');
 }

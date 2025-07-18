@@ -67,20 +67,14 @@ export default function NewEstimatePage() {
   }, []);
   
   useEffect(() => {
-    if (addEstimateState.success) {
-      toast({
-        title: 'Success!',
-        description: addEstimateState.message,
-      });
-      router.push(`/dashboard/estimates?role=${role || UserRole.Admin}`);
-    } else if (addEstimateState.message) {
+    if (addEstimateState?.message) {
       toast({
         variant: 'destructive',
         title: 'Error',
         description: addEstimateState.message,
       });
     }
-  }, [addEstimateState, router, toast, role]);
+  }, [addEstimateState, toast]);
 
   const filteredJobs = useMemo(() => {
     if (!selectedCustomerId) return [];
@@ -114,7 +108,7 @@ export default function NewEstimatePage() {
   const discountAmount = useMemo(() => subtotal * (discountRate / 100), [subtotal, discountRate]);
   const subtotalAfterDiscount = useMemo(() => subtotal - discountAmount, [subtotal, discountAmount]);
   const taxAmount = useMemo(() => subtotalAfterDiscount * (taxRate / 100), [subtotalAfterDiscount, taxRate]);
-  const grandTotal = useMemo(() => subtotalAfterDiscount + taxAmount, [subtotalAfterDiscount, taxAmount]);
+  const grandTotal = useMemo(() => subtotalAfterDiscount + taxAmount, [subtotalAfterDiscount, taxRate]);
 
   useEffect(() => {
     if (selectedCustomerId && estimateTitle) {
@@ -124,7 +118,7 @@ export default function NewEstimatePage() {
     }
   }, [selectedCustomerId, estimateTitle]);
 
-  const getEstimatePayload = (status: Estimate['status'] = 'draft', customLineItems?: LineItem[], customTitle?: string) => {
+  const getEstimatePayload = useCallback((status: Estimate['status'] = 'draft', customLineItems?: LineItem[], customTitle?: string) => {
      const finalTitle = customTitle || estimateTitle;
      const finalLineItems = customLineItems || lineItems;
      const finalSubtotal = finalLineItems.reduce((acc, item) => acc + (item.quantity * item.unitPrice), 0);
@@ -152,7 +146,7 @@ export default function NewEstimatePage() {
     };
 
     return payload;
-  }
+  }, [estimateTitle, lineItems, discountRate, taxRate, selectedCustomerId, selectedJobId, gbbTiers]);
   
   const handleTiersFinalized = useCallback((tiers: TierData[]) => {
     setGbbTiers(tiers);
