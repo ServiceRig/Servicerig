@@ -1,5 +1,5 @@
 
-import { Customer, Invoice, Job, Technician, UserRole, Equipment } from './types';
+import { Customer, Invoice, Job, Technician, UserRole, Equipment, Estimate } from './types';
 
 export const mockTechnicians: Technician[] = [
   { id: 'tech1', name: 'John Doe', role: UserRole.Technician },
@@ -200,5 +200,34 @@ export const mockEquipment: Equipment[] = [
         serial: 'SN55511GHI',
         notes: 'Backup generator for server room.',
         installedDate: new Date('2022-01-20'),
+    }
+];
+
+export const mockEstimates: Estimate[] = [
+    {
+        id: 'est1',
+        estimateNumber: 'EST-001',
+        title: 'Full HVAC System Replacement',
+        customerId: 'cust1',
+        jobId: 'job1',
+        status: 'accepted',
+        lineItems: [
+            { description: 'Carrier Infinity Series AC Unit', quantity: 1, unitPrice: 4500 },
+            { description: 'Carrier Infinity Series Furnace', quantity: 1, unitPrice: 3200 },
+            { description: 'Labor and Installation', quantity: 16, unitPrice: 120 },
+            { description: 'Ductwork Modification', quantity: 1, unitPrice: 800 },
+        ],
+        subtotal: 10420,
+        discount: 500,
+        tax: 694.40,
+        total: 10614.40,
+        notes: 'This estimate includes a 5-year parts and labor warranty. A 10-year extended warranty is available.',
+        gbbTier: {
+            good: "Basic replacement with a standard efficiency unit. Includes essential installation services.",
+            better: "Upgraded, high-efficiency unit with a smart thermostat. Includes full system flush and balancing.",
+            best: "Top-of-the-line, variable-speed system with zoning capabilities, advanced air purification, and a 10-year extended warranty.",
+        },
+        createdAt: new Date('2024-07-10T10:00:00Z'),
+        updatedAt: new Date('2024-07-11T14:30:00Z'),
     }
 ]

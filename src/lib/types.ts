@@ -35,7 +35,7 @@ export type Technician = {
 
 // Customer model from /customers/{customerId}
 export type Customer = {
-  id: string;
+  id:string;
   primaryContact: { name: string; email: string; phone: string };
   companyInfo: { name: string; address: string };
   notes?: string;
@@ -71,6 +71,32 @@ export type Job = {
     serviceType: string;
   };
 };
+
+export type Estimate = {
+    id: string;
+    estimateNumber: string;
+    title: string;
+    customerId: string;
+    jobId?: string;
+    status: 'draft' | 'sent' | 'accepted' | 'rejected';
+    lineItems: {
+        description: string;
+        quantity: number;
+        unitPrice: number;
+    }[];
+    subtotal: number;
+    discount: number;
+    tax: number;
+    total: number;
+    notes?: string;
+    gbbTier?: {
+        good: string;
+        better: string;
+        best: string;
+    };
+    createdAt: Timestamp | Date;
+    updatedAt: Timestamp | Date;
+}
 
 
 // ServiceAgreement model from /serviceAgreements/{agreementId}
@@ -238,4 +264,10 @@ export interface JobData {
     job: Job;
     customer: Customer;
     technician: Technician | null;
+}
+
+export interface EstimateData {
+    estimate: Estimate;
+    customer: Customer;
+    job: Job | null;
 }
