@@ -2,7 +2,7 @@
 'use client'
 import React, { Suspense } from 'react';
 import Image from 'next/image';
-import { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarFooter, SidebarInset, SidebarTrigger, SidebarRail } from "@/components/ui/sidebar";
+import { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarFooter, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainNav } from '@/components/dashboard/main-nav';
 import { Logo } from '@/components/logo';
 import { useRole } from '@/hooks/use-role';
@@ -29,8 +29,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
 
   return (
     <SidebarProvider>
-      <Sidebar>
-        <SidebarRail />
+      <Sidebar collapsible="icon">
         <SidebarHeader className="p-4">
           <div className="flex items-end justify-start gap-2 group-data-[collapsible=icon]:hidden">
              <div className="relative">
@@ -67,7 +66,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
       <SidebarInset>
         <div className="p-4 md:p-6">
            <div className="flex items-center justify-between mb-4">
-              <SidebarTrigger className="md:hidden"/>
+              <SidebarTrigger />
            </div>
           {children}
         </div>
