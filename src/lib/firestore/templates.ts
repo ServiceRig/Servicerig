@@ -7,7 +7,7 @@ import { mockData } from "@/lib/mock-data";
 import { EstimateTemplate, GbbTier, LineItem } from "@/lib/types";
 
 // This is a mock implementation. In a real app, you'd use Firebase.
-let templates: EstimateTemplate[] = mockData.estimateTemplates;
+const templates: EstimateTemplate[] = mockData.estimateTemplates;
 
 /**
  * Fetches all estimate templates.

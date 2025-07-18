@@ -6,7 +6,7 @@ import { z } from "zod";
 import { getEstimateById, addEstimate as addEstimateToDb } from "@/lib/firestore/estimates";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import type { Estimate, LineItem } from "@/lib/types";
+import type { Estimate, GbbTier, LineItem } from "@/lib/types";
 import { addEstimateTemplate } from "@/lib/firestore/templates";
 import { mockCustomers } from "@/lib/mock-data";
 
@@ -54,7 +54,15 @@ const generateTiersSchema = z.object({
   customerHistory: z.string(),
 });
 
-export async function runGenerateTieredEstimates(prevState: any, formData: FormData) {
+type GenerateTiersState = {
+    data?: GenerateTieredEstimatesOutput | null;
+    errors?: {
+        jobDetails?: string[];
+    } | null;
+    message?: string | null;
+}
+
+export async function runGenerateTieredEstimates(prevState: GenerateTiersState, formData: FormData) {
   const validatedFields = generateTiersSchema.safeParse({
     jobDetails: formData.get('jobDetails'),
     customerHistory: formData.get('customerHistory') || 'N/A',
@@ -75,12 +83,12 @@ export async function runGenerateTieredEstimates(prevState: any, formData: FormD
   }
 }
 
-function safeJsonParse(val: any, fallback: any) {
+function safeJsonParse<T>(val: unknown, fallback: T): T {
     if (typeof val !== 'string' || !val || val === 'null') {
         return fallback;
     }
     try {
-        return JSON.parse(val);
+        return JSON.parse(val) as T;
     } catch (e) {
         return fallback;
     }
@@ -105,12 +113,16 @@ const addEstimateSchema = z.object({
     title: z.string().min(1, { message: 'Title is required.' }),
     status: z.enum(['draft', 'sent', 'accepted', 'rejected']),
     jobId: z.string().optional(),
-    lineItems: z.preprocess((val) => safeJsonParse(val, []), z.array(lineItemSchema)),
-    gbbTier: z.preprocess((val) => safeJsonParse(val, null), gbbTierSchema),
+    lineItems: z.preprocess((val) => safeJsonParse<LineItem[]>(val, []), z.array(lineItemSchema)),
+    gbbTier: z.preprocess((val) => safeJsonParse<GbbTier>(val, null), gbbTierSchema),
 });
 
+type AddEstimateState = {
+    success: boolean;
+    message: string | null;
+}
 
-export async function addEstimate(prevState: any, formData: FormData) {
+export async function addEstimate(prevState: AddEstimateState, formData: FormData): Promise<AddEstimateState> {
     let newEstimateId = '';
     try {
         const validatedFields = addEstimateSchema.safeParse({
@@ -218,7 +230,11 @@ const updateStatusSchema = z.object({
   newStatus: z.enum(['draft', 'sent', 'accepted', 'rejected']),
 });
 
-export async function updateEstimateStatus(prevState: any, formData: FormData) {
+type UpdateStatusState = {
+    message: string | null;
+}
+
+export async function updateEstimateStatus(prevState: UpdateStatusState, formData: FormData): Promise<UpdateStatusState> {
   const validatedFields = updateStatusSchema.safeParse({
     estimateId: formData.get('estimateId'),
     newStatus: formData.get('newStatus'),
@@ -252,7 +268,17 @@ const createTemplateSchema = z.object({
     gbbTier: z.string().optional().transform(str => str ? JSON.parse(str) : null),
 });
 
-export async function createEstimateTemplateAction(prevState: any, formData: FormData) {
+type CreateTemplateState = {
+    success: boolean;
+    message?: string | null;
+    errors?: {
+        title?: string[];
+        lineItems?: string[];
+        gbbTier?: string[];
+    } | null;
+}
+
+export async function createEstimateTemplateAction(prevState: CreateTemplateState, formData: FormData): Promise<CreateTemplateState> {
     const validatedFields = createTemplateSchema.safeParse({
         title: formData.get('title'),
         lineItems: formData.get('lineItems'),
