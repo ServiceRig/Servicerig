@@ -1,3 +1,4 @@
+
 import { Customer, Invoice, Job, Technician, UserRole } from './types';
 
 export const mockTechnicians: Technician[] = [
@@ -25,47 +26,86 @@ export const mockCustomers: Customer[] = [
   },
 ];
 
+const today = new Date();
+const getDay = (day: number) => {
+    const newDate = new Date();
+    const currentDay = newDate.getDay();
+    const distance = day - currentDay;
+    newDate.setDate(newDate.getDate() + distance);
+    return newDate;
+}
+
 export const mockJobs: Job[] = [
   {
     id: 'job1',
     customerId: 'cust1',
     technicianId: 'tech1',
-    schedule: { start: new Date(new Date().setHours(9, 0, 0)), end: new Date(new Date().setHours(11, 0, 0)) },
-    status: 'Scheduled',
+    schedule: { start: new Date(getDay(1).setHours(9, 0, 0, 0)), end: new Date(getDay(1).setHours(11, 0, 0, 0)) },
+    status: 'scheduled',
+    title: 'HVAC Tune-up',
+    description: 'Annual maintenance for HVAC system.',
     details: { serviceType: 'HVAC Maintenance' },
   },
   {
     id: 'job2',
     customerId: 'cust2',
     technicianId: 'tech2',
-    schedule: { start: new Date(new Date().setHours(10, 0, 0)), end: new Date(new Date().setHours(12, 0, 0)) },
-    status: 'In Progress',
+    schedule: { start: new Date(getDay(1).setHours(10, 0, 0, 0)), end: new Date(getDay(1).setHours(12, 30, 0, 0)) },
+    status: 'in_progress',
+    title: 'Leaky Faucet',
+    description: 'Repair leaky faucet in master bathroom.',
     details: { serviceType: 'Plumbing Repair' },
   },
   {
     id: 'job3',
     customerId: 'cust1',
     technicianId: 'tech1',
-    schedule: { start: new Date(new Date().setHours(13, 0, 0)), end: new Date(new Date().setHours(14, 30, 0)) },
-    status: 'Completed',
+    schedule: { start: new Date(getDay(2).setHours(13, 0, 0, 0)), end: new Date(getDay(2).setHours(14, 30, 0, 0)) },
+    status: 'complete',
+    title: 'Panel Upgrade',
+    description: 'Upgrade main electrical panel.',
     details: { serviceType: 'Electrical Inspection' },
   },
    {
     id: 'job4',
     customerId: 'cust3',
     technicianId: 'tech3',
-    schedule: { start: new Date(new Date().setDate(new Date().getDate() + 1)), end: new Date(new Date().setDate(new Date().getDate() + 1)) },
-    status: 'Scheduled',
+    schedule: { start: new Date(getDay(3).setHours(8, 0, 0, 0)), end: new Date(getDay(3).setHours(10, 0, 0, 0)) },
+    status: 'scheduled',
+    title: 'Dishwasher Install',
+    description: 'Install new Bosch dishwasher.',
     details: { serviceType: 'Appliance Installation' },
   },
   {
     id: 'job5',
     customerId: 'cust2',
     technicianId: 'tech4',
-    schedule: { start: new Date(new Date().setHours(14, 0, 0)), end: new Date(new Date().setHours(16, 0, 0)) },
-    status: 'Completed',
+    schedule: { start: new Date(getDay(4).setHours(14, 0, 0, 0)), end: new Date(getDay(4).setHours(16, 0, 0, 0)) },
+    status: 'scheduled',
+    title: 'Router Setup',
+    description: 'Setup new office network router.',
     details: { serviceType: 'Network Setup' },
   },
+  {
+    id: 'job6',
+    customerId: 'cust3',
+    technicianId: '',
+    schedule: { start: new Date(), end: new Date() },
+    status: 'unscheduled',
+    title: 'Quote for AC',
+    description: 'Provide quote for new AC unit.',
+    details: { serviceType: 'Estimate' },
+  },
+  {
+    id: 'job7',
+    customerId: 'cust1',
+    technicianId: '',
+    schedule: { start: new Date(), end: new Date() },
+    status: 'unscheduled',
+    title: 'Fix Garage Door',
+    description: 'Garage door opener not working.',
+    details: { serviceType: 'Repair' },
+  }
 ];
 
 export const mockInvoices: Invoice[] = [
