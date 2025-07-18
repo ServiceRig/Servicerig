@@ -86,58 +86,77 @@ export default function NewEstimatePage() {
   const taxAmount = useMemo(() => subtotalAfterDiscount * (taxRate / 100), [subtotalAfterDiscount, taxRate]);
   const grandTotal = useMemo(() => subtotalAfterDiscount + taxAmount, [subtotalAfterDiscount, taxAmount]);
 
-  const handleSaveEstimate = () => {
-    if (!selectedCustomerId || !estimateTitle) {
+  const saveEstimate = useCallback((status: Estimate['status'] = 'draft', customLineItems?: LineItem[], customTitle?: string) => {
+    if (!selectedCustomerId || !(customTitle || estimateTitle)) {
       toast({
         variant: 'destructive',
         title: "Missing Information",
         description: "Please select a customer and provide an estimate title.",
       });
-      return;
+      return false;
     }
 
-    // This is where we create the new estimate object and add it to our mock data.
+    const finalLineItems = customLineItems || lineItems;
+    const finalSubtotal = finalLineItems.reduce((acc, item) => acc + (item.quantity * item.unitPrice), 0);
+    const finalDiscount = status === 'accepted' ? 0 : finalSubtotal * (discountRate / 100);
+    const finalSubtotalAfterDiscount = finalSubtotal - finalDiscount;
+    const finalTax = status === 'accepted' ? 0 : finalSubtotalAfterDiscount * (taxRate / 100);
+    const finalTotal = finalSubtotalAfterDiscount + finalTax;
+
     const newEstimate: Estimate = {
       id: `est_${Math.random().toString(36).substring(2, 9)}`,
       estimateNumber: `EST-${Math.floor(Math.random() * 9000) + 1000}`,
       customerId: selectedCustomerId,
       jobId: selectedJobId,
-      title: estimateTitle,
-      lineItems,
-      subtotal,
-      discount: discountAmount,
-      tax: taxAmount,
-      total: grandTotal,
+      title: customTitle || estimateTitle,
+      lineItems: finalLineItems,
+      subtotal: finalSubtotal,
+      discount: finalDiscount,
+      tax: finalTax,
+      total: finalTotal,
       gbbTier: gbbTiers ? {
         good: gbbTiers.find(t => t.title === 'Good')?.description || '',
         better: gbbTiers.find(t => t.title === 'Better')?.description || '',
         best: gbbTiers.find(t => t.title === 'Best')?.description || '',
       } : null,
-      status: 'draft',
+      status: status,
       createdBy: 'admin_user', // This would be the logged in user's ID
       createdAt: new Date(),
       updatedAt: new Date(),
     };
 
-    // In a real app, this would be an API call to Firestore (e.g., addDoc)
     addEstimate(newEstimate);
     
     toast({
         title: "Estimate Created",
-        description: `Estimate "${estimateTitle || 'Untitled Estimate'}" has been saved as a draft.`,
+        description: `Estimate "${newEstimate.title}" has been saved with status: ${status}.`,
     });
 
     router.push(`/dashboard/estimates?role=${role || UserRole.Admin}`);
-  };
+    return true;
+  }, [selectedCustomerId, estimateTitle, lineItems, discountRate, taxRate, selectedJobId, gbbTiers, router, toast, role]);
+
+
+  const handleSaveDraft = () => {
+    saveEstimate('draft');
+  }
   
   const handleTiersFinalized = useCallback((tiers: TierData[]) => {
+    if (!estimateTitle) {
+         toast({
+            variant: 'destructive',
+            title: "Missing Title",
+            description: "Please enter an estimate title before generating tiers.",
+        });
+        return;
+    }
     setGbbTiers(tiers);
     setShowPresentation(true);
     toast({
         title: "Displaying to Customer",
         description: "Presentation mode activated.",
     });
-  }, []);
+  }, [estimateTitle, toast]);
 
   const handleLoadTemplate = (templateId: string) => {
     const template = templates.find(t => t.id === templateId);
@@ -152,23 +171,16 @@ export default function NewEstimatePage() {
     });
   };
 
-  const handleAcceptEstimate = (selectedTier: TierData) => {
+  const handleAcceptEstimate = useCallback((selectedTier: TierData) => {
       setShowPresentation(false);
       console.log("Customer accepted tier:", selectedTier);
       
-      toast({
-          title: "Estimate Accepted by Customer!",
-          description: `The "${selectedTier.title}" option has been loaded. Review and save the final estimate.`,
-      });
+      const acceptedLineItems = [{ description: selectedTier.description, quantity: 1, unitPrice: selectedTier.price || 0 }];
+      const acceptedTitle = `${estimateTitle || 'Estimate'} - ${selectedTier.title} Option`;
 
-      // Set the main line items and price from the selected tier
-      setLineItems([{ description: selectedTier.description, quantity: 1, unitPrice: selectedTier.price || 0 }]);
-      setEstimateTitle(`${estimateTitle || 'Estimate'} - ${selectedTier.title} Option`);
-      setGbbTiers(null); // Clear tiers after selection
-      // Reset tax and discount as they may not apply to the new total
-      setTaxRate(0);
-      setDiscountRate(0);
-  }
+      saveEstimate('accepted', acceptedLineItems, acceptedTitle);
+
+  }, [saveEstimate, estimateTitle]);
 
 
   return (
@@ -185,7 +197,7 @@ export default function NewEstimatePage() {
             <h1 className="text-3xl font-bold">New Estimate</h1>
             <p className="text-muted-foreground">Create a new estimate manually or load from a template.</p>
         </div>
-        <Button onClick={handleSaveEstimate}>Save Estimate</Button>
+        <Button onClick={handleSaveDraft}>Save as Draft</Button>
       </div>
 
       <Separator />
@@ -325,3 +337,5 @@ export default function NewEstimatePage() {
     </>
   );
 }
+
+    
