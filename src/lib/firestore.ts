@@ -1,8 +1,7 @@
 
-
 import { mockCustomers, mockJobs, mockEquipment, mockInvoices, mockTechnicians, mockEstimates } from './mock-data';
 import { getJobsByCustomerId } from './firestore/jobs';
-import { getEstimatesByCustomerId, getEstimatesByJobId } from './firestore/estimates';
+import { getEstimatesByCustomerId, getEstimatesByJobId, getEstimateById } from './firestore/estimates';
 import type { CustomerData, JobData, EstimateData } from './types';
 
 // In a real app, these would be Firestore SDK calls (getDoc, getDocs, query, where).
@@ -90,7 +89,7 @@ export async function getJobData(jobId: string): Promise<JobData | null> {
 }
 
 export async function getEstimateData(estimateId: string): Promise<EstimateData | null> {
-    const estimate = mockEstimates.find(e => e.id === estimateId);
+    const estimate = await getEstimateById(estimateId);
     if (!estimate) {
         return null;
     }
@@ -107,8 +106,6 @@ export async function getEstimateData(estimateId: string): Promise<EstimateData 
         customer,
         job: job || null,
     };
-
-    await new Promise(resolve => setTimeout(resolve, 500));
 
     return estimateData;
 }

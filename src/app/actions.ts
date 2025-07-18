@@ -3,8 +3,8 @@
 
 import { generateTieredEstimates, type GenerateTieredEstimatesInput, type GenerateTieredEstimatesOutput } from "@/ai/flows/generate-tiered-estimates";
 import { z } from "zod";
-import { getEstimateById } from "@/lib/firestore/estimates";
-import { mockEstimates, mockInvoices } from "@/lib/mock-data";
+import { getEstimateById, addEstimate as addEstimateToDb } from "@/lib/firestore/estimates";
+import { mockInvoices } from "@/lib/mock-data";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import type { Estimate, EstimateTemplate } from "@/lib/types";
@@ -75,6 +75,39 @@ export async function runGenerateTieredEstimates(prevState: any, formData: FormD
   }
 }
 
+const addEstimateSchema = z.object({
+    estimateData: z.string().transform(str => JSON.parse(str)),
+});
+
+export async function addEstimate(prevState: any, formData: FormData) {
+    const validatedFields = addEstimateSchema.safeParse({
+        estimateData: formData.get('estimateData'),
+    });
+    
+    if (!validatedFields.success) {
+        return { success: false, message: 'Invalid estimate data provided.' };
+    }
+
+    try {
+        const newEstimate: Omit<Estimate, 'id' | 'estimateNumber' | 'createdAt' | 'updatedAt'> = validatedFields.data.estimateData;
+        
+        const finalEstimate: Estimate = {
+            id: `est_${Math.random().toString(36).substring(2, 9)}`,
+            estimateNumber: `EST-${Math.floor(Math.random() * 9000) + 1000}`,
+            ...newEstimate,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+        };
+
+        await addEstimateToDb(finalEstimate);
+        revalidatePath('/dashboard/estimates');
+        return { success: true, message: `Estimate "${finalEstimate.title}" created successfully.` };
+    } catch (error) {
+        console.error(error);
+        return { success: false, message: 'Failed to create estimate.' };
+    }
+}
+
 
 export async function convertEstimateToInvoice(estimateId: string) {
     if (!estimateId) {
@@ -139,17 +172,18 @@ export async function updateEstimateStatus(prevState: any, formData: FormData) {
   const { estimateId, newStatus } = validatedFields.data;
 
   // In a real app, you'd use updateDoc here.
-  const estimateIndex = mockEstimates.findIndex(e => e.id === estimateId);
-  if (estimateIndex === -1) {
+  const estimate = await getEstimateById(estimateId);
+  if (!estimate) {
     return { message: "Estimate not found." };
   }
 
-  mockEstimates[estimateIndex].status = newStatus;
-  mockEstimates[estimateIndex].updatedAt = new Date();
+  estimate.status = newStatus;
+  estimate.updatedAt = new Date();
 
   console.log(`Updated estimate ${estimateId} to status ${newStatus}`);
   
   revalidatePath(`/dashboard/estimates/${estimateId}`);
+  revalidatePath('/dashboard/estimates');
   return { message: `Estimate status updated to ${newStatus}.` };
 }
 

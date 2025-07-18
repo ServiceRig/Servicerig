@@ -9,23 +9,37 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Trash2, PlusCircle } from 'lucide-react';
+import { Trash2, PlusCircle, Loader2, Save } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import { mockCustomers, mockJobs, mockEstimateTemplates, mockEstimates } from '@/lib/mock-data';
+import { mockCustomers, mockJobs, mockEstimateTemplates } from '@/lib/mock-data';
 import type { Customer, Job, EstimateTemplate, GbbTier, LineItem, UserRole, Estimate } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { AITierGenerator, TierData } from '@/components/dashboard/ai-tier-generator';
 import { CustomerPresentationView } from '@/components/dashboard/customer-presentation-view';
 import { useRole } from '@/hooks/use-role';
+import { addEstimate } from '@/app/actions';
+import { useActionState, useFormStatus } from 'react-dom';
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
 };
 
+function SubmitButton({ disabled }: { disabled?: boolean }) {
+    const { pending } = useFormStatus();
+    return (
+        <Button type="submit" disabled={pending || disabled}>
+            {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+            {pending ? 'Saving...' : 'Save as Draft'}
+        </Button>
+    )
+}
+
+
 export default function NewEstimatePage() {
   const router = useRouter();
   const { toast } = useToast();
   const { role } = useRole();
+  const [addEstimateState, formAction] = useActionState(addEstimate, { success: false, message: null });
   
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -43,6 +57,7 @@ export default function NewEstimatePage() {
   const [discountRate, setDiscountRate] = useState(0);
   const [gbbTiers, setGbbTiers] = useState<TierData[] | null>(null);
   const [showPresentation, setShowPresentation] = useState(false);
+  const [isFormSubmittable, setIsFormSubmittable] = useState(false);
 
   useEffect(() => {
     // In a real app, you would fetch this from Firestore
@@ -50,6 +65,22 @@ export default function NewEstimatePage() {
     setJobs(mockJobs);
     setTemplates(mockEstimateTemplates);
   }, []);
+  
+  useEffect(() => {
+    if (addEstimateState.success) {
+      toast({
+        title: 'Success!',
+        description: addEstimateState.message,
+      });
+      router.push(`/dashboard/estimates?role=${role || UserRole.Admin}`);
+    } else if (addEstimateState.message) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: addEstimateState.message,
+      });
+    }
+  }, [addEstimateState, router, toast, role]);
 
   const filteredJobs = useMemo(() => {
     if (!selectedCustomerId) return [];
@@ -85,36 +116,24 @@ export default function NewEstimatePage() {
   const taxAmount = useMemo(() => subtotalAfterDiscount * (taxRate / 100), [subtotalAfterDiscount, taxRate]);
   const grandTotal = useMemo(() => subtotalAfterDiscount + taxAmount, [subtotalAfterDiscount, taxAmount]);
 
-  const saveEstimate = useCallback((status: Estimate['status'] = 'draft', customLineItems?: LineItem[], customTitle?: string) => {
-    if (!selectedCustomerId) {
-      toast({
-        variant: 'destructive',
-        title: "Missing Information",
-        description: "Please select a customer before saving.",
-      });
-      return false;
+  useEffect(() => {
+    if (selectedCustomerId && estimateTitle) {
+      setIsFormSubmittable(true);
+    } else {
+      setIsFormSubmittable(false);
     }
+  }, [selectedCustomerId, estimateTitle]);
 
-    const finalTitle = customTitle || estimateTitle;
-    if (!finalTitle) {
-      toast({
-        variant: 'destructive',
-        title: "Missing Information",
-        description: "Please provide an estimate title.",
-      });
-      return false;
-    }
+  const getEstimatePayload = (status: Estimate['status'] = 'draft', customLineItems?: LineItem[], customTitle?: string) => {
+     const finalTitle = customTitle || estimateTitle;
+     const finalLineItems = customLineItems || lineItems;
+     const finalSubtotal = finalLineItems.reduce((acc, item) => acc + (item.quantity * item.unitPrice), 0);
+     const finalDiscount = status === 'accepted' ? 0 : finalSubtotal * (discountRate / 100);
+     const finalSubtotalAfterDiscount = finalSubtotal - finalDiscount;
+     const finalTax = status === 'accepted' ? 0 : finalSubtotalAfterDiscount * (taxRate / 100);
+     const finalTotal = finalSubtotalAfterDiscount + finalTax;
 
-    const finalLineItems = customLineItems || lineItems;
-    const finalSubtotal = finalLineItems.reduce((acc, item) => acc + (item.quantity * item.unitPrice), 0);
-    const finalDiscount = status === 'accepted' ? 0 : finalSubtotal * (discountRate / 100);
-    const finalSubtotalAfterDiscount = finalSubtotal - finalDiscount;
-    const finalTax = status === 'accepted' ? 0 : finalSubtotalAfterDiscount * (taxRate / 100);
-    const finalTotal = finalSubtotalAfterDiscount + finalTax;
-
-    const newEstimate: Estimate = {
-      id: `est_${Math.random().toString(36).substring(2, 9)}`,
-      estimateNumber: `EST-${Math.floor(Math.random() * 9000) + 1000}`,
+     const payload: Omit<Estimate, 'id' | 'estimateNumber' | 'createdAt' | 'updatedAt'> = {
       customerId: selectedCustomerId,
       jobId: selectedJobId,
       title: finalTitle,
@@ -130,24 +149,9 @@ export default function NewEstimatePage() {
       } : null,
       status: status,
       createdBy: 'admin_user', // This would be the logged in user's ID
-      createdAt: new Date(),
-      updatedAt: new Date(),
     };
 
-    mockEstimates.unshift(newEstimate);
-    
-    toast({
-        title: "Estimate Created",
-        description: `Estimate "${newEstimate.title}" has been saved with status: ${status}.`,
-    });
-
-    router.push(`/dashboard/estimates?role=${role || UserRole.Admin}`);
-    return true;
-  }, [selectedCustomerId, estimateTitle, lineItems, discountRate, taxRate, selectedJobId, gbbTiers, router, toast, role]);
-
-
-  const handleSaveDraft = () => {
-    saveEstimate('draft');
+    return payload;
   }
   
   const handleTiersFinalized = useCallback((tiers: TierData[]) => {
@@ -178,9 +182,13 @@ export default function NewEstimatePage() {
       const acceptedLineItems = [{ description: selectedTier.description, quantity: 1, unitPrice: selectedTier.price || 0 }];
       const acceptedTitle = `${estimateTitle || 'Estimate'} - ${selectedTier.title} Option`;
 
-      saveEstimate('accepted', acceptedLineItems, acceptedTitle);
+      const payload = getEstimatePayload('accepted', acceptedLineItems, acceptedTitle);
+      
+      const formData = new FormData();
+      formData.append('estimateData', JSON.stringify(payload));
+      formAction(formData);
 
-  }, [saveEstimate, estimateTitle]);
+  }, [estimateTitle, getEstimatePayload, formAction]);
 
 
   return (
@@ -192,13 +200,16 @@ export default function NewEstimatePage() {
         onAccept={handleAcceptEstimate}
     />
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-            <h1 className="text-3xl font-bold">New Estimate</h1>
-            <p className="text-muted-foreground">Create a new estimate manually or load from a template.</p>
+      <form action={formAction}>
+        <input type="hidden" name="estimateData" value={JSON.stringify(getEstimatePayload('draft'))} />
+        <div className="flex items-center justify-between">
+            <div>
+                <h1 className="text-3xl font-bold">New Estimate</h1>
+                <p className="text-muted-foreground">Create a new estimate manually or load from a template.</p>
+            </div>
+            <SubmitButton disabled={!isFormSubmittable} />
         </div>
-        <Button onClick={handleSaveDraft}>Save as Draft</Button>
-      </div>
+      </form>
 
       <Separator />
 
@@ -337,7 +348,3 @@ export default function NewEstimatePage() {
     </>
   );
 }
-
-    
-
-    

@@ -13,7 +13,7 @@ export async function getEstimateById(id: string): Promise<Estimate | null> {
     const estimate = mockEstimates.find(e => e.id === id) || null;
 
     // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 200));
+    await new Promise(resolve => setTimeout(resolve, 50));
 
     if (!estimate) {
         console.error(`Estimate with id ${id} not found.`);
@@ -33,7 +33,7 @@ export async function getEstimatesByCustomerId(customerId: string): Promise<Esti
     const estimates = mockEstimates.filter(e => e.customerId === customerId);
 
     // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 300));
+    await new Promise(resolve => setTimeout(resolve, 100));
 
     return estimates;
 }
@@ -49,7 +49,7 @@ export async function getEstimatesByJobId(jobId: string): Promise<Estimate[]> {
     const estimates = mockEstimates.filter(e => e.jobId === jobId);
 
     // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 300));
+    await new Promise(resolve => setTimeout(resolve, 100));
 
     return estimates;
 }
@@ -58,6 +58,9 @@ export async function getEstimatesByJobId(jobId: string): Promise<Estimate[]> {
  * Adds a new estimate to the mock data.
  * @param estimate The estimate object to add.
  */
-export function addEstimate(estimate: Estimate) {
+export async function addEstimate(estimate: Estimate) {
+    console.log("Adding estimate via server action:", estimate.id)
+    // Add to the beginning of the array so it's visible on the list
     mockEstimates.unshift(estimate);
+    await new Promise(resolve => setTimeout(resolve, 100));
 }

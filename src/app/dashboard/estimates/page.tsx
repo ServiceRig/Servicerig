@@ -20,10 +20,12 @@ const formatCurrency = (amount: number) => {
 
 export default function EstimatesPage() {
     const { role } = useRole();
-    // This is a bit of a hack to force a re-render when mock data changes
-    const [estimates, setEstimates] = useState(mockEstimates);
+    const [estimates, setEstimates] = useState<Estimate[]>([]);
+
     useEffect(() => {
-        setEstimates(mockEstimates);
+        // This is a workaround for mock data to "re-fetch" when navigated to.
+        // In a real app with Firestore, this would be a real-time listener or a fetch call.
+        setEstimates([...mockEstimates].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
     }, []);
 
 
@@ -78,6 +80,11 @@ export default function EstimatesPage() {
                   </TableCell>
                 </TableRow>
               ))}
+               {estimates.length === 0 && (
+                    <TableRow>
+                        <TableCell colSpan={6} className="text-center h-24">No estimates found.</TableCell>
+                    </TableRow>
+                )}
             </TableBody>
           </Table>
       </CardContent>
