@@ -2,8 +2,8 @@
 
 import { generateTieredEstimates, type GenerateTieredEstimatesInput } from "@/ai/flows/generate-tiered-estimates";
 import { z } from "zod";
-import { getEstimateById } from "./lib/firestore/estimates";
-import { mockInvoices } from "./lib/mock-data";
+import { getEstimateById } from "@/lib/firestore/estimates";
+import { mockInvoices } from "@/lib/mock-data";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 

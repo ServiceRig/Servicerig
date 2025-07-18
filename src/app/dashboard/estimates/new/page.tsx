@@ -15,6 +15,7 @@ import { mockCustomers, mockJobs } from '@/lib/mock-data';
 import type { Customer, Job, Estimate } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { AITierGenerator } from '@/components/dashboard/ai-tier-generator';
+import { estimateTemplates } from '@/lib/templates/estimates';
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
@@ -108,12 +109,29 @@ export default function NewEstimatePage() {
     setGbbTiers(tiers);
   }, []);
 
+  const handleLoadTemplate = (templateId: string) => {
+    const template = estimateTemplates.find(t => t.id === templateId);
+    if (!template) return;
+
+    setEstimateTitle(template.title);
+    setLineItems(template.lineItems);
+    if (template.gbbTier) {
+      setGbbTiers(template.gbbTier);
+    } else {
+      setGbbTiers(null);
+    }
+    toast({
+      title: "Template Loaded",
+      description: `Loaded the "${template.title}" template.`,
+    });
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
             <h1 className="text-3xl font-bold">New Estimate</h1>
-            <p className="text-muted-foreground">Create a new estimate manually.</p>
+            <p className="text-muted-foreground">Create a new estimate manually or load from a template.</p>
         </div>
         <Button onClick={handleSaveEstimate}>Save Estimate</Button>
       </div>
@@ -127,41 +145,56 @@ export default function NewEstimatePage() {
                 <CardTitle>Details</CardTitle>
                 <CardDescription>Select customer, job, and give the estimate a title.</CardDescription>
                 </CardHeader>
-                <CardContent className="grid md:grid-cols-3 gap-6">
-                <div className="grid gap-2">
-                    <Label htmlFor="customer">Customer</Label>
-                    <Select value={selectedCustomerId} onValueChange={setSelectedCustomerId}>
-                    <SelectTrigger id="customer">
-                        <SelectValue placeholder="Select a customer" />
+                <CardContent className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="grid gap-2">
+                    <Label htmlFor="template">Load from Template</Label>
+                    <Select onValueChange={handleLoadTemplate}>
+                    <SelectTrigger id="template">
+                        <SelectValue placeholder="Select a template" />
                     </SelectTrigger>
                     <SelectContent>
-                        {customers.map(customer => (
-                        <SelectItem key={customer.id} value={customer.id}>
-                            {customer.primaryContact.name}
+                        {estimateTemplates.map(template => (
+                        <SelectItem key={template.id} value={template.id}>
+                            {template.title}
                         </SelectItem>
                         ))}
                     </SelectContent>
                     </Select>
-                </div>
-                <div className="grid gap-2">
-                    <Label htmlFor="job">Job (Optional)</Label>
-                    <Select value={selectedJobId} onValueChange={setSelectedJobId} disabled={!selectedCustomerId}>
-                    <SelectTrigger id="job">
-                        <SelectValue placeholder="Select a job" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {filteredJobs.map(job => (
-                        <SelectItem key={job.id} value={job.id}>
-                            {job.title} (ID: {job.id})
-                        </SelectItem>
-                        ))}
-                    </SelectContent>
-                    </Select>
-                </div>
-                <div className="grid gap-2">
-                    <Label htmlFor="title">Estimate Title</Label>
-                    <Input id="title" placeholder="e.g., HVAC Repair" value={estimateTitle} onChange={e => setEstimateTitle(e.target.value)} />
-                </div>
+                  </div>
+                  <div className="grid gap-2">
+                      <Label htmlFor="customer">Customer</Label>
+                      <Select value={selectedCustomerId} onValueChange={setSelectedCustomerId}>
+                      <SelectTrigger id="customer">
+                          <SelectValue placeholder="Select a customer" />
+                      </SelectTrigger>
+                      <SelectContent>
+                          {customers.map(customer => (
+                          <SelectItem key={customer.id} value={customer.id}>
+                              {customer.primaryContact.name}
+                          </SelectItem>
+                          ))}
+                      </SelectContent>
+                      </Select>
+                  </div>
+                  <div className="grid gap-2">
+                      <Label htmlFor="job">Job (Optional)</Label>
+                      <Select value={selectedJobId} onValueChange={setSelectedJobId} disabled={!selectedCustomerId}>
+                      <SelectTrigger id="job">
+                          <SelectValue placeholder="Select a job" />
+                      </SelectTrigger>
+                      <SelectContent>
+                          {filteredJobs.map(job => (
+                          <SelectItem key={job.id} value={job.id}>
+                              {job.title} (ID: {job.id})
+                          </SelectItem>
+                          ))}
+                      </SelectContent>
+                      </Select>
+                  </div>
+                  <div className="grid gap-2 md:col-span-2 lg:col-span-3">
+                      <Label htmlFor="title">Estimate Title</Label>
+                      <Input id="title" placeholder="e.g., HVAC Repair" value={estimateTitle} onChange={e => setEstimateTitle(e.target.value)} />
+                  </div>
                 </CardContent>
             </Card>
 
