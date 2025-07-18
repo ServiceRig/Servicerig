@@ -11,8 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Trash2, PlusCircle } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import { mockCustomers, mockJobs, mockEstimateTemplates } from '@/lib/mock-data';
-import { addEstimate } from '@/lib/firestore/estimates';
+import { mockCustomers, mockJobs, mockEstimateTemplates, mockEstimates } from '@/lib/mock-data';
 import type { Customer, Job, EstimateTemplate, GbbTier, LineItem, UserRole, Estimate } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { AITierGenerator, TierData } from '@/components/dashboard/ai-tier-generator';
@@ -87,11 +86,21 @@ export default function NewEstimatePage() {
   const grandTotal = useMemo(() => subtotalAfterDiscount + taxAmount, [subtotalAfterDiscount, taxAmount]);
 
   const saveEstimate = useCallback((status: Estimate['status'] = 'draft', customLineItems?: LineItem[], customTitle?: string) => {
-    if (!selectedCustomerId || !(customTitle || estimateTitle)) {
+    if (!selectedCustomerId) {
       toast({
         variant: 'destructive',
         title: "Missing Information",
-        description: "Please select a customer and provide an estimate title.",
+        description: "Please select a customer before saving.",
+      });
+      return false;
+    }
+
+    const finalTitle = customTitle || estimateTitle;
+    if (!finalTitle) {
+      toast({
+        variant: 'destructive',
+        title: "Missing Information",
+        description: "Please provide an estimate title.",
       });
       return false;
     }
@@ -108,7 +117,7 @@ export default function NewEstimatePage() {
       estimateNumber: `EST-${Math.floor(Math.random() * 9000) + 1000}`,
       customerId: selectedCustomerId,
       jobId: selectedJobId,
-      title: customTitle || estimateTitle,
+      title: finalTitle,
       lineItems: finalLineItems,
       subtotal: finalSubtotal,
       discount: finalDiscount,
@@ -125,7 +134,7 @@ export default function NewEstimatePage() {
       updatedAt: new Date(),
     };
 
-    addEstimate(newEstimate);
+    mockEstimates.unshift(newEstimate);
     
     toast({
         title: "Estimate Created",
@@ -142,21 +151,13 @@ export default function NewEstimatePage() {
   }
   
   const handleTiersFinalized = useCallback((tiers: TierData[]) => {
-    if (!estimateTitle) {
-         toast({
-            variant: 'destructive',
-            title: "Missing Title",
-            description: "Please enter an estimate title before generating tiers.",
-        });
-        return;
-    }
     setGbbTiers(tiers);
     setShowPresentation(true);
     toast({
         title: "Displaying to Customer",
         description: "Presentation mode activated.",
     });
-  }, [estimateTitle, toast]);
+  }, [toast]);
 
   const handleLoadTemplate = (templateId: string) => {
     const template = templates.find(t => t.id === templateId);
@@ -173,7 +174,6 @@ export default function NewEstimatePage() {
 
   const handleAcceptEstimate = useCallback((selectedTier: TierData) => {
       setShowPresentation(false);
-      console.log("Customer accepted tier:", selectedTier);
       
       const acceptedLineItems = [{ description: selectedTier.description, quantity: 1, unitPrice: selectedTier.price || 0 }];
       const acceptedTitle = `${estimateTitle || 'Estimate'} - ${selectedTier.title} Option`;
@@ -337,5 +337,7 @@ export default function NewEstimatePage() {
     </>
   );
 }
+
+    
 
     
