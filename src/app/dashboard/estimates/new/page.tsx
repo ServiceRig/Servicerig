@@ -12,7 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Trash2, PlusCircle, Loader2, Save } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { mockCustomers, mockJobs, mockEstimateTemplates } from '@/lib/mock-data';
-import type { Customer, Job, EstimateTemplate, GbbTier, LineItem, UserRole, Estimate } from '@/lib/types';
+import type { Customer, Job, EstimateTemplate, GbbTier, LineItem, Estimate } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { AITierGenerator, TierData } from '@/components/dashboard/ai-tier-generator';
 import { CustomerPresentationView } from '@/components/dashboard/customer-presentation-view';
@@ -121,9 +121,9 @@ export default function NewEstimatePage() {
      const finalTitle = customTitle || estimateTitle;
      const finalLineItems = customLineItems || lineItems;
      const finalSubtotal = finalLineItems.reduce((acc, item) => acc + (item.quantity * item.unitPrice), 0);
-     const finalDiscount = status === 'accepted' ? 0 : finalSubtotal * (discountRate / 100);
+     const finalDiscount = finalSubtotal * (discountRate / 100);
      const finalSubtotalAfterDiscount = finalSubtotal - finalDiscount;
-     const finalTax = status === 'accepted' ? 0 : finalSubtotalAfterDiscount * (taxRate / 100);
+     const finalTax = finalSubtotalAfterDiscount * (taxRate / 100);
      const finalTotal = finalSubtotalAfterDiscount + finalTax;
 
      const payload: Omit<Estimate, 'id' | 'estimateNumber' | 'createdAt' | 'updatedAt'> = {
@@ -148,13 +148,21 @@ export default function NewEstimatePage() {
   }, [estimateTitle, lineItems, discountRate, taxRate, selectedCustomerId, selectedJobId, gbbTiers]);
   
   const handleTiersFinalized = useCallback((tiers: TierData[]) => {
+    if (!selectedCustomerId) {
+        toast({
+            variant: "destructive",
+            title: "Customer not selected",
+            description: "Please select a customer before presenting options.",
+        });
+        return;
+    }
     setGbbTiers(tiers);
     setShowPresentation(true);
     toast({
         title: "Displaying to Customer",
         description: "Presentation mode activated.",
     });
-  }, [toast]);
+  }, [selectedCustomerId, toast]);
 
   const handleLoadTemplate = (templateId: string) => {
     const template = templates.find(t => t.id === templateId);
@@ -173,12 +181,18 @@ export default function NewEstimatePage() {
       setShowPresentation(false);
       
       const acceptedLineItems = [{ description: selectedTier.description, quantity: 1, unitPrice: selectedTier.price || 0 }];
-      const acceptedTitle = `${estimateTitle || 'Estimate'} - ${selectedTier.title} Option`;
+      const acceptedTitle = `${estimateTitle || 'Service Estimate'} - ${selectedTier.title} Option`;
 
       const payload = getEstimatePayload('accepted', acceptedLineItems, acceptedTitle);
       
       const formData = new FormData();
       formData.append('estimateData', JSON.stringify(payload));
+      
+      toast({
+          title: "Estimate Accepted",
+          description: `Creating estimate "${acceptedTitle}"...`,
+      });
+
       formAction(formData);
 
   }, [estimateTitle, getEstimatePayload, formAction, toast]);

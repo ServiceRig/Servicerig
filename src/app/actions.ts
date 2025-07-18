@@ -4,10 +4,9 @@
 import { generateTieredEstimates, type GenerateTieredEstimatesInput, type GenerateTieredEstimatesOutput } from "@/ai/flows/generate-tiered-estimates";
 import { z } from "zod";
 import { getEstimateById, addEstimate as addEstimateToDb } from "@/lib/firestore/estimates";
-import { mockInvoices } from "@/lib/mock-data";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import type { Estimate, EstimateTemplate } from "@/lib/types";
+import type { Estimate } from "@/lib/types";
 import { addEstimateTemplate } from "@/lib/firestore/templates";
 
 const tieredEstimatesSchema = z.object({
@@ -142,7 +141,7 @@ export async function convertEstimateToInvoice(estimateId: string) {
         createdAt: new Date(),
     };
 
-    mockInvoices.push(newInvoice);
+    // In a real app, you would save this to the 'invoices' collection in Firestore
     console.log(`Created new invoice ${newInvoiceId} from estimate ${estimateId}`);
 
     revalidatePath('/dashboard/invoices');
@@ -173,6 +172,7 @@ export async function updateEstimateStatus(prevState: any, formData: FormData) {
     return { message: "Estimate not found." };
   }
 
+  // In a real app, this would be an updateDoc call to Firestore
   estimate.status = newStatus;
   estimate.updatedAt = new Date();
 
@@ -212,5 +212,6 @@ export async function createEstimateTemplateAction(prevState: any, formData: For
         return { success: false, message: 'Failed to create template.' };
     }
     
+    // The redirect will be handled by the client
     return { success: true };
 }
