@@ -8,13 +8,14 @@ import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { User, Calendar, Tag, FileText } from 'lucide-react';
+import { User, Calendar, Tag, FileText, Printer } from 'lucide-react';
 import { cn, getEstimateStatusStyles } from '@/lib/utils';
 import type { Estimate } from '@/lib/types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { convertEstimateToInvoice } from '@/app/actions';
 import { SubmitButton } from './SubmitButton';
 import { StatusUpdateButtons } from './StatusUpdateButtons';
+import { Logo } from '@/components/logo';
 
 
 const formatCurrency = (amount: number) => {
@@ -22,11 +23,11 @@ const formatCurrency = (amount: number) => {
 }
 
 const InfoCard = ({ icon: Icon, label, children }: { icon: React.ElementType, label: string, children: React.ReactNode }) => (
-    <div className="flex items-start gap-3 rounded-lg bg-muted/50 p-3">
-        <Icon className="h-5 w-5 text-muted-foreground mt-1" />
+    <div className="flex items-start gap-3 rounded-lg bg-muted/50 p-3 print:bg-transparent print:p-0 print:gap-2">
+        <Icon className="h-5 w-5 text-muted-foreground mt-1 print:h-4 print:w-4" />
         <div className="flex-grow">
-            <p className="text-sm text-muted-foreground">{label}</p>
-            <div className="font-medium text-sm">{children}</div>
+            <p className="text-sm text-muted-foreground print:text-xs">{label}</p>
+            <div className="font-medium text-sm print:text-base">{children}</div>
         </div>
     </div>
 );
@@ -46,9 +47,40 @@ export default async function EstimateDetailsPage({ params, searchParams }: { pa
 
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" id="printable-area">
+      {/* Printable Header */}
+       <div className="hidden print:block">
+            <div className="flex justify-between items-start mb-8">
+                <div>
+                    <div className="flex items-center gap-4">
+                        <Logo className="h-20 w-20" />
+                        <div>
+                            <h1 className="text-3xl font-bold">ServiceRig</h1>
+                            <p className="text-muted-foreground">123 Fire Street, Suite 101<br/>Inferno, CA 91234</p>
+                            <p className="text-muted-foreground">contact@servicerig.com | (555) 123-4567</p>
+                        </div>
+                    </div>
+                </div>
+                <div className="text-right">
+                    <h2 className="text-4xl font-bold text-muted-foreground">ESTIMATE</h2>
+                    <p className="font-mono">{estimate.estimateNumber}</p>
+                    <p className="text-sm text-muted-foreground mt-2">Date Issued: {format(new Date(estimate.createdAt), 'MMMM d, yyyy')}</p>
+                </div>
+            </div>
+            <Separator className="my-8" />
+             <div className="grid grid-cols-2 gap-8">
+                <div>
+                    <h3 className="font-semibold mb-2">Bill To:</h3>
+                    <p className="font-bold">{customer.primaryContact.name}</p>
+                    <p>{customer.companyInfo.address}</p>
+                    <p>{customer.primaryContact.email}</p>
+                </div>
+            </div>
+             <Separator className="my-8" />
+        </div>
+
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 print:hidden">
         <div>
           <h1 className="text-3xl font-bold">{estimate.title}</h1>
           <div className="flex items-center gap-2 mt-1">
@@ -60,6 +92,10 @@ export default async function EstimateDetailsPage({ params, searchParams }: { pa
         </div>
         <div className="flex gap-2">
             <Button variant="outline">Edit Estimate</Button>
+            <Button variant="outline" onClick={() => window.print()}>
+                <Printer className="mr-2 h-4 w-4" />
+                Print / PDF
+            </Button>
             <StatusUpdateButtons estimate={estimate} />
              {estimate.status === 'accepted' && (
                 <form action={convertAction}>
@@ -73,16 +109,16 @@ export default async function EstimateDetailsPage({ params, searchParams }: { pa
         </div>
       </div>
       
-      <Separator />
+      <Separator className="print:hidden" />
 
       <div className="grid md:grid-cols-3 gap-6">
         {/* Main Content - Left Column */}
         <div className="md:col-span-2 space-y-6">
-            <Card>
-                <CardHeader>
+            <Card className="print:shadow-none print:border-none">
+                <CardHeader className="print:hidden">
                     <CardTitle>Line Items</CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="print:p-0">
                     <Table>
                         <TableHeader>
                             <TableRow>
@@ -119,37 +155,42 @@ export default async function EstimateDetailsPage({ params, searchParams }: { pa
             </Card>
 
             {estimate.gbbTier && (
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Good / Better / Best Tiers</CardTitle>
-                        <CardDescription>AI-generated pricing tiers for this estimate.</CardDescription>
+                <Card className="print:shadow-none print:border-none print:mt-12">
+                    <CardHeader className="print:p-0">
+                        <CardTitle>Pricing Options</CardTitle>
+                        <CardDescription className="print:hidden">AI-generated pricing tiers for this estimate.</CardDescription>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="print:p-0">
                          <Tabs defaultValue="good" className="w-full">
-                            <TabsList className="grid w-full grid-cols-3">
+                            <TabsList className="grid w-full grid-cols-3 print:hidden">
                                 <TabsTrigger value="good">Good</TabsTrigger>
                                 <TabsTrigger value="better">Better</TabsTrigger>
                                 <TabsTrigger value="best">Best</TabsTrigger>
                             </TabsList>
-                            <TabsContent value="good" className="pt-4 border rounded-md p-4 mt-2">
-                                <p className="text-sm text-muted-foreground">{estimate.gbbTier.good}</p>
-                            </TabsContent>
-                            <TabsContent value="better" className="pt-4 border rounded-md p-4 mt-2">
-                                <p className="text-sm text-muted-foreground">{estimate.gbbTier.better}</p>
-                            </TabsContent>
-                            <TabsContent value="best" className="pt-4 border rounded-md p-4 mt-2">
-                                <p className="text-sm text-muted-foreground">{estimate.gbbTier.best}</p>
-                            </TabsContent>
+                            <div className="print:space-y-4">
+                               <TabsContent value="good" className="pt-4 border rounded-md p-4 mt-2 print:border-none print:p-0 print:mt-2">
+                                    <h4 className="font-bold hidden print:block mb-1">Good Option</h4>
+                                    <p className="text-sm text-muted-foreground">{estimate.gbbTier.good}</p>
+                                </TabsContent>
+                                <TabsContent value="better" className="pt-4 border rounded-md p-4 mt-2 print:border-none print:p-0 print:mt-2">
+                                     <h4 className="font-bold hidden print:block mb-1">Better Option</h4>
+                                    <p className="text-sm text-muted-foreground">{estimate.gbbTier.better}</p>
+                                </TabsContent>
+                                <TabsContent value="best" className="pt-4 border rounded-md p-4 mt-2 print:border-none print:p-0 print:mt-2">
+                                     <h4 className="font-bold hidden print:block mb-1">Best Option</h4>
+                                    <p className="text-sm text-muted-foreground">{estimate.gbbTier.best}</p>
+                                </TabsContent>
+                            </div>
                         </Tabs>
                     </CardContent>
                 </Card>
             )}
 
-             <Card>
-                <CardHeader>
+             <Card className="print:shadow-none print:border-none">
+                <CardHeader className="print:p-0">
                     <CardTitle>Notes</CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="print:p-0">
                     <p className="text-sm text-muted-foreground">{estimate.notes || 'No notes for this estimate.'}</p>
                 </CardContent>
             </Card>
@@ -157,7 +198,7 @@ export default async function EstimateDetailsPage({ params, searchParams }: { pa
         </div>
 
         {/* Side Content - Right Column */}
-        <div className="space-y-6">
+        <div className="space-y-6 print:hidden">
           <Card>
             <CardHeader>
                 <CardTitle>Estimate Details</CardTitle>

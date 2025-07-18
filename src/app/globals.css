@@ -86,3 +86,30 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+@media print {
+  body {
+    background: #fff;
+    color: #000;
+  }
+  .print-container {
+    padding: 0;
+  }
+  #printable-area {
+    display: block;
+  }
+  .no-print, [data-sidebar], [data-sidebar='trigger'], .sidebar-inset > .p-4 > .flex {
+    display: none !important;
+  }
+   main {
+    padding: 0 !important;
+  }
+  .sidebar-inset {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  div[data-variant="inset"] > .p-4.md\:p-6,
+  .p-4.md\:p-6, .p-6, .p-4 {
+    padding: 0 !important;
+  }
+}
