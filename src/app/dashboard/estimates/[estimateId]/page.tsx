@@ -12,6 +12,9 @@ import { User, Calendar, Tag, Hash, FileText, DollarSign, Percent, Receipt } fro
 import { cn } from '@/lib/utils';
 import type { Estimate } from '@/lib/types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { convertEstimateToInvoice } from '@/app/actions';
+import { SubmitButton } from './SubmitButton';
+
 
 const getStatusStyles = (status: Estimate['status']) => {
   switch (status) {
@@ -52,6 +55,8 @@ export default async function EstimateDetailsPage({ params, searchParams }: { pa
   }
 
   const { estimate, customer, job } = data;
+  const convertAction = convertEstimateToInvoice.bind(null, estimate.id);
+
 
   return (
     <div className="space-y-6">
@@ -68,7 +73,13 @@ export default async function EstimateDetailsPage({ params, searchParams }: { pa
         </div>
         <div className="flex gap-2">
             <Button variant="outline">Edit Estimate</Button>
-            <Button>Create Invoice</Button>
+            <form action={convertAction}>
+                <SubmitButton
+                    label="Convert to Invoice"
+                    loadingLabel="Converting..."
+                    disabled={estimate.status === 'rejected'}
+                />
+            </form>
         </div>
       </div>
       

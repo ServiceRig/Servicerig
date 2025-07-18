@@ -142,34 +142,43 @@ export const mockInvoices: Invoice[] = [
     invoiceNumber: 'INV-001',
     customerId: 'cust1',
     jobId: 'job1',
-    customerName: 'Innovate Inc.',
+    title: 'HVAC Tune-up Invoice',
     amount: 1500.00,
     status: 'Paid',
     issueDate: new Date(),
     dueDate: new Date(),
     createdAt: new Date(),
+     lineItems: [
+        { description: 'HVAC Tune-up Service', quantity: 1, unitPrice: 1500 }
+    ]
   },
   {
     id: 'inv2',
     invoiceNumber: 'INV-002',
     customerId: 'cust2',
-    customerName: 'Solutions Corp.',
+    title: 'Plumbing Repair Invoice',
     amount: 750.50,
     status: 'Overdue',
     issueDate: new Date(),
     dueDate: new Date(),
     createdAt: new Date(),
+    lineItems: [
+        { description: 'Leaky Faucet Repair', quantity: 1, unitPrice: 750.50 }
+    ]
   },
   {
     id: 'inv3',
     invoiceNumber: 'INV-003',
     customerId: 'cust3',
-    customerName: 'Gadgets & More',
+    title: 'Appliance Install Invoice',
     amount: 2500.75,
     status: 'Paid',
     issueDate: new Date(),
     dueDate: new Date(),
     createdAt: new Date(),
+    lineItems: [
+        { description: 'Dishwasher Installation', quantity: 1, unitPrice: 2500.75 }
+    ]
   }
 ];
 
@@ -229,5 +238,29 @@ export const mockEstimates: Estimate[] = [
         },
         createdAt: new Date('2024-07-10T10:00:00Z'),
         updatedAt: new Date('2024-07-11T14:30:00Z'),
+    },
+    {
+        id: 'est2',
+        estimateNumber: 'EST-002',
+        title: 'Leaky Faucet Repair Options',
+        customerId: 'cust2',
+        jobId: 'job2',
+        status: 'sent',
+        lineItems: [
+            { description: 'Faucet Cartridge Replacement', quantity: 1, unitPrice: 150 },
+            { description: 'Labor', quantity: 1, unitPrice: 100 },
+        ],
+        subtotal: 250,
+        discount: 0,
+        tax: 20,
+        total: 270,
+        notes: 'Repair of existing Moen faucet in master bathroom.',
+        gbbTier: {
+            good: "Replace the cartridge in the existing faucet to stop the leak.",
+            better: "Replace the entire faucet with a new, mid-grade Delta model.",
+            best: "Upgrade to a premium Kohler faucet with a lifetime warranty and new supply lines.",
+        },
+        createdAt: new Date('2024-07-15T09:00:00Z'),
+        updatedAt: new Date('2024-07-15T09:30:00Z'),
     }
 ]

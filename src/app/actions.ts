@@ -2,6 +2,10 @@
 
 import { generateTieredEstimates, type GenerateTieredEstimatesInput } from "@/ai/flows/generate-tiered-estimates";
 import { z } from "zod";
+import { getEstimateById } from "./lib/firestore/estimates";
+import { mockInvoices } from "./lib/mock-data";
+import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 
 const tieredEstimatesSchema = z.object({
   jobDetails: z.string().min(10, "Job details must be at least 10 characters long."),
@@ -70,4 +74,50 @@ export async function runGenerateTieredEstimates(prevState: any, formData: FormD
     console.error(error);
     return { message: "Failed to generate tiers. Please try again." };
   }
+}
+
+
+export async function convertEstimateToInvoice(estimateId: string) {
+    if (!estimateId) {
+        throw new Error("Estimate ID is required.");
+    }
+
+    // In a real app, you'd fetch from Firestore
+    const estimate = await getEstimateById(estimateId);
+
+    if (!estimate) {
+        throw new Error("Estimate not found.");
+    }
+    
+    if (estimate.status === 'rejected') {
+        throw new Error("Cannot convert a rejected estimate.");
+    }
+    
+    // In a real app, you would use addDoc to create a new invoice in Firestore.
+    // Here, we simulate it by creating a new object and pushing it to our mock data array.
+    const newInvoiceId = `inv_${Math.random().toString(36).substring(2, 9)}`;
+    const newInvoice = {
+        id: newInvoiceId,
+        invoiceNumber: `INV-${Math.floor(Math.random() * 9000) + 1000}`,
+        customerId: estimate.customerId,
+        jobId: estimate.jobId,
+        linkedEstimateId: estimate.id,
+        title: estimate.title,
+        lineItems: estimate.lineItems,
+        amount: estimate.total,
+        status: 'draft' as const,
+        issueDate: new Date(),
+        dueDate: new Date(new Date().setDate(new Date().getDate() + 30)), // Due in 30 days
+        createdAt: new Date(),
+    };
+
+    mockInvoices.push(newInvoice);
+    console.log(`Created new invoice ${newInvoiceId} from estimate ${estimateId}`);
+
+    // Revalidate paths to ensure UI updates if user navigates back.
+    revalidatePath('/dashboard/invoices');
+    revalidatePath(`/dashboard/estimates/${estimateId}`);
+
+    // Redirect to the newly created invoice's detail page.
+    redirect(`/dashboard/invoices/${newInvoiceId}`);
 }

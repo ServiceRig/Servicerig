@@ -72,6 +72,12 @@ export type Job = {
   };
 };
 
+export type LineItem = {
+    description: string;
+    quantity: number;
+    unitPrice: number;
+};
+
 export type Estimate = {
     id: string;
     estimateNumber: string;
@@ -79,11 +85,7 @@ export type Estimate = {
     customerId: string;
     jobId?: string;
     status: 'draft' | 'sent' | 'accepted' | 'rejected';
-    lineItems: {
-        description: string;
-        quantity: number;
-        unitPrice: number;
-    }[];
+    lineItems: LineItem[];
     subtotal: number;
     discount: number;
     tax: number;
@@ -115,17 +117,20 @@ export interface ServiceAgreement {
 // Invoice model from /invoices/{invoiceId}
 export type Invoice = {
   id: string;
+  invoiceNumber: string;
+  title: string;
   jobId?: string;
   customerId: string;
   amount: number;
   status: 'draft' | 'sent' | 'paid' | 'overdue';
   stripePaymentLink?: string;
   dueDate: Timestamp | Date;
+  issueDate: Timestamp | Date;
   createdAt: Timestamp | Date;
+  lineItems: LineItem[];
+  linkedEstimateId?: string;
   // For UI enrichment
-  invoiceNumber?: string;
   customerName?: string;
-  issueDate?: Date;
 };
 
 
