@@ -8,6 +8,7 @@ import { Check, Signature } from 'lucide-react';
 import type { TierData } from './ai-tier-generator';
 import { cn } from '@/lib/utils';
 import { Label } from '../ui/label';
+import { ScrollArea } from '../ui/scroll-area';
 
 const formatCurrency = (amount?: number) => {
     if (typeof amount !== 'number') return '$0.00';
@@ -49,43 +50,45 @@ export function CustomerPresentationView({ isOpen, onOpenChange, tiers, onAccept
 
     return (
         <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-            <DialogContent className="max-w-6xl h-[90vh] flex flex-col p-8">
+            <DialogContent className="max-w-6xl flex flex-col p-8 max-h-[90vh]">
                 <DialogHeader>
                     <DialogTitle className="text-center text-4xl font-bold">Please Choose an Option</DialogTitle>
                     <DialogDescription className="text-center text-lg">Review the options below and make a selection.</DialogDescription>
                 </DialogHeader>
-                <div className="flex-grow grid grid-cols-1 md:grid-cols-3 gap-6 py-4">
-                   {tiers.map((tier) => {
-                       const colors = tierColors[tier.title as keyof typeof tierColors] || tierColors.Good;
-                       const isSelected = selectedTier?.title === tier.title;
+                 <ScrollArea className="flex-grow">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 py-4 px-2">
+                    {tiers.map((tier) => {
+                        const colors = tierColors[tier.title as keyof typeof tierColors] || tierColors.Good;
+                        const isSelected = selectedTier?.title === tier.title;
 
-                       return (
-                           <Card key={tier.title} className={cn(
+                        return (
+                            <Card key={tier.title} className={cn(
                                 "flex flex-col transition-all duration-300", 
                                 colors.border, 
                                 isSelected ? `ring-4 ${colors.ring} shadow-2xl` : 'shadow-md'
                             )}>
-                               <CardHeader className="text-center">
-                                   <CardTitle className={cn("text-3xl font-bold", colors.text)}>{tier.title}</CardTitle>
-                               </CardHeader>
-                               <CardContent className="flex-grow flex flex-col items-center justify-center text-center space-y-4">
-                                   <p className="text-5xl font-bold">{formatCurrency(tier.price)}</p>
-                                   <p className="text-muted-foreground flex-grow">{tier.description}</p>
-                               </CardContent>
-                               <CardFooter>
-                                    <Button 
-                                        className="w-full text-lg py-6" 
-                                        onClick={() => handleSelectTier(tier)}
-                                        variant={isSelected ? 'default' : 'outline'}
-                                    >
-                                        {isSelected && <Check className="mr-2 h-5 w-5" />}
-                                        Accept Option
-                                    </Button>
-                               </CardFooter>
-                           </Card>
-                       )
-                   })}
-                </div>
+                                <CardHeader className="text-center">
+                                    <CardTitle className={cn("text-3xl font-bold", colors.text)}>{tier.title}</CardTitle>
+                                </CardHeader>
+                                <CardContent className="flex-grow flex flex-col items-center justify-center text-center space-y-4">
+                                    <p className="text-5xl font-bold">{formatCurrency(tier.price)}</p>
+                                    <p className="text-muted-foreground flex-grow">{tier.description}</p>
+                                </CardContent>
+                                <CardFooter>
+                                        <Button 
+                                            className="w-full text-lg py-6" 
+                                            onClick={() => handleSelectTier(tier)}
+                                            variant={isSelected ? 'default' : 'outline'}
+                                        >
+                                            {isSelected && <Check className="mr-2 h-5 w-5" />}
+                                            Accept Option
+                                        </Button>
+                                </CardFooter>
+                            </Card>
+                        )
+                    })}
+                    </div>
+                </ScrollArea>
 
                 {selectedTier && (
                      <DialogFooter className="border-t pt-6 mt-4 flex-col sm:flex-col sm:justify-center items-center gap-4">
