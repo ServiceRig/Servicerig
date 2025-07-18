@@ -26,7 +26,10 @@ const useMockFirestore = () => {
   const moveJob = useCallback((jobId: string, newTechnicianId: string, newStartTime: Date) => {
     setAllJobs(prevJobs => {
         const jobToMove = prevJobs.find(j => j.id === jobId);
-        if (!jobToMove) return prevJobs;
+        if (!jobToMove) {
+            console.error(`Job with id ${jobId} not found!`);
+            return prevJobs;
+        }
 
         // Snap to nearest 15-minute interval
         const minutes = newStartTime.getMinutes();
