@@ -7,11 +7,12 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import { Phone, MessageSquare, MapPin, MoreHorizontal, CheckCircle } from 'lucide-react';
+import { Phone, MessageSquare, MapPin, MoreHorizontal, CheckCircle, Clock } from 'lucide-react';
 import { mockJobs, mockCustomers } from '@/lib/mock-data';
 import type { Job, Customer } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 type EnrichedJob = Job & {
   customer?: Customer;
@@ -23,13 +24,13 @@ const LOGGED_IN_TECHNICIAN_ID = 'tech1';
 const getStatusStyles = (status: Job['status']) => {
   switch (status) {
     case 'in_progress':
-      return 'bg-yellow-500 hover:bg-yellow-600';
+      return 'bg-yellow-500 hover:bg-yellow-600 text-white';
     case 'complete':
-      return 'bg-green-500 hover:bg-green-600';
+      return 'bg-green-500 hover:bg-green-600 text-white';
     case 'scheduled':
-      return 'bg-blue-500 hover:bg-blue-600';
+      return 'bg-blue-500 hover:bg-blue-600 text-white';
     default:
-      return 'bg-gray-500 hover:bg-gray-600';
+      return 'bg-gray-500 hover:bg-gray-600 text-white';
   }
 };
 
@@ -77,10 +78,10 @@ const JobCard = ({ job }: { job: EnrichedJob }) => {
       </CardContent>
       <CardFooter className="grid grid-cols-2 gap-2">
         <Button variant="outline">
-          <Phone className="mr-2" /> Call
+          <Phone className="mr-2 h-4 w-4" /> Call
         </Button>
         <Button variant="outline">
-          <MessageSquare className="mr-2" /> Text
+          <MessageSquare className="mr-2 h-4 w-4" /> Text
         </Button>
       </CardFooter>
       <div className="p-4 pt-0 text-xs text-muted-foreground flex items-center">
@@ -90,6 +91,28 @@ const JobCard = ({ job }: { job: EnrichedJob }) => {
     </Card>
   );
 };
+
+const TodaysJobListItem = ({ job }: { job: EnrichedJob }) => {
+    const customerName = job.customer?.primaryContact.name || 'N/A';
+    const customerAddress = job.customer?.companyInfo.address || 'No address';
+
+    return (
+        <div className="flex items-center gap-4 py-3 border-b">
+            <div className="flex items-center justify-center h-10 w-10 bg-muted rounded-full">
+                <Clock className="h-5 w-5 text-muted-foreground" />
+            </div>
+            <div className="flex-grow">
+                <p className="font-semibold">{job.title}</p>
+                <p className="text-sm text-muted-foreground">{customerName}</p>
+                <p className="text-xs text-muted-foreground">{customerAddress}</p>
+            </div>
+             <div className="text-right">
+                <p className="text-sm font-medium">{format(new Date(job.schedule.start), 'h:mm a')}</p>
+                <Badge variant="outline" className={cn(getStatusStyles(job.status), "mt-1")}>{job.status.replace('_', ' ')}</Badge>
+            </div>
+        </div>
+    )
+}
 
 const JobsGrid = ({ jobs }: { jobs: EnrichedJob[] }) => {
   if (jobs.length === 0) {
@@ -125,7 +148,7 @@ export default function MySchedulePage() {
            d.getFullYear() === today.getFullYear();
   }
 
-  const todaysJobs = jobs.filter(job => isToday(job.schedule.start));
+  const todaysJobs = jobs.filter(job => isToday(job.schedule.start)).sort((a,b) => new Date(a.schedule.start).getTime() - new Date(b.schedule.start).getTime());
   const upcomingJobs = jobs.filter(job => new Date(job.schedule.start) > today && job.status === 'scheduled');
   const needsInvoiceJobs = jobs.filter(job => job.status === 'complete' && !job.invoiceId);
   const allCompletedJobs = jobs.filter(job => job.status === 'complete');
@@ -135,29 +158,45 @@ export default function MySchedulePage() {
       <div>
         <h1 className="text-3xl font-bold">Technician View</h1>
       </div>
-      <Card>
-        <CardHeader>
-          <CardTitle>Live Map</CardTitle>
-          <CardDescription>Showing live locations for All Technicians and their assigned jobs.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="h-96 bg-muted rounded-lg flex items-center justify-center">
-             <img src="https://placehold.co/1200x400.png" alt="Map placeholder" data-ai-hint="map usa" className="w-full h-full object-cover rounded-lg" />
-          </div>
-        </CardContent>
-      </Card>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+            <CardHeader>
+            <CardTitle>Live Map</CardTitle>
+            <CardDescription>Showing your live location and assigned jobs.</CardDescription>
+            </CardHeader>
+            <CardContent>
+            <div className="h-96 bg-muted rounded-lg flex items-center justify-center">
+                <img src="https://placehold.co/600x400.png" alt="Map placeholder" data-ai-hint="map usa" className="w-full h-full object-cover rounded-lg" />
+            </div>
+            </CardContent>
+        </Card>
+        <Card>
+            <CardHeader>
+                <CardTitle>Today's Jobs</CardTitle>
+                <CardDescription>Your scheduled jobs for today, {format(today, 'MMMM d, yyyy')}.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <ScrollArea className="h-96">
+                    {todaysJobs.length > 0 ? (
+                        todaysJobs.map(job => <TodaysJobListItem key={job.id} job={job} />)
+                    ) : (
+                        <div className="flex items-center justify-center h-full">
+                            <p className="text-muted-foreground">No jobs scheduled for today.</p>
+                        </div>
+                    )}
+                </ScrollArea>
+            </CardContent>
+        </Card>
+      </div>
       
-      <Tabs defaultValue="today" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="today">Today&apos;s Jobs</TabsTrigger>
+      <Tabs defaultValue="upcoming" className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
           <TabsTrigger value="needs-invoice">Needs Invoice</TabsTrigger>
           <TabsTrigger value="all-completed">All Completed</TabsTrigger>
           <TabsTrigger value="personal-metrics">Personal Metrics</TabsTrigger>
         </TabsList>
-        <TabsContent value="today">
-          <JobsGrid jobs={todaysJobs} />
-        </TabsContent>
         <TabsContent value="upcoming">
           <JobsGrid jobs={upcomingJobs} />
         </TabsContent>
