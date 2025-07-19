@@ -10,6 +10,7 @@ import type { TierData } from './ai-tier-generator';
 import { cn } from '@/lib/utils';
 import { Label } from '../ui/label';
 import { acceptEstimateFromTiers } from '@/app/actions';
+import { useRole } from '@/hooks/use-role';
 
 
 const formatCurrency = (amount?: number) => {
@@ -45,6 +46,7 @@ interface CustomerPresentationViewProps {
 }
 
 export function CustomerPresentationView({ isOpen, onOpenChange, tiers, baseEstimateData }: CustomerPresentationViewProps) {
+    const { role } = useRole();
     const [selectedTier, setSelectedTier] = useState<TierData | null>(null);
 
     const handleSelectTier = (tier: TierData) => {
@@ -76,6 +78,7 @@ export function CustomerPresentationView({ isOpen, onOpenChange, tiers, baseEsti
                     <input type="hidden" name="customerId" value={baseEstimateData.customerId} />
                     <input type="hidden" name="jobId" value={baseEstimateData.jobId} />
                     <input type="hidden" name="title" value={selectedTier ? `${baseEstimateData.title} - ${selectedTier.title}` : baseEstimateData.title} />
+                    <input type="hidden" name="role" value={role || ''} />
                     {selectedTier && <input type="hidden" name="selectedTier" value={JSON.stringify(selectedTier)} />}
 
                     <div className="p-8 pt-4">

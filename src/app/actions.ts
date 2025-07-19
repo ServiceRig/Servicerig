@@ -220,17 +220,20 @@ const acceptEstimateSchema = z.object({
   customerId: z.string().min(1),
   jobId: z.string().optional(),
   title: z.string().min(1),
+  role: z.string().optional(),
   selectedTier: z.string(), // This will be JSON string
 });
 
 
 export async function acceptEstimateFromTiers(formData: FormData) {
     let newEstimateId = '';
+    let role = '';
     try {
         const validatedFields = acceptEstimateSchema.safeParse({
             customerId: formData.get('customerId'),
             jobId: formData.get('jobId'),
             title: formData.get('title'),
+            role: formData.get('role'),
             selectedTier: formData.get('selectedTier'),
         });
 
@@ -241,6 +244,7 @@ export async function acceptEstimateFromTiers(formData: FormData) {
 
         const { customerId, title, jobId } = validatedFields.data;
         const selectedTier = JSON.parse(validatedFields.data.selectedTier) as { description: string, price: number };
+        role = validatedFields.data.role || '';
 
         const customer = await getCustomerById(customerId);
         if (!customer) {
@@ -286,7 +290,7 @@ export async function acceptEstimateFromTiers(formData: FormData) {
         throw error;
     }
     
-    redirect(`/dashboard/estimates/${newEstimateId}`);
+    redirect(`/dashboard/estimates/${newEstimateId}?role=${role}`);
 }
 
 export async function convertEstimateToInvoice(estimateId: string) {
