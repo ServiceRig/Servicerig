@@ -1,4 +1,5 @@
 
+
 'use server';
 
 import { generateTieredEstimates, type GenerateTieredEstimatesInput, type GenerateTieredEstimatesOutput } from "@/ai/flows/generate-tiered-estimates";
@@ -101,6 +102,7 @@ const lineItemSchema = z.object({
     description: z.string(),
     quantity: z.number(),
     unitPrice: z.number(),
+    inventoryParts: z.array(z.any()).optional(),
 });
 
 const gbbTierSchema = z.object({
@@ -394,11 +396,11 @@ export async function addPricebookItemAction(prevState: AddPricebookItemState, f
     }
     
     try {
-        const newItem: Omit<PricebookItem, 'id' | 'createdAt'> = {
+        const newItem: Omit<PricebookItem, 'id' | 'createdAt' | 'inventoryParts'> = {
             ...validatedFields.data,
             isCustom: true,
         };
-        await addPricebookItem(newItem);
+        await addPricebookItem({ ...newItem, inventoryParts: [] }); // AI items have no parts by default
         revalidatePath('/dashboard/price-book');
         return { success: true, message: `Successfully added "${validatedFields.data.title}" to the price book.`};
     } catch(e) {
