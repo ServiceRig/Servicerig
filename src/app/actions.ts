@@ -97,6 +97,7 @@ const addEstimateSchema = z.object({
     customerId: z.string().min(1, { message: 'Customer is required.' }),
     title: z.string().min(1, { message: 'Title is required.' }),
     jobId: z.string().optional().transform(val => val === '' ? undefined : val),
+    role: z.string().optional(),
     lineItems: z.string().transform((val, ctx) => {
         try {
             const parsed = JSON.parse(val);
@@ -134,6 +135,7 @@ type AddEstimateState = {
 export async function addEstimate(prevState: AddEstimateState, formData: FormData): Promise<AddEstimateState> {
     let newEstimateId = '';
     let finalEstimate: Estimate;
+    let role = '';
     try {
         const validatedFields = addEstimateSchema.safeParse({
             customerId: formData.get('customerId'),
@@ -141,6 +143,7 @@ export async function addEstimate(prevState: AddEstimateState, formData: FormDat
             jobId: formData.get('jobId'),
             lineItems: formData.get('lineItems'),
             gbbTier: formData.get('gbbTier'),
+            role: formData.get('role'),
         });
         
         if (!validatedFields.success) {
@@ -149,6 +152,7 @@ export async function addEstimate(prevState: AddEstimateState, formData: FormDat
         }
 
         let { customerId, title, jobId, lineItems, gbbTier } = validatedFields.data;
+        role = validatedFields.data.role || '';
         
         const customer = mockData.customers.find(c => c.id === customerId);
         if (!customer) {
@@ -211,7 +215,8 @@ export async function addEstimate(prevState: AddEstimateState, formData: FormDat
     }
     
     const estimateDataString = encodeURIComponent(JSON.stringify(finalEstimate));
-    redirect(`/dashboard/estimates/${newEstimateId}?estimateData=${estimateDataString}`);
+    const roleQuery = role ? `&role=${role}` : '';
+    redirect(`/dashboard/estimates/${newEstimateId}?estimateData=${estimateDataString}${roleQuery}`);
 }
 
 const acceptEstimateSchema = z.object({

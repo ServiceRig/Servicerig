@@ -18,6 +18,7 @@ import { AITierGenerator, TierData } from '@/components/dashboard/ai-tier-genera
 import { CustomerPresentationView } from '@/components/dashboard/customer-presentation-view';
 import { addEstimate } from '@/app/actions';
 import { SubmitButton } from './SubmitButton';
+import { useRole } from '@/hooks/use-role';
 
 
 const formatCurrency = (amount: number) => {
@@ -28,6 +29,7 @@ function NewEstimatePageContent() {
   const { toast } = useToast();
   const searchParams = useSearchParams();
   const [addEstimateState, formAction] = useActionState(addEstimate, { success: false, message: null });
+  const { role } = useRole();
   
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -103,6 +105,7 @@ function NewEstimatePageContent() {
     } else {
         item[field] = value as string;
     }
+    newItems[index].inventoryParts = item.inventoryParts || [];
     setLineItems(newItems);
   };
 
@@ -189,6 +192,7 @@ function NewEstimatePageContent() {
         <input type="hidden" name="customerId" value={selectedCustomerId} />
         <input type="hidden" name="jobId" value={selectedJobId} />
         <input type="hidden" name="title" value={estimateTitle} />
+        <input type="hidden" name="role" value={role || ''} />
         <input type="hidden" name="lineItems" value={JSON.stringify(lineItems)} />
         <input type="hidden" name="gbbTier" value={gbbTiers ? JSON.stringify({
             good: gbbTiers.find(t => t.title === 'Good')?.description || '',
