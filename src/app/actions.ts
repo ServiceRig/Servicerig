@@ -86,7 +86,7 @@ export async function runGenerateTieredEstimates(prevState: GenerateTiersState, 
 }
 
 function safeJsonParse<T>(val: unknown, fallback: T): T {
-    if (typeof val !== 'string' || !val || val === 'null') {
+    if (typeof val !== 'string' || !val || val === 'null' || val === '') {
         return fallback;
     }
     try {
