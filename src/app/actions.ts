@@ -11,6 +11,7 @@ import type { Estimate, GbbTier, LineItem, PricebookItem, Job } from "@/lib/type
 import { addEstimateTemplate } from "@/lib/firestore/templates";
 import { mockData } from "@/lib/mock-data";
 import { addPricebookItem } from "@/lib/firestore/pricebook";
+import { getCustomerById } from "@/lib/firestore/customers";
 
 const tieredEstimatesSchema = z.object({
   jobDetails: z.string().min(10, "Job details must be at least 10 characters long."),
@@ -134,7 +135,6 @@ type AddEstimateState = {
 
 export async function addEstimate(prevState: AddEstimateState, formData: FormData): Promise<AddEstimateState> {
     let newEstimateId = '';
-    let finalEstimate: Estimate;
     let role = '';
     try {
         const validatedFields = addEstimateSchema.safeParse({
@@ -154,7 +154,7 @@ export async function addEstimate(prevState: AddEstimateState, formData: FormDat
         let { customerId, title, jobId, lineItems, gbbTier } = validatedFields.data;
         role = validatedFields.data.role || '';
         
-        const customer = mockData.customers.find(c => c.id === customerId);
+        const customer = await getCustomerById(customerId);
         if (!customer) {
             return { success: false, message: 'Customer not found.' };
         }
@@ -188,7 +188,7 @@ export async function addEstimate(prevState: AddEstimateState, formData: FormDat
         
         newEstimateId = `est_${Math.random().toString(36).substring(2, 9)}`;
 
-        finalEstimate = {
+        const finalEstimate: Estimate = {
             id: newEstimateId,
             estimateNumber: `EST-${Math.floor(Math.random() * 9000) + 1000}`,
             customerId,
@@ -213,12 +213,9 @@ export async function addEstimate(prevState: AddEstimateState, formData: FormDat
         return { success: false, message: 'Failed to create estimate.' };
     }
     
-    // Pass estimate data via URL to handle dev server hot-reloading issues
-    const estimateDataString = encodeURIComponent(JSON.stringify(finalEstimate));
-    const roleQuery = role ? `&role=${role}` : '';
-
+    const roleQuery = role ? `?role=${role}` : '';
     revalidatePath('/dashboard/estimates');
-    redirect(`/dashboard/estimates/${newEstimateId}?estimateData=${estimateDataString}${roleQuery}`);
+    redirect(`/dashboard/estimates/${newEstimateId}${roleQuery}`);
 }
 
 const acceptEstimateSchema = z.object({
@@ -248,7 +245,7 @@ export async function acceptEstimateFromTiers(formData: FormData) {
         const { customerId, title, jobId } = validatedFields.data;
         const selectedTier = JSON.parse(validatedFields.data.selectedTier) as { description: string, price: number };
 
-        const customer = mockData.customers.find(c => c.id === customerId);
+        const customer = await getCustomerById(customerId);
         if (!customer) {
             throw new Error('Customer not found.');
         }
@@ -292,8 +289,7 @@ export async function acceptEstimateFromTiers(formData: FormData) {
         throw error;
     }
     
-    const estimateDataString = encodeURIComponent(JSON.stringify(finalEstimate));
-    redirect(`/dashboard/estimates/${newEstimateId}?estimateData=${estimateDataString}`);
+    redirect(`/dashboard/estimates/${newEstimateId}`);
 }
 
 

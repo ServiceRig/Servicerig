@@ -12,9 +12,6 @@ import { cn, getEstimateStatusStyles } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EstimateActions } from './EstimateActions';
 import { Logo } from '@/components/logo';
-import type { EstimateData, Estimate } from '@/lib/types';
-import { getCustomerById } from '@/lib/firestore/customers';
-import { getJobById } from '@/lib/firestore/jobs';
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
@@ -30,49 +27,12 @@ const InfoCard = ({ icon: Icon, label, children }: { icon: React.ElementType, la
     </div>
 );
 
-// Helper function to safely parse dates from JSON
-const parseDates = (estimate: any): Estimate => {
-    return {
-        ...estimate,
-        createdAt: new Date(estimate.createdAt),
-        updatedAt: new Date(estimate.updatedAt),
-    };
-}
-
 
 export default async function EstimateDetailsPage({ params, searchParams }: { params: { estimateId: string }, searchParams: { [key: string]: string | string[] | undefined } }) {
   const estimateId = params.estimateId;
   const role = searchParams.role || 'admin';
-  const estimateDataString = searchParams?.estimateData as string;
-
-  let data: EstimateData | null = null;
   
-  if (estimateDataString) {
-      try {
-        const parsedEstimate = parseDates(JSON.parse(decodeURIComponent(estimateDataString)));
-        // Fetch full customer and job details instead of using placeholders
-        const customer = await getCustomerById(parsedEstimate.customerId);
-        const job = parsedEstimate.jobId ? await getJobById(parsedEstimate.jobId) : null;
-        
-        if (!customer) {
-            throw new Error("Customer not found for the provided estimate data.");
-        }
-
-        data = {
-            estimate: parsedEstimate,
-            customer: customer,
-            job: job
-        }
-      } catch (e) {
-          console.error("Failed to parse estimate data from URL or fetch related data", e);
-      }
-  }
-  
-  // Fallback to fetching from "DB" if URL data is not present
-  if (!data) {
-      data = await getEstimateData(estimateId);
-  }
-
+  const data = await getEstimateData(estimateId);
 
   if (!data) {
     notFound();
