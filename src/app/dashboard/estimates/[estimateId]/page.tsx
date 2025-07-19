@@ -36,7 +36,7 @@ const InfoCard = ({ icon: Icon, label, children }: { icon: React.ElementType, la
 );
 
 
-export default function EstimateDetailsPage({ params }: { params: { estimateId: string }}) {
+export default function EstimateDetailsPage({ params: { estimateId } }: { params: { estimateId: string }}) {
   const searchParams = useSearchParams();
   const role = searchParams.get('role') || 'admin';
   
@@ -48,7 +48,7 @@ export default function EstimateDetailsPage({ params }: { params: { estimateId: 
   useEffect(() => {
     const fetchData = async () => {
         setIsLoading(true);
-        const fetchedEstimate = await getEstimateById(params.estimateId);
+        const fetchedEstimate = await getEstimateById(estimateId);
         
         if (!fetchedEstimate) {
             setEstimate(null);
@@ -65,7 +65,7 @@ export default function EstimateDetailsPage({ params }: { params: { estimateId: 
     };
 
     fetchData();
-  }, [params.estimateId]);
+  }, [estimateId]);
 
 
   if (isLoading) {
