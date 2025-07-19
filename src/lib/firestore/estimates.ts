@@ -66,7 +66,8 @@ export async function addEstimate(estimate: Estimate): Promise<void> {
 }
 
 /**
- * Updates an existing estimate in the mock data.
+ * Updates an existing estimate in the mock data, or adds it if it doesn't exist.
+ * This "upsert" logic helps prevent errors in a hot-reloading dev environment.
  * @param updatedEstimate The estimate object with updated fields.
  */
 export async function updateEstimate(updatedEstimate: Estimate): Promise<void> {
@@ -75,7 +76,9 @@ export async function updateEstimate(updatedEstimate: Estimate): Promise<void> {
     if (index !== -1) {
         mockData.estimates[index] = updatedEstimate;
     } else {
-        throw new Error(`Estimate with id ${updatedEstimate.id} not found for update.`);
+        // If estimate not found (e.g., due to hot-reload), add it to the list.
+        console.warn(`Estimate with id ${updatedEstimate.id} not found for update, adding it instead.`);
+        mockData.estimates.unshift(updatedEstimate);
     }
     await new Promise(resolve => setTimeout(resolve, 100));
 }

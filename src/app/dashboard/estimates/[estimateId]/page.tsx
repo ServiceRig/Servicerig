@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { notFound, useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -35,8 +35,7 @@ const InfoCard = ({ icon: Icon, label, children }: { icon: React.ElementType, la
     </div>
 );
 
-
-export default function EstimateDetailsPage({ params: { estimateId } }: { params: { estimateId: string }}) {
+function EstimateDetailsPageContent({ estimateId }: { estimateId: string }) {
   const searchParams = useSearchParams();
   const role = searchParams.get('role') || 'admin';
   
@@ -66,7 +65,6 @@ export default function EstimateDetailsPage({ params: { estimateId } }: { params
 
     fetchData();
   }, [estimateId]);
-
 
   if (isLoading) {
       return (
@@ -274,4 +272,13 @@ export default function EstimateDetailsPage({ params: { estimateId } }: { params
       </div>
     </div>
   );
+}
+
+
+export default function EstimateDetailsPage({ params }: { params: { estimateId: string }}) {
+    return (
+        <Suspense fallback={<div className="flex items-center justify-center h-64"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>}>
+            <EstimateDetailsPageContent estimateId={params.estimateId} />
+        </Suspense>
+    )
 }
