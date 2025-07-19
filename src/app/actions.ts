@@ -3,7 +3,7 @@
 
 import { generateTieredEstimates, type GenerateTieredEstimatesInput, type GenerateTieredEstimatesOutput } from "@/ai/flows/generate-tiered-estimates";
 import { z } from "zod";
-import { getEstimateById, addEstimate as addEstimateToDb } from "@/lib/firestore/estimates";
+import { addEstimate as addEstimateToDb } from "@/lib/firestore/estimates";
 import { addJob } from "@/lib/firestore/jobs";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
@@ -134,7 +134,7 @@ type AddEstimateState = {
 }
 
 export async function addEstimate(prevState: AddEstimateState, formData: FormData): Promise<AddEstimateState> {
-    let newEstimateId = '';
+    let finalEstimate: Estimate;
     let role = '';
     try {
         const validatedFields = addEstimateSchema.safeParse({
@@ -186,9 +186,9 @@ export async function addEstimate(prevState: AddEstimateState, formData: FormDat
         const tax = subtotal * 0.08;
         const total = subtotal - discount + tax;
         
-        newEstimateId = `est_${Math.random().toString(36).substring(2, 9)}`;
+        const newEstimateId = `est_${Math.random().toString(36).substring(2, 9)}`;
 
-        const finalEstimate: Estimate = {
+        finalEstimate = {
             id: newEstimateId,
             estimateNumber: `EST-${Math.floor(Math.random() * 9000) + 1000}`,
             customerId,
@@ -213,12 +213,12 @@ export async function addEstimate(prevState: AddEstimateState, formData: FormDat
         return { success: false, message: 'Failed to create estimate.' };
     }
     
-    const roleQuery = role ? `role=${role}` : '';
-    const newEstimateQuery = `newEstimateId=${newEstimateId}`;
-    const query = [roleQuery, newEstimateQuery].filter(Boolean).join('&');
+    // Pass the full estimate data in the URL to avoid refetching issues in dev
+    const params = new URLSearchParams();
+    if (role) params.set('role', role);
+    params.set('newEstimateData', JSON.stringify(finalEstimate));
 
-    revalidatePath('/dashboard/estimates');
-    redirect(`/dashboard/estimates?${query}`);
+    redirect(`/dashboard/estimates?${params.toString()}`);
 }
 
 const acceptEstimateSchema = z.object({

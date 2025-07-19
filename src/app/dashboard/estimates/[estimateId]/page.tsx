@@ -12,6 +12,10 @@ import { cn, getEstimateStatusStyles } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EstimateActions } from './EstimateActions';
 import { Logo } from '@/components/logo';
+import { getCustomerById } from '@/lib/firestore/customers';
+import { getJobById } from '@/lib/firestore/jobs';
+import type { Estimate, Customer, Job } from '@/lib/types';
+
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
@@ -32,13 +36,41 @@ export default async function EstimateDetailsPage({ params, searchParams }: { pa
   const estimateId = params.estimateId;
   const role = searchParams.role || 'admin';
   
-  const data = await getEstimateData(estimateId);
+  let estimate: Estimate | null = null;
+  let customer: Customer | null = null;
+  let job: Job | null = null;
+  
+  // This is the new logic to handle data passed via URL to avoid dev server issues
+  const estimateDataString = searchParams?.estimateData as string;
+  if (estimateDataString) {
+      try {
+        estimate = JSON.parse(estimateDataString) as Estimate;
+      } catch (e) {
+        console.error("Failed to parse estimate data from URL", e);
+      }
+  }
 
-  if (!data) {
+  // Fallback to fetching if data is not in URL (e.g., direct navigation)
+  if (!estimate) {
+    const data = await getEstimateData(estimateId);
+    if(data) {
+        estimate = data.estimate;
+    }
+  }
+  
+  if (!estimate) {
     notFound();
   }
 
-  const { estimate, customer, job } = data;
+  // Always fetch customer and job to ensure data is up-to-date and not just a placeholder
+  customer = await getCustomerById(estimate.customerId);
+  if (estimate.jobId) {
+    job = await getJobById(estimate.jobId);
+  }
+
+  if (!customer) {
+    notFound();
+  }
 
 
   return (

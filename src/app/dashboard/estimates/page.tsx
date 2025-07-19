@@ -14,7 +14,6 @@ import { UserRole } from '@/lib/types';
 import { Plus } from 'lucide-react';
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { getEstimateById } from '@/lib/firestore/estimates';
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
@@ -33,24 +32,31 @@ function EstimatesPageContent() {
     }, []);
 
     useEffect(() => {
-        const newEstimateId = searchParams.get('newEstimateId');
-        if (newEstimateId && !estimates.some(e => e.id === newEstimateId)) {
-            const fetchNewEstimate = async () => {
-                const newEstimate = await getEstimateById(newEstimateId);
-                if (newEstimate) {
+        const newEstimateData = searchParams.get('newEstimateData');
+        if (newEstimateData) {
+            try {
+                const newEstimate = JSON.parse(newEstimateData);
+                // Ensure date strings are converted to Date objects
+                newEstimate.createdAt = new Date(newEstimate.createdAt);
+                newEstimate.updatedAt = new Date(newEstimate.updatedAt);
+
+                if (!estimates.some(e => e.id === newEstimate.id)) {
                     setEstimates(prevEstimates => [newEstimate, ...prevEstimates]);
                 }
-            };
-            fetchNewEstimate();
+            } catch (error) {
+                console.error("Failed to parse new estimate data from URL", error);
+            }
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchParams]);
 
 
     const getHref = (path: string) => {
-        const roleParam = role ? `?role=${role}` : '';
-        const hasQuery = path.includes('?');
-        return `${path}${hasQuery ? '&' : '?'}${roleParam.replace('?', '')}`;
+        let roleParam = role ? `role=${role}` : '';
+        if (path.includes('?')) {
+            return `${path}&${roleParam}`;
+        }
+        return `${path}?${roleParam}`;
     }
 
   return (
