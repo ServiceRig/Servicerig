@@ -98,7 +98,7 @@ export default function SchedulingPage() {
     setCurrentDate(prevDate => addDays(prevDate, increment * sign));
   };
 
-  const enrichedJobs = jobs.map(job => {
+  const enrichedJobs = (jobs ?? []).map(job => {
     const customer = customers.find(c => c.id === job.customerId);
     const technician = technicians.find(t => t.id === job.technicianId);
     return {
