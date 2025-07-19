@@ -56,7 +56,7 @@ function EstimateDetailsPageContent({ estimateId }: { estimateId: string }) {
             if (!fetchedEstimate) {
                 setError(`Estimate with ID "${estimateId}" not found.`);
                 setIsLoading(false);
-                return;
+                return; // Stop execution if estimate is not found
             }
 
             setEstimate(fetchedEstimate);
@@ -95,14 +95,14 @@ function EstimateDetailsPageContent({ estimateId }: { estimateId: string }) {
   if (error) {
       return (
           <div className="flex items-center justify-center h-full p-4">
-              <Card className="w-full max-w-md">
+              <Card className="w-full max-w-lg text-center">
                   <CardHeader>
                       <CardTitle>Error Loading Estimate</CardTitle>
                       <CardDescription>We couldn't find the estimate you were looking for.</CardDescription>
                   </CardHeader>
-                  <CardContent>
-                      <p className="text-sm text-destructive">{error}</p>
-                      <p className="text-sm text-muted-foreground mt-2">This can sometimes happen in the development environment due to fast page reloads. The estimate may have been created successfully.</p>
+                  <CardContent className="space-y-4">
+                      <p className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">{error}</p>
+                      <p className="text-sm text-muted-foreground">This can sometimes happen in the development environment due to fast page reloads. The estimate may have been created successfully.</p>
                        <Button asChild className="mt-4 w-full">
                             <Link href="/dashboard/estimates">Go back to Estimates</Link>
                         </Button>
@@ -322,5 +322,3 @@ export default function EstimateDetailsPage({ params }: { params: Promise<{ esti
         </Suspense>
     )
 }
-
-    
