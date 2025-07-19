@@ -201,16 +201,17 @@ export interface PurchaseOrder {
 }
 
 // Pricebook model from /pricebook/{itemId}
-export interface PricebookItem {
-  category: string;
-  name: string;
+export type PricebookItem = {
+  id: string;
+  title: string;
   description: string;
-  basePrice: number;
-  cost: number;
-  taxable: boolean;
-  sku?: string;
-  createdAt: Timestamp;
+  trade: 'Plumbing' | 'Electrical' | 'HVAC' | 'General';
+  price: number;
+  isUrgent?: boolean;
+  isCustom?: boolean;
+  createdAt: Timestamp | Date;
 }
+
 
 // Form model from /forms/{formId}
 export interface Form {

@@ -1,5 +1,5 @@
 
-import { Customer, Invoice, Job, Technician, UserRole, Equipment, Estimate, EstimateTemplate } from './types';
+import { Customer, Invoice, Job, Technician, UserRole, Equipment, Estimate, EstimateTemplate, PricebookItem } from './types';
 
 const getDay = (day: number) => {
     const newDate = new Date();
@@ -307,7 +307,16 @@ export const mockData = {
           }
       },
   ] as EstimateTemplate[],
+  pricebookItems: [
+    { id: 'pb_plumb_001', title: 'Standard Faucet Install', description: 'Install customer-provided faucet.', trade: 'Plumbing', price: 250, createdAt: new Date() },
+    { id: 'pb_plumb_002', title: 'Drain Clearing (Main Line)', description: 'Cable main sewer line up to 100ft.', trade: 'Plumbing', price: 450, isUrgent: true, createdAt: new Date() },
+    { id: 'pb_plumb_003', title: 'Toilet Rebuild', description: 'Replace all internal tank components.', trade: 'Plumbing', price: 320, createdAt: new Date() },
+    { id: 'pb_hvac_001', title: 'AC Tune-up', description: 'Comprehensive cleaning and inspection of AC system.', trade: 'HVAC', price: 129, createdAt: new Date() },
+    { id: 'pb_hvac_002', title: 'Capacitor Replacement', description: 'Replace dual-run capacitor for outdoor unit.', trade: 'HVAC', price: 280, isUrgent: true, createdAt: new Date() },
+    { id: 'pb_elec_001', title: 'Outlet Replacement', description: 'Replace a single standard electrical outlet.', trade: 'Electrical', price: 150, createdAt: new Date() },
+    { id: 'pb_elec_002', title: 'Ceiling Fan Installation', description: 'Install customer-provided ceiling fan on existing brace.', trade: 'Electrical', price: 300, createdAt: new Date() },
+  ] as PricebookItem[],
 };
 
 // Re-exporting for easy access if needed, but primary interaction should be via mockData
-export const { mockTechnicians, mockCustomers, mockJobs, mockInvoices, mockEquipment, mockEstimates, mockEstimateTemplates } = mockData;
+export const { mockTechnicians, mockCustomers, mockJobs, mockInvoices, mockEquipment, mockEstimates, mockEstimateTemplates, mockPricebookItems } = mockData;
