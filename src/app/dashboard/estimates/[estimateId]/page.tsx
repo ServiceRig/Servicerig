@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, Suspense, use } from 'react';
 import { notFound, useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -39,6 +39,7 @@ const InfoCard = ({ icon: Icon, label, children }: { icon: React.ElementType, la
 function EstimateDetailsPageContent({ estimateId }: { estimateId: string }) {
   const searchParams = useSearchParams();
   const role = searchParams.get('role') || 'admin';
+  const newEstimateDataParam = searchParams.get('newEstimateData');
   
   const [estimate, setEstimate] = useState<Estimate | null>(null);
   const [customer, setCustomer] = useState<Customer | null>(null);
@@ -51,12 +52,22 @@ function EstimateDetailsPageContent({ estimateId }: { estimateId: string }) {
         setIsLoading(true);
         setError(null);
         try {
-            const fetchedEstimate = await getEstimateById(estimateId);
+            let fetchedEstimate = await getEstimateById(estimateId);
+            
+            // Optimistic UI fallback
+            if (!fetchedEstimate && newEstimateDataParam) {
+                console.log("Estimate not found in DB, using fallback from URL params.");
+                try {
+                    fetchedEstimate = JSON.parse(decodeURIComponent(newEstimateDataParam));
+                } catch(e) {
+                    console.error("Failed to parse estimate data from URL", e);
+                }
+            }
             
             if (!fetchedEstimate) {
                 setError(`Estimate with ID "${estimateId}" not found.`);
                 setIsLoading(false);
-                return; // Stop execution if estimate is not found
+                return;
             }
 
             setEstimate(fetchedEstimate);
@@ -82,7 +93,7 @@ function EstimateDetailsPageContent({ estimateId }: { estimateId: string }) {
     };
 
     fetchData();
-  }, [estimateId]);
+  }, [estimateId, newEstimateDataParam]);
 
   if (isLoading) {
       return (
@@ -113,7 +124,6 @@ function EstimateDetailsPageContent({ estimateId }: { estimateId: string }) {
   }
 
   if (!estimate || !customer) {
-    // This case should now be covered by the error state, but as a fallback:
     return notFound();
   }
 
@@ -315,12 +325,10 @@ function EstimateDetailsPageContent({ estimateId }: { estimateId: string }) {
 
 
 export default function EstimateDetailsPage({ params }: { params: Promise<{ estimateId: string }> }) {
-    const resolvedParams = React.use(params);
+    const resolvedParams = use(params);
     return (
         <Suspense fallback={<div className="flex items-center justify-center h-64"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>}>
             <EstimateDetailsPageContent estimateId={resolvedParams.estimateId} />
         </Suspense>
     )
 }
-
-    

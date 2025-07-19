@@ -214,7 +214,7 @@ export async function addEstimate(prevState: AddEstimateState, formData: FormDat
     
     revalidatePath('/dashboard/estimates');
     const newEstimateData = encodeURIComponent(JSON.stringify(newEstimate));
-    redirect(`/dashboard/estimates?role=${role}&newEstimateData=${newEstimateData}`);
+    redirect(`/dashboard/estimates/${newEstimate.id}?role=${role}&newEstimateData=${newEstimateData}`);
 }
 
 const acceptEstimateSchema = z.object({

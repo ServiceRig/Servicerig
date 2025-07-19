@@ -168,7 +168,7 @@ function NewEstimatePageContent() {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    const hiddenRoleInput = documentcreateElement('input');
+    const hiddenRoleInput = document.createElement('input');
     hiddenRoleInput.type = 'hidden';
     hiddenRoleInput.name = 'role';
     hiddenRoleInput.value = role || '';
@@ -356,5 +356,3 @@ export default function NewEstimatePage() {
         </Suspense>
     )
 }
-
-    
