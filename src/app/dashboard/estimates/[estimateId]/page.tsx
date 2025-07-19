@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Separator } from '@/components/ui/separator';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { User, Calendar, Tag } from 'lucide-react';
+import { User, Calendar, Tag, Signature, Check } from 'lucide-react';
 import { cn, getEstimateStatusStyles } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EstimateActions } from './EstimateActions';
@@ -15,6 +15,10 @@ import { Logo } from '@/components/logo';
 import { getCustomerById } from '@/lib/firestore/customers';
 import { getJobById } from '@/lib/firestore/jobs';
 import type { Estimate, Customer, Job } from '@/lib/types';
+import { acceptEstimateWithSignature } from '@/app/actions';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { SubmitButton } from './SubmitButton';
 
 
 const formatCurrency = (amount: number) => {
@@ -40,29 +44,15 @@ export default async function EstimateDetailsPage({ params, searchParams }: { pa
   let customer: Customer | null = null;
   let job: Job | null = null;
   
-  // This is the new logic to handle data passed via URL to avoid dev server issues
-  const estimateDataString = searchParams?.estimateData as string;
-  if (estimateDataString) {
-      try {
-        estimate = JSON.parse(estimateDataString) as Estimate;
-      } catch (e) {
-        console.error("Failed to parse estimate data from URL", e);
-      }
-  }
-
-  // Fallback to fetching if data is not in URL (e.g., direct navigation)
-  if (!estimate) {
-    const data = await getEstimateData(estimateId);
-    if(data) {
-        estimate = data.estimate;
-    }
+  const data = await getEstimateData(estimateId);
+  if(data) {
+      estimate = data.estimate;
   }
   
   if (!estimate) {
     notFound();
   }
 
-  // Always fetch customer and job to ensure data is up-to-date and not just a placeholder
   customer = await getCustomerById(estimate.customerId);
   if (estimate.jobId) {
     job = await getJobById(estimate.jobId);
@@ -205,7 +195,44 @@ export default async function EstimateDetailsPage({ params, searchParams }: { pa
                     <p className="text-sm text-muted-foreground">{estimate.notes || 'No notes for this estimate.'}</p>
                 </CardContent>
             </Card>
-
+            
+             {estimate.status === 'sent' && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Customer Approval</CardTitle>
+                        <CardDescription>The customer can approve this estimate by signing below.</CardDescription>
+                    </CardHeader>
+                    <form action={acceptEstimateWithSignature}>
+                        <input type="hidden" name="estimateId" value={estimate.id} />
+                        <CardContent className="space-y-4">
+                            <div>
+                                <Label htmlFor="signature">Signature</Label>
+                                <div id="signature" className="mt-1 w-full h-32 bg-muted rounded-md border-2 border-dashed flex items-center justify-center">
+                                    <p className="text-muted-foreground">Signature Pad Placeholder</p>
+                                </div>
+                                {/* In a real app, you would use a library like react-signature-canvas and store the data URL in a hidden input */}
+                                <input type="hidden" name="signature" value="customer_signature_data" />
+                            </div>
+                            <SubmitButton 
+                                label="Accept & Sign" 
+                                loadingLabel="Accepting..." 
+                                icon={Signature} 
+                            />
+                        </CardContent>
+                    </form>
+                </Card>
+            )}
+             {estimate.status === 'accepted' && (
+                <Card className="bg-green-50 border-green-200">
+                    <CardHeader className="flex flex-row items-center gap-4">
+                         <Check className="w-8 h-8 text-green-600" />
+                         <div>
+                            <CardTitle className="text-green-800">Estimate Approved</CardTitle>
+                            <CardDescription className="text-green-700">This estimate was approved by the customer on {format(new Date(estimate.updatedAt), 'MMMM d, yyyy')}.</CardDescription>
+                         </div>
+                    </CardHeader>
+                </Card>
+            )}
         </div>
 
         {/* Side Content - Right Column */}

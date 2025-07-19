@@ -64,3 +64,18 @@ export async function addEstimate(estimate: Estimate): Promise<void> {
     mockData.estimates.unshift(estimate);
     await new Promise(resolve => setTimeout(resolve, 100));
 }
+
+/**
+ * Updates an existing estimate in the mock data.
+ * @param updatedEstimate The estimate object with updated fields.
+ */
+export async function updateEstimate(updatedEstimate: Estimate): Promise<void> {
+    console.log("Updating estimate in DB:", updatedEstimate.id);
+    const index = mockData.estimates.findIndex(e => e.id === updatedEstimate.id);
+    if (index !== -1) {
+        mockData.estimates[index] = updatedEstimate;
+    } else {
+        throw new Error(`Estimate with id ${updatedEstimate.id} not found for update.`);
+    }
+    await new Promise(resolve => setTimeout(resolve, 100));
+}

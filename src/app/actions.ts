@@ -3,7 +3,7 @@
 
 import { generateTieredEstimates, type GenerateTieredEstimatesInput, type GenerateTieredEstimatesOutput } from "@/ai/flows/generate-tiered-estimates";
 import { z } from "zod";
-import { addEstimate as addEstimateToDb } from "@/lib/firestore/estimates";
+import { addEstimate as addEstimateToDb, getEstimateById, updateEstimate } from "@/lib/firestore/estimates";
 import { addJob } from "@/lib/firestore/jobs";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
@@ -134,7 +134,7 @@ type AddEstimateState = {
 }
 
 export async function addEstimate(prevState: AddEstimateState, formData: FormData): Promise<AddEstimateState> {
-    let finalEstimate: Estimate;
+    let newEstimateId = '';
     let role = '';
     try {
         const validatedFields = addEstimateSchema.safeParse({
@@ -186,9 +186,9 @@ export async function addEstimate(prevState: AddEstimateState, formData: FormDat
         const tax = subtotal * 0.08;
         const total = subtotal - discount + tax;
         
-        const newEstimateId = `est_${Math.random().toString(36).substring(2, 9)}`;
+        newEstimateId = `est_${Math.random().toString(36).substring(2, 9)}`;
 
-        finalEstimate = {
+        const finalEstimate: Estimate = {
             id: newEstimateId,
             estimateNumber: `EST-${Math.floor(Math.random() * 9000) + 1000}`,
             customerId,
@@ -213,12 +213,8 @@ export async function addEstimate(prevState: AddEstimateState, formData: FormDat
         return { success: false, message: 'Failed to create estimate.' };
     }
     
-    // Pass the full estimate data in the URL to avoid refetching issues in dev
-    const params = new URLSearchParams();
-    if (role) params.set('role', role);
-    params.set('newEstimateData', JSON.stringify(finalEstimate));
-
-    redirect(`/dashboard/estimates?${params.toString()}`);
+    revalidatePath('/dashboard/estimates');
+    redirect(`/dashboard/estimates/${newEstimateId}?role=${role}`);
 }
 
 const acceptEstimateSchema = z.object({
@@ -231,7 +227,6 @@ const acceptEstimateSchema = z.object({
 
 export async function acceptEstimateFromTiers(formData: FormData) {
     let newEstimateId = '';
-    let finalEstimate;
     try {
         const validatedFields = acceptEstimateSchema.safeParse({
             customerId: formData.get('customerId'),
@@ -267,7 +262,7 @@ export async function acceptEstimateFromTiers(formData: FormData) {
         
         newEstimateId = `est_${Math.random().toString(36).substring(2, 9)}`;
 
-        finalEstimate = {
+        const finalEstimate: Estimate = {
             id: newEstimateId,
             estimateNumber: `EST-${Math.floor(Math.random() * 9000) + 1000}`,
             customerId,
@@ -295,7 +290,6 @@ export async function acceptEstimateFromTiers(formData: FormData) {
     redirect(`/dashboard/estimates/${newEstimateId}`);
 }
 
-
 export async function convertEstimateToInvoice(estimateId: string) {
     if (!estimateId) {
         throw new Error("Estimate ID is required.");
@@ -307,12 +301,13 @@ export async function convertEstimateToInvoice(estimateId: string) {
         throw new Error("Estimate not found.");
     }
     
-    if (estimate.status === 'rejected') {
-        throw new Error("Cannot convert a rejected estimate.");
+    if (estimate.status !== 'accepted') {
+        throw new Error("Cannot convert an estimate that is not accepted.");
     }
     
     const newInvoiceId = `inv_${Math.random().toString(36).substring(2, 9)}`;
     
+    // In a real app, you would create an invoice record here.
     console.log(`Created new invoice ${newInvoiceId} from estimate ${estimateId}`);
 
     revalidatePath('/dashboard/invoices');
@@ -320,6 +315,7 @@ export async function convertEstimateToInvoice(estimateId: string) {
 
     redirect(`/dashboard/invoices/${newInvoiceId}`);
 }
+
 
 const updateStatusSchema = z.object({
   estimateId: z.string(),
@@ -349,12 +345,46 @@ export async function updateEstimateStatus(prevState: UpdateStatusState, formDat
 
   estimate.status = newStatus;
   estimate.updatedAt = new Date();
-
-  console.log(`Updated estimate ${estimateId} to status ${newStatus}`);
+  await updateEstimate(estimate);
   
   revalidatePath(`/dashboard/estimates/${estimateId}`);
   revalidatePath('/dashboard/estimates');
   return { message: `Estimate status updated to ${newStatus}.` };
+}
+
+const acceptEstimateWithSignatureSchema = z.object({
+    estimateId: z.string(),
+    signature: z.string().optional(), // Assuming signature might be a data URL or similar
+});
+
+export async function acceptEstimateWithSignature(formData: FormData) {
+    const validatedFields = acceptEstimateWithSignatureSchema.safeParse({
+        estimateId: formData.get('estimateId'),
+        signature: formData.get('signature'),
+    });
+
+    if (!validatedFields.success) {
+        throw new Error("Invalid data for acceptance.");
+    }
+
+    const { estimateId } = validatedFields.data;
+    
+    const estimate = await getEstimateById(estimateId);
+    if (!estimate) {
+        throw new Error("Estimate not found.");
+    }
+
+    if (estimate.status !== 'sent') {
+        throw new Error("Only sent estimates can be accepted.");
+    }
+    
+    estimate.status = 'accepted';
+    estimate.updatedAt = new Date();
+    
+    await updateEstimate(estimate);
+
+    revalidatePath(`/dashboard/estimates/${estimateId}`);
+    revalidatePath('/dashboard/estimates');
 }
 
 const createTemplateSchema = z.object({

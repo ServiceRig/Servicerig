@@ -24,7 +24,6 @@ export function EstimateActions({ estimate }: { estimate: Estimate }) {
                     <SubmitButton
                         label="Convert to Invoice"
                         loadingLabel="Converting..."
-                        disabled={estimate.status !== 'accepted'}
                     />
                 </form>
              )}

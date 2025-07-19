@@ -3,14 +3,16 @@
 import { useFormStatus } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 interface SubmitButtonProps {
     label: string;
     loadingLabel: string;
     disabled?: boolean;
+    icon?: LucideIcon;
 }
 
-export function SubmitButton({ label, loadingLabel, disabled = false }: SubmitButtonProps) {
+export function SubmitButton({ label, loadingLabel, disabled = false, icon: Icon }: SubmitButtonProps) {
   const { pending } = useFormStatus();
 
   return (
@@ -21,7 +23,10 @@ export function SubmitButton({ label, loadingLabel, disabled = false }: SubmitBu
           {loadingLabel}
         </>
       ) : (
-        label
+        <>
+            {Icon && <Icon className="mr-2 h-4 w-4" />}
+            {label}
+        </>
       )}
     </Button>
   );
