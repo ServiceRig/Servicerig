@@ -17,26 +17,11 @@ import { useToast } from '@/hooks/use-toast';
 import { AITierGenerator, TierData } from '@/components/dashboard/ai-tier-generator';
 import { CustomerPresentationView } from '@/components/dashboard/customer-presentation-view';
 import { addEstimate } from '@/app/actions';
-import { useFormStatus } from 'react-dom';
+import { SubmitButton } from './SubmitButton';
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
 };
-
-function SubmitButton({ disabled }: { disabled?: boolean }) {
-    const { pending } = useFormStatus();
-    return (
-        <Button 
-            type="submit" 
-            disabled={pending || disabled} 
-            form="estimate-form"
-        >
-            {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-            {pending ? 'Saving...' : 'Save as Draft'}
-        </Button>
-    )
-}
-
 
 function NewEstimatePageContent() {
   const { toast } = useToast();
@@ -52,7 +37,7 @@ function NewEstimatePageContent() {
   const [estimateTitle, setEstimateTitle] = useState('');
   
   const [lineItems, setLineItems] = useState<LineItem[]>([
-    { description: '', quantity: 1, unitPrice: 0 },
+    { description: '', quantity: 1, unitPrice: 0, inventoryParts: [] },
   ]);
   
   const [taxRate, setTaxRate] = useState(0);
@@ -99,7 +84,7 @@ function NewEstimatePageContent() {
   }, [selectedCustomerId, jobs]);
 
   const handleAddLineItem = () => {
-    setLineItems([...lineItems, { description: '', quantity: 1, unitPrice: 0 }]);
+    setLineItems([...lineItems, { description: '', quantity: 1, unitPrice: 0, inventoryParts: [] }]);
   };
 
   const handleRemoveLineItem = (index: number) => {
@@ -207,8 +192,7 @@ function NewEstimatePageContent() {
             good: gbbTiers.find(t => t.title === 'Good')?.description || '',
             better: gbbTiers.find(t => t.title === 'Better')?.description || '',
             best: gbbTiers.find(t => t.title === 'Best')?.description || '',
-        }) : ''} />
-        <input type="hidden" name="status" value="draft" />
+        }) : null} />
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-6">
                 <Card>

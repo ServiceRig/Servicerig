@@ -96,7 +96,6 @@ const lineItemSchema = z.object({
 const addEstimateSchema = z.object({
     customerId: z.string().min(1, { message: 'Customer is required.' }),
     title: z.string().min(1, { message: 'Title is required.' }),
-    status: z.enum(['draft', 'sent', 'accepted', 'rejected']),
     jobId: z.string().optional(),
     lineItems: z.string().transform((val, ctx) => {
         try {
@@ -117,7 +116,6 @@ const addEstimateSchema = z.object({
         }
         try {
             const parsed = JSON.parse(val);
-            // We can add more specific GbbTier validation here if needed
             return parsed as GbbTier | null;
         } catch {
              ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Invalid JSON for gbbTier."});
@@ -137,7 +135,6 @@ export async function addEstimate(prevState: AddEstimateState, formData: FormDat
         const validatedFields = addEstimateSchema.safeParse({
             customerId: formData.get('customerId'),
             title: formData.get('title'),
-            status: formData.get('status'),
             jobId: formData.get('jobId'),
             lineItems: formData.get('lineItems'),
             gbbTier: formData.get('gbbTier'),
@@ -148,7 +145,7 @@ export async function addEstimate(prevState: AddEstimateState, formData: FormDat
             return { success: false, message: 'Invalid estimate data provided.' };
         }
 
-        const { customerId, title, status, jobId, lineItems, gbbTier } = validatedFields.data;
+        const { customerId, title, jobId, lineItems, gbbTier } = validatedFields.data;
         
         const customer = mockCustomers.find(c => c.id === customerId);
         if (!customer) {
@@ -156,9 +153,8 @@ export async function addEstimate(prevState: AddEstimateState, formData: FormDat
         }
         
         const subtotal = lineItems.reduce((acc, item) => acc + item.quantity * item.unitPrice, 0);
-        // For simplicity, discount and tax are not calculated from form in this version.
         const discount = 0;
-        const tax = subtotal * 0.08; // Example 8% tax
+        const tax = subtotal * 0.08;
         const total = subtotal - discount + tax;
         
         newEstimateId = `est_${Math.random().toString(36).substring(2, 9)}`;
@@ -168,7 +164,7 @@ export async function addEstimate(prevState: AddEstimateState, formData: FormDat
             estimateNumber: `EST-${Math.floor(Math.random() * 9000) + 1000}`,
             customerId,
             title,
-            status,
+            status: 'draft', 
             jobId: jobId || undefined,
             lineItems,
             subtotal,
@@ -176,7 +172,7 @@ export async function addEstimate(prevState: AddEstimateState, formData: FormDat
             tax,
             total,
             gbbTier,
-            createdBy: 'admin_user', // This would be the logged in user
+            createdBy: 'admin_user', 
             createdAt: new Date(),
             updatedAt: new Date(),
         };
@@ -228,6 +224,7 @@ export async function acceptEstimateFromTiers(formData: FormData) {
             description: selectedTier.description,
             quantity: 1,
             unitPrice: selectedTier.price || 0,
+            inventoryParts: [],
         }];
 
         const subtotal = lineItems.reduce((acc, item) => acc + item.quantity * item.unitPrice, 0);
@@ -259,8 +256,6 @@ export async function acceptEstimateFromTiers(formData: FormData) {
         revalidatePath(`/dashboard/estimates/${finalEstimate.id}`);
     } catch (error) {
         console.error("Error in acceptEstimateFromTiers action:", error);
-        // We can't return state here, so we redirect to an error page or handle it differently client-side
-        // For now, we will let it throw and Next.js will catch it.
         throw error;
     }
     
@@ -285,7 +280,6 @@ export async function convertEstimateToInvoice(estimateId: string) {
     
     const newInvoiceId = `inv_${Math.random().toString(36).substring(2, 9)}`;
     
-    // In a real app, you would save this to the 'invoices' collection in Firestore
     console.log(`Created new invoice ${newInvoiceId} from estimate ${estimateId}`);
 
     revalidatePath('/dashboard/invoices');
@@ -320,7 +314,6 @@ export async function updateEstimateStatus(prevState: UpdateStatusState, formDat
     return { message: "Estimate not found." };
   }
 
-  // In a real app, this would be an updateDoc call to Firestore
   estimate.status = newStatus;
   estimate.updatedAt = new Date();
 
@@ -370,7 +363,6 @@ export async function createEstimateTemplateAction(prevState: CreateTemplateStat
         return { success: false, message: 'Failed to create template.' };
     }
     
-    // The redirect will be handled by the client
     return { success: true };
 }
 
