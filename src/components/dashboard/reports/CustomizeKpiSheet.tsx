@@ -5,25 +5,26 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { allKpis, KpiCategory } from "@/lib/kpi-data";
+import { Kpi } from "@/lib/kpi-data";
 import { Settings2 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 
 interface CustomizeKpiSheetProps {
+    allKpis: Kpi[];
     visibleKpis: Set<string>;
     onKpiToggle: (kpiId: string, checked: boolean) => void;
 }
 
-const kpiCategories: KpiCategory[] = [
+const kpiCategories = [
     { id: 'Profitability', name: 'Profitability KPIs' },
     { id: 'Time & Efficiency', name: 'Time & Efficiency KPIs' },
     { id: 'Revenue & Conversion', name: 'Revenue & Conversion KPIs' },
     { id: 'Customer', name: 'Customer KPIs' },
     { id: 'Technician Performance', name: 'Technician Performance KPIs' },
     { id: 'Operational', name: 'Operational KPIs' },
-]
+];
 
-export function CustomizeKpiSheet({ visibleKpis, onKpiToggle }: CustomizeKpiSheetProps) {
+export function CustomizeKpiSheet({ allKpis, visibleKpis, onKpiToggle }: CustomizeKpiSheetProps) {
 
     return (
         <Sheet>

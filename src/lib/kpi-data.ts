@@ -31,71 +31,32 @@ export interface Kpi {
     description: string;
     category: string;
     icon: LucideIcon;
-    value: string; // Placeholder
-    change: string; // Placeholder
-}
-
-export interface KpiCategory {
-    id: string;
-    name: string;
 }
 
 export const allKpis: Kpi[] = [
     // Profitability
-    { id: 'profit-total-revenue', title: 'Total Revenue', description: 'Total income from sales before expenses.', category: 'Profitability', icon: TrendingUp, value: '$125,430', change: '+20.1% vs last period' },
-    { id: 'profit-direct-expenses', title: 'Direct Expenses', description: 'Costs directly related to jobs (labor, materials).', category: 'Profitability', icon: TrendingDown, value: '$70,120', change: 'Includes labor & materials' },
-    { id: 'profit-gross-profit', title: 'Gross Profit', description: 'Revenue minus direct expenses.', category: 'Profitability', icon: DollarSign, value: '$55,310', change: '44.1% margin' },
-    { id: 'profit-net-margin', title: 'Net Profit Margin', description: '(Net Profit ÷ Total Revenue) × 100.', category: 'Profitability', icon: Percent, value: '20.6%', change: 'After all expenses' },
-    { id: 'profit-gp-per-job', title: 'Gross Profit per Job', description: '(Revenue - Direct Expenses) ÷ # of Jobs.', category: 'Profitability', icon: Briefcase, value: '$450.21', change: '+5% vs last period' },
-    { id: 'profit-labor-cost', title: 'Labor Cost per Job', description: 'Total tech hours × average hourly cost.', category: 'Profitability', icon: UserCheck, value: '$180.50', change: 'Avg. per job' },
+    { id: 'totalRevenue', title: 'Total Revenue', description: 'Total income from sales before expenses.', category: 'Profitability', icon: TrendingUp },
+    { id: 'directExpenses', title: 'Direct Expenses', description: 'Costs directly related to jobs (labor, materials).', category: 'Profitability', icon: TrendingDown },
+    { id: 'grossProfit', title: 'Gross Profit', description: 'Revenue minus direct expenses.', category: 'Profitability', icon: DollarSign },
+    { id: 'netProfitMargin', title: 'Net Profit Margin', description: '(Net Profit ÷ Total Revenue) × 100.', category: 'Profitability', icon: Percent },
 
     // Revenue & Conversion
-    { id: 'rev-close-rate', title: 'Estimate-to-Close Rate', description: '% of Estimates that convert to Jobs.', category: 'Revenue & Conversion', icon: CheckCircle, value: '68%', change: 'Up from 65% last period' },
-    { id: 'rev-avg-invoice', title: 'Average Invoice Value', description: 'Sum of paid invoices ÷ # of invoices.', category: 'Revenue & Conversion', icon: FileText, value: '$875', change: '+5% vs last period' },
-    { id: 'rev-clv', title: 'Customer Lifetime Value', description: 'Avg. revenue from a customer over their lifespan.', category: 'Revenue & Conversion', icon: HeartHandshake, value: '$4,250', change: 'Avg. customer value' },
-    { id: 'rev-recurring', title: 'Recurring Revenue %', description: 'Income from service agreements.', category: 'Revenue & Conversion', icon: Repeat, value: '15%', change: 'From service agreements' },
-    { id: 'rev-avg-estimate', title: 'Average Estimate Value', description: 'Sum of all estimates ÷ # of estimates.', category: 'Revenue & Conversion', icon: Calculator, value: '$1250', change: 'Healthy pipeline' },
+    { id: 'closeRate', title: 'Estimate-to-Close Rate', description: '% of Estimates that convert to Jobs.', category: 'Revenue & Conversion', icon: CheckCircle },
+    { id: 'avgInvoiceValue', title: 'Average Invoice Value', description: 'Sum of paid invoices ÷ # of invoices.', category: 'Revenue & Conversion', icon: FileText },
+    { id: 'customerLifetimeValue', title: 'Customer Lifetime Value', description: 'Avg. revenue from a customer over their lifespan.', category: 'Revenue & Conversion', icon: HeartHandshake },
+    { id: 'recurringRevenue', title: 'Recurring Revenue %', description: 'Income from service agreements.', category: 'Revenue & Conversion', icon: Repeat },
 
     // Operational Efficiency
-    { id: 'ops-first-fix', title: 'First-Time Fix Rate', description: '% of jobs completed on the first visit.', category: 'Operational Efficiency', icon: Briefcase, value: '92%', change: '+3% vs last period' },
-    { id: 'ops-jobs-per-day', title: 'Jobs per Day per Technician', description: 'Efficiency of scheduling and routing.', category: 'Operational Efficiency', icon: Users, value: '3.8', change: 'Target: 4.0' },
-    { id: 'ops-repeat-customer', title: 'Repeat Customer Rate', description: '% of customers who’ve booked more than once.', category: 'Operational Efficiency', icon: Repeat, value: '55%', change: 'Healthy retention' },
-    { id: 'ops-on-time-arrival', title: 'On-Time Arrival Rate', description: '% of jobs techs arrived on time.', category: 'Operational Efficiency', icon: Timer, value: '97%', change: 'Slightly down from 98%' },
-    { id: 'ops-job-duration', title: 'Average Job Duration', description: 'Total time spent ÷ number of jobs.', category: 'Time & Efficiency', icon: Clock, value: '1h 45m', change: 'Stable' },
-    { id: 'ops-travel-time', title: 'Travel Time per Job', description: 'Avg. travel time from base to job.', category: 'Time & Efficiency', icon: Truck, value: '25 mins', change: '-5 mins vs last period' },
+    { id: 'firstTimeFixRate', title: 'First-Time Fix Rate', description: '% of jobs completed on the first visit.', category: 'Operational Efficiency', icon: Briefcase },
+    { id: 'jobsPerDayPerTech', title: 'Jobs per Day per Technician', description: 'Efficiency of scheduling and routing.', category: 'Operational Efficiency', icon: Users },
+    { id: 'repeatCustomerRate', title: 'Repeat Customer Rate', description: '% of customers who’ve booked more than once.', category: 'Operational Efficiency', icon: Repeat },
+    { id: 'onTimeArrivalRate', title: 'On-Time Arrival Rate', description: '% of jobs techs arrived on time.', category: 'Operational Efficiency', icon: Timer },
+    { id: 'avgJobDuration', title: 'Average Job Duration', description: 'Total time spent ÷ number of jobs.', category: 'Operational Efficiency', icon: Clock },
+    { id: 'avgTravelTime', title: 'Travel Time per Job', description: 'Avg. travel time from base to job.', category: 'Operational Efficiency', icon: Truck },
 
     // Technician Performance
-    { id: 'tech-rev-per-tech', title: 'Avg. Revenue per Technician', description: 'Total revenue generated by each tech.', category: 'Technician Performance', icon: UserSquare, value: '$15,678', change: 'Top performer: John D.' },
-    { id: 'tech-jobs-per-week', title: 'Avg. Jobs per Tech per Week', description: 'Good for workload balancing.', category: 'Technician Performance', icon: CalendarCheck, value: '19.2', change: 'Target: 20' },
-    { id: 'tech-utilization', title: 'Billable Utilization Rate', description: '(Billable Hours ÷ Total Tech Hours) × 100', category: 'Technician Performance', icon: Percent, value: '85%', change: 'Target: 90%' },
-    { id: 'tech-upsell-rate', title: 'Upsell/Addon Rate', description: '% of jobs where additional services were sold.', category: 'Technician Performance', icon: TrendingUp, value: '12%', change: 'Avg addon: $150' },
-    
-    // Customer
-    { id: 'cust-rework-rate', title: 'Job Rework Rate', description: 'Jobs that required a callback or rework.', category: 'Customer', icon: XCircle, value: '2.5%', change: 'Down from 3%' },
-    { id: 'cust-review-avg', title: 'Review Rating Average', description: 'Google / Yelp rating averages.', category: 'Customer', icon: Star, value: '4.8', change: 'from 25 new reviews' },
-    
-    // Operational
-    { id: 'op-completion-rate', title: 'Job Completion Rate', description: '% of jobs marked "completed" vs scheduled.', category: 'Operational', icon: CheckCircle, value: '98%', change: 'Stable' },
-    { id: 'op-estimate-aging', title: 'Open Estimate Aging', description: 'Avg. age (days) of unapproved estimates.', category: 'Operational', icon: History, value: '12 days', change: 'Target: <10 days' },
-    { id: 'op-invoice-collection', title: 'Invoice Collection Time', description: 'Avg. time from invoice sent to paid.', category: 'Operational', icon: FileSignature, value: '8 days', change: 'Down from 15 days' },
-    { id: 'op-waste-rate', title: 'Parts/Material Waste Rate', description: '% of unused or lost inventory per job.', category: 'Operational', icon: Trash2, value: '1.5%', change: 'Improved from 2%' },
-];
-
-export const defaultVisibleKpis: string[] = [
-    'profit-total-revenue',
-    'profit-direct-expenses',
-    'profit-gross-profit',
-    'profit-net-margin',
-    'rev-close-rate',
-    'rev-avg-invoice',
-    'rev-clv',
-    'rev-recurring',
-    'ops-first-fix',
-    'ops-jobs-per-day',
-    'ops-repeat-customer',
-    'ops-on-time-arrival',
-    'tech-rev-per-tech',
-    'tech-jobs-per-week',
-    'tech-utilization',
-    'tech-upsell-rate',
+    { id: 'revenuePerTech', title: 'Avg. Revenue per Technician', description: 'Total revenue generated by each tech.', category: 'Technician Performance', icon: UserSquare },
+    { id: 'jobsPerTechPerWeek', title: 'Avg. Jobs per Tech per Week', description: 'Good for workload balancing.', category: 'Technician Performance', icon: CalendarCheck },
+    { id: 'billableUtilization', title: 'Billable Utilization Rate', description: '(Billable Hours ÷ Total Tech Hours) × 100', category: 'Technician Performance', icon: Percent },
+    { id: 'upsellRate', title: 'Upsell/Addon Rate', description: '% of jobs where additional services were sold.', category: 'Technician Performance', icon: TrendingUp },
 ];
