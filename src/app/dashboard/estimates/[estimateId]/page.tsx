@@ -20,6 +20,7 @@ import { getEstimateById } from '@/lib/firestore/estimates';
 import type { Estimate, Customer, Job } from '@/lib/types';
 import { acceptEstimateWithSignature } from '@/app/actions';
 import { SubmitButton } from './SubmitButton';
+import { Button } from '@/components/ui/button';
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
@@ -87,15 +88,16 @@ function EstimateDetailsPageContent({ estimateId }: { estimateId: string }) {
 
   if (error) {
       return (
-          <div className="flex items-center justify-center h-64">
+          <div className="flex items-center justify-center h-full p-4">
               <Card className="w-full max-w-md">
                   <CardHeader>
-                      <CardTitle>Error</CardTitle>
+                      <CardTitle>Error Loading Estimate</CardTitle>
+                      <CardDescription>We couldn't find the estimate you were looking for.</CardDescription>
                   </CardHeader>
                   <CardContent>
-                      <p className="text-destructive">{error}</p>
-                      <p className="text-muted-foreground mt-2 text-sm">This can sometimes happen in the development environment if the page reloads. Please try creating the estimate again.</p>
-                       <Button asChild className="mt-4">
+                      <p className="text-sm text-destructive">{error}</p>
+                      <p className="text-sm text-muted-foreground mt-2">This can sometimes happen in the development environment due to fast page reloads. The estimate may have been created successfully.</p>
+                       <Button asChild className="mt-4 w-full">
                             <Link href="/dashboard/estimates">Go back to Estimates</Link>
                         </Button>
                   </CardContent>
@@ -105,7 +107,7 @@ function EstimateDetailsPageContent({ estimateId }: { estimateId: string }) {
   }
 
   if (!estimate || !customer) {
-    // This case should be covered by the error state, but as a fallback:
+    // This case should now be covered by the error state, but as a fallback:
     return notFound();
   }
 
