@@ -1,4 +1,5 @@
 
+
 // This file contains the TypeScript types for your Firestore collections.
 
 // A generic type for Firestore Timestamps. In Firestore, these are objects,
@@ -71,10 +72,26 @@ export type Job = {
   };
 };
 
+export type InventoryPartRef = {
+  partId: string;
+  quantity: number;
+}
+
+export type EstimateLineItemPart = {
+  partId: string;
+  quantity: number;
+  snapshot: {
+    name: string;
+    unitCost: number;
+    ourPrice: number;
+  }
+}
+
 export type LineItem = {
     description: string;
     quantity: number;
     unitPrice: number;
+    inventoryParts?: EstimateLineItemPart[];
 };
 
 export type GbbTier = {
@@ -206,9 +223,30 @@ export type PricebookItem = {
   title: string;
   description: string;
   trade: 'Plumbing' | 'Electrical' | 'HVAC' | 'General';
-  price: number;
+  price: number; // Labor + Materials combined
+  estimatedLaborHours?: number;
+  inventoryParts?: InventoryPartRef[];
   isUrgent?: boolean;
   isCustom?: boolean;
+  createdAt: Timestamp | Date;
+}
+
+// Inventory Item model from /inventoryItems/{itemId}
+export type InventoryItem = {
+  id: string;
+  name: string;
+  description: string;
+  sku: string;
+  modelNumber?: string;
+  partNumber?: string;
+  warehouseLocation: string;
+  quantityOnHand: number;
+  reorderThreshold: number;
+  unitCost: number;
+  marketPrice: number;
+  ourPrice: number;
+  vendor?: string;
+  trade: 'Plumbing' | 'Electrical' | 'HVAC' | 'General';
   createdAt: Timestamp | Date;
 }
 

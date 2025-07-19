@@ -1,5 +1,6 @@
 
-import { Customer, Invoice, Job, Technician, UserRole, Equipment, Estimate, EstimateTemplate, PricebookItem } from './types';
+
+import { Customer, Invoice, Job, Technician, UserRole, Equipment, Estimate, EstimateTemplate, PricebookItem, InventoryItem } from './types';
 
 const getDay = (day: number) => {
     const newDate = new Date();
@@ -12,6 +13,13 @@ const getDay = (day: number) => {
 // Wrapping our mock data in a single object makes it mutable across requests
 // in a Node.js development server environment. This simulates a persistent store.
 export const mockData = {
+  inventoryItems: [
+    { id: 'inv_part_001', name: 'Dual-run Capacitor 45/5 MFD', description: 'Oval run capacitor for HVAC condenser units.', sku: 'CAP-45-5', partNumber: 'PRCFD455A', warehouseLocation: 'Aisle 3, Bin 4', quantityOnHand: 50, reorderThreshold: 10, unitCost: 12.50, marketPrice: 45.00, ourPrice: 35.00, vendor: 'Johnstone Supply', trade: 'HVAC', createdAt: new Date() },
+    { id: 'inv_part_002', name: '1/2" PEX-A Pipe (100ft)', description: 'Uponor PEX-A pipe for plumbing.', sku: 'PEX-A-050-100', partNumber: 'F1040500', warehouseLocation: 'Aisle 1, Bay 2', quantityOnHand: 20, reorderThreshold: 5, unitCost: 45.00, marketPrice: 89.00, ourPrice: 75.00, vendor: 'Ferguson', trade: 'Plumbing', createdAt: new Date() },
+    { id: 'inv_part_003', name: '15 Amp GFCI Outlet', description: 'Leviton GFCI duplex receptacle, white.', sku: 'ELEC-GFCI-15A', partNumber: 'GFTR1-W', warehouseLocation: 'Aisle 5, Bin 12', quantityOnHand: 150, reorderThreshold: 25, unitCost: 15.00, marketPrice: 35.00, ourPrice: 28.00, vendor: 'Home Depot Pro', trade: 'Electrical', createdAt: new Date() },
+    { id: 'inv_part_004', name: 'Standard 1-Handle Faucet', description: 'Moen chrome single handle kitchen faucet.', sku: 'FAUC-K-MOEN-1H', modelNumber: '7425', warehouseLocation: 'Aisle 1, Bin 6', quantityOnHand: 15, reorderThreshold: 5, unitCost: 95.00, marketPrice: 180.00, ourPrice: 165.00, vendor: 'Ferguson', trade: 'Plumbing', createdAt: new Date() },
+    { id: 'inv_part_005', name: 'Ignition Control Board', description: 'Universal ignition control board for furnaces.', sku: 'HVAC-ICB-UNIV', partNumber: 'ICM282A', warehouseLocation: 'Aisle 3, Bin 8', quantityOnHand: 8, reorderThreshold: 2, unitCost: 85.00, marketPrice: 250.00, ourPrice: 210.00, vendor: 'RE Michel', trade: 'HVAC', createdAt: new Date() },
+  ] as InventoryItem[],
   technicians: [
     { id: 'tech1', name: 'John Doe', role: UserRole.Technician },
     { id: 'tech2', name: 'Jane Smith', role: UserRole.Technician },
@@ -308,15 +316,15 @@ export const mockData = {
       },
   ] as EstimateTemplate[],
   pricebookItems: [
-    { id: 'pb_plumb_001', title: 'Standard Faucet Install', description: 'Install customer-provided faucet.', trade: 'Plumbing', price: 250, createdAt: new Date() },
+    { id: 'pb_hvac_002', title: 'Capacitor Replacement', description: 'Replace dual-run capacitor for outdoor unit.', trade: 'HVAC', price: 280, estimatedLaborHours: 0.75, inventoryParts: [{ partId: 'inv_part_001', quantity: 1 }], isUrgent: true, createdAt: new Date() },
+    { id: 'pb_plumb_001', title: 'Standard Faucet Install', description: 'Install customer-provided faucet.', trade: 'Plumbing', price: 250, estimatedLaborHours: 1.5, inventoryParts: [{ partId: 'inv_part_004', quantity: 1 }], createdAt: new Date() },
     { id: 'pb_plumb_002', title: 'Drain Clearing (Main Line)', description: 'Cable main sewer line up to 100ft.', trade: 'Plumbing', price: 450, isUrgent: true, createdAt: new Date() },
-    { id: 'pb_plumb_003', title: 'Toilet Rebuild', description: 'Replace all internal tank components.', trade: 'Plumbing', price: 320, createdAt: new Date() },
-    { id: 'pb_hvac_001', title: 'AC Tune-up', description: 'Comprehensive cleaning and inspection of AC system.', trade: 'HVAC', price: 129, createdAt: new Date() },
-    { id: 'pb_hvac_002', title: 'Capacitor Replacement', description: 'Replace dual-run capacitor for outdoor unit.', trade: 'HVAC', price: 280, isUrgent: true, createdAt: new Date() },
-    { id: 'pb_elec_001', title: 'Outlet Replacement', description: 'Replace a single standard electrical outlet.', trade: 'Electrical', price: 150, createdAt: new Date() },
-    { id: 'pb_elec_002', title: 'Ceiling Fan Installation', description: 'Install customer-provided ceiling fan on existing brace.', trade: 'Electrical', price: 300, createdAt: new Date() },
+    { id: 'pb_plumb_003', title: 'Toilet Rebuild', description: 'Replace all internal tank components.', trade: 'Plumbing', price: 320, estimatedLaborHours: 1, createdAt: new Date() },
+    { id: 'pb_hvac_001', title: 'AC Tune-up', description: 'Comprehensive cleaning and inspection of AC system.', trade: 'HVAC', price: 129, estimatedLaborHours: 1, inventoryParts: [], createdAt: new Date() },
+    { id: 'pb_elec_001', title: 'GFCI Outlet Replacement', description: 'Replace a single GFCI electrical outlet.', trade: 'Electrical', price: 150, estimatedLaborHours: 0.5, inventoryParts: [{ partId: 'inv_part_003', quantity: 1 }], createdAt: new Date() },
+    { id: 'pb_elec_002', title: 'Ceiling Fan Installation', description: 'Install customer-provided ceiling fan on existing brace.', trade: 'Electrical', price: 300, estimatedLaborHours: 2, createdAt: new Date() },
   ] as PricebookItem[],
 };
 
 // Re-exporting for easy access if needed, but primary interaction should be via mockData
-export const { mockTechnicians, mockCustomers, mockJobs, mockInvoices, mockEquipment, mockEstimates, mockEstimateTemplates, mockPricebookItems } = mockData;
+export const { mockTechnicians, mockCustomers, mockJobs, mockInvoices, mockEquipment, mockEstimates, mockEstimateTemplates, mockPricebookItems, mockInventoryItems } = mockData;
