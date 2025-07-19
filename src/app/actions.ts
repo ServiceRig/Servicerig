@@ -111,7 +111,7 @@ const addEstimateSchema = z.object({
             return z.NEVER;
         }
     }),
-    gbbTier: z.string().nullable().transform((val, ctx) => {
+    gbbTier: z.string().nullable().transform((val) => {
          if (val === null || val === 'null' || val === '') {
             return null;
         }
@@ -206,16 +206,18 @@ export async function addEstimate(prevState: AddEstimateState, formData: FormDat
             updatedAt: new Date(),
         };
 
-        // Don't add to DB, as it gets reset on hot-reload. We will pass data in URL.
-        // await addEstimateToDb(finalEstimate);
+        await addEstimateToDb(finalEstimate);
 
     } catch (error) {
         console.error("Error in addEstimate action:", error);
         return { success: false, message: 'Failed to create estimate.' };
     }
     
+    // Pass estimate data via URL to handle dev server hot-reloading issues
     const estimateDataString = encodeURIComponent(JSON.stringify(finalEstimate));
     const roleQuery = role ? `&role=${role}` : '';
+
+    revalidatePath('/dashboard/estimates');
     redirect(`/dashboard/estimates/${newEstimateId}?estimateData=${estimateDataString}${roleQuery}`);
 }
 
@@ -282,7 +284,7 @@ export async function acceptEstimateFromTiers(formData: FormData) {
             updatedAt: new Date(),
         };
 
-        // await addEstimateToDb(finalEstimate);
+        await addEstimateToDb(finalEstimate);
         revalidatePath('/dashboard/estimates');
         revalidatePath(`/dashboard/estimates/${finalEstimate.id}`);
     } catch (error) {

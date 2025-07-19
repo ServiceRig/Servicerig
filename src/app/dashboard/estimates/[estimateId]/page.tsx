@@ -13,6 +13,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EstimateActions } from './EstimateActions';
 import { Logo } from '@/components/logo';
 import type { EstimateData, Estimate } from '@/lib/types';
+import { getCustomerById } from '@/lib/firestore/customers';
+import { getJobById } from '@/lib/firestore/jobs';
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
@@ -48,15 +50,21 @@ export default async function EstimateDetailsPage({ params, searchParams }: { pa
   if (estimateDataString) {
       try {
         const parsedEstimate = parseDates(JSON.parse(decodeURIComponent(estimateDataString)));
-        // This is a simplified data shape since we don't have customer/job from the URL
-        // In a real app, you might fetch these based on IDs in the parsedEstimate
+        // Fetch full customer and job details instead of using placeholders
+        const customer = await getCustomerById(parsedEstimate.customerId);
+        const job = parsedEstimate.jobId ? await getJobById(parsedEstimate.jobId) : null;
+        
+        if (!customer) {
+            throw new Error("Customer not found for the provided estimate data.");
+        }
+
         data = {
             estimate: parsedEstimate,
-            customer: { id: parsedEstimate.customerId, primaryContact: { name: 'New Customer' }, companyInfo: { name: '' } } as any,
-            job: parsedEstimate.jobId ? { id: parsedEstimate.jobId, title: 'Newly Created Job' } as any : null
+            customer: customer,
+            job: job
         }
       } catch (e) {
-          console.error("Failed to parse estimate data from URL", e);
+          console.error("Failed to parse estimate data from URL or fetch related data", e);
       }
   }
   
