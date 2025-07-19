@@ -249,8 +249,16 @@ function InvoiceDetailsPageContent({ invoiceId }: { invoiceId: string }) {
                             )}
                         </TableBody>
                     </Table>
-                    <div className="mt-4">
+                    <div className="mt-4 flex items-center gap-2">
                         <AddPaymentDialog invoice={invoice} />
+                         <Button
+                            variant="outline"
+                            disabled={invoice.balanceDue <= 0}
+                            onClick={() => alert('Redirecting to Stripe...')}
+                          >
+                            <CreditCard className="mr-2 h-4 w-4" />
+                            Pay with Stripe
+                        </Button>
                     </div>
                 </CardContent>
             </Card>

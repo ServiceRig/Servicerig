@@ -9,13 +9,13 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { mockData } from '@/lib/mock-data';
 import { format } from 'date-fns';
 import { cn, getInvoiceStatusStyles } from '@/lib/utils';
 import type { Invoice } from '@/lib/types';
 import { useRole } from '@/hooks/use-role';
-import { Plus, MoreHorizontal } from 'lucide-react';
+import { Plus, MoreHorizontal, CreditCard } from 'lucide-react';
 import { DateRangePicker } from '@/components/dashboard/date-range-picker';
 
 const formatCurrency = (amount: number) => {
@@ -131,6 +131,14 @@ function InvoicingPageContent() {
                             </DropdownMenuItem>
                             <DropdownMenuItem>Edit</DropdownMenuItem>
                             <DropdownMenuItem>Send</DropdownMenuItem>
+                             <DropdownMenuItem
+                                disabled={invoice.balanceDue <= 0}
+                                onSelect={() => alert('Redirecting to Stripe...')}
+                              >
+                                <CreditCard className="mr-2 h-4 w-4" />
+                                Pay with Stripe
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
                             <DropdownMenuItem>Duplicate</DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
