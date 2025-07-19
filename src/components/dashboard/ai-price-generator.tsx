@@ -110,7 +110,8 @@ export function AiPriceGenerator() {
         const lineItem: LineItem = {
             description: editableResult.serviceDescription,
             quantity: 1,
-            unitPrice: editableResult.suggestedPrice
+            unitPrice: editableResult.suggestedPrice,
+            inventoryParts: [],
         }
         
         const params: Record<string, string> = {
@@ -168,7 +169,7 @@ export function AiPriceGenerator() {
                 <form action={saveAction} className="space-y-4">
                      <input type="hidden" name="title" value={editableResult.recommendedTitle} />
                      <input type="hidden" name="description" value={editableResult.serviceDescription} />
-                     <input type="hidden" name="price" value={editableResult.suggestedPrice} />
+                     <input type="hidden" name="price" value={String(editableResult.suggestedPrice)} />
                      <input type="hidden" name="trade" value="General" />
 
                      <div className="grid gap-2">
