@@ -35,7 +35,8 @@ const InfoCard = ({ icon: Icon, label, children }: { icon: React.ElementType, la
     </div>
 );
 
-function EstimateDetailsPageContent({ estimateId }: { estimateId: string }) {
+function EstimateDetailsPageContent({ params }: { params: { estimateId: string } }) {
+  const estimateId = params.estimateId;
   const searchParams = useSearchParams();
   const role = searchParams.get('role') || 'admin';
   
@@ -276,10 +277,9 @@ function EstimateDetailsPageContent({ estimateId }: { estimateId: string }) {
 
 
 export default function EstimateDetailsPage({ params }: { params: { estimateId: string }}) {
-    const { estimateId } = params;
     return (
         <Suspense fallback={<div className="flex items-center justify-center h-64"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>}>
-            <EstimateDetailsPageContent estimateId={estimateId} />
+            <EstimateDetailsPageContent params={params} />
         </Suspense>
     )
 }
