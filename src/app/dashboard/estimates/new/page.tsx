@@ -61,7 +61,7 @@ function NewEstimatePageContent() {
         try {
             const parsedItems = JSON.parse(initialLineItems);
             if (Array.isArray(parsedItems) && parsedItems.length > 0) {
-                setLineItems(parsedItems);
+                setLineItems(parsedItems.map((item: any) => ({ ...item, inventoryParts: item.inventoryParts || [] })));
             }
         } catch (error) {
             console.error("Failed to parse line items from URL", error);
@@ -98,7 +98,8 @@ function NewEstimatePageContent() {
     const item = newItems[index];
 
     if (field === 'quantity' || field === 'unitPrice') {
-        item[field] = parseFloat(value as string) || 0;
+        const numericValue = typeof value === 'string' ? parseFloat(value) : value;
+        item[field] = isNaN(numericValue) ? 0 : numericValue;
     } else {
         item[field] = value as string;
     }
@@ -144,7 +145,7 @@ function NewEstimatePageContent() {
     if (!template) return;
 
     setEstimateTitle(template.title);
-    setLineItems(template.lineItems);
+    setLineItems(template.lineItems.map(item => ({ ...item, inventoryParts: item.inventoryParts || [] })));
     if (template.gbbTier) {
       setGbbTiers([
         { title: 'Good', description: template.gbbTier.good, price: undefined },
