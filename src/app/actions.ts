@@ -6,9 +6,10 @@ import { z } from "zod";
 import { getEstimateById, addEstimate as addEstimateToDb } from "@/lib/firestore/estimates";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import type { Estimate, GbbTier, LineItem } from "@/lib/types";
+import type { Estimate, GbbTier, LineItem, PricebookItem } from "@/lib/types";
 import { addEstimateTemplate } from "@/lib/firestore/templates";
 import { mockCustomers } from "@/lib/mock-data";
+import { addPricebookItem } from "@/lib/firestore/pricebook";
 
 const tieredEstimatesSchema = z.object({
   jobDetails: z.string().min(10, "Job details must be at least 10 characters long."),
@@ -290,4 +291,44 @@ export async function createEstimateTemplateAction(prevState: CreateTemplateStat
     
     // The redirect will be handled by the client
     return { success: true };
+}
+
+
+const addPricebookItemSchema = z.object({
+    title: z.string().min(1, { message: 'Title is required' }),
+    description: z.string(),
+    price: z.number().min(0, { message: 'Price cannot be negative' }),
+    trade: z.enum(['Plumbing', 'HVAC', 'Electrical', 'General']),
+});
+
+type AddPricebookItemState = {
+    success: boolean;
+    message: string;
+}
+
+export async function addPricebookItemAction(prevState: AddPricebookItemState, formData: FormData): Promise<AddPricebookItemState> {
+    const validatedFields = addPricebookItemSchema.safeParse({
+        title: formData.get('title'),
+        description: formData.get('description'),
+        price: Number(formData.get('price')),
+        trade: formData.get('trade'),
+    });
+    
+    if (!validatedFields.success) {
+        console.error(validatedFields.error);
+        return { success: false, message: 'Invalid data provided.' };
+    }
+    
+    try {
+        const newItem: Omit<PricebookItem, 'id' | 'createdAt'> = {
+            ...validatedFields.data,
+            isCustom: true,
+        };
+        await addPricebookItem(newItem);
+        revalidatePath('/dashboard/price-book');
+        return { success: true, message: `Successfully added "${validatedFields.data.title}" to the price book.`};
+    } catch(e) {
+        console.error(e);
+        return { success: false, message: 'Failed to add item to price book.' };
+    }
 }

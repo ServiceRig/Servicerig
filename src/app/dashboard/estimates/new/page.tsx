@@ -1,8 +1,9 @@
 
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, Suspense } from 'react';
 import { useActionState, useFormStatus } from 'react-dom';
+import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -37,8 +38,9 @@ const formatCurrency = (amount: number) => {
 };
 
 
-export default function NewEstimatePage() {
+function NewEstimatePageContent() {
   const { toast } = useToast();
+  const searchParams = useSearchParams();
   const [addEstimateState, formAction] = useActionState(addEstimate, { success: false, message: null });
   
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -63,7 +65,23 @@ export default function NewEstimatePage() {
     setCustomers(mockData.customers);
     setJobs(mockData.jobs);
     setTemplates(mockData.estimateTemplates);
-  }, []);
+
+    const initialTitle = searchParams.get('title');
+    const initialLineItems = searchParams.get('lineItems');
+    if (initialTitle) {
+        setEstimateTitle(initialTitle);
+    }
+    if (initialLineItems) {
+        try {
+            const parsedItems = JSON.parse(initialLineItems);
+            if (Array.isArray(parsedItems) && parsedItems.length > 0) {
+                setLineItems(parsedItems);
+            }
+        } catch (error) {
+            console.error("Failed to parse line items from URL", error);
+        }
+    }
+  }, [searchParams]);
   
   useEffect(() => {
     if (addEstimateState?.message && !addEstimateState.success) {
@@ -328,4 +346,12 @@ export default function NewEstimatePage() {
     </div>
     </>
   );
+}
+
+export default function NewEstimatePage() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <NewEstimatePageContent />
+        </Suspense>
+    )
 }

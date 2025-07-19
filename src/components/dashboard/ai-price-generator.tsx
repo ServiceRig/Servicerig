@@ -1,8 +1,9 @@
 
 'use client';
 
-import { useActionState, useState, useEffect } from 'react';
+import { useActionState, useState, useEffect, useTransition } from 'react';
 import { useFormStatus } from 'react-dom';
+import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -10,8 +11,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Wand2, Loader2, History, PlusCircle, Save } from 'lucide-react';
 import { generatePrice, GeneratePriceOutput } from '@/ai/flows/generate-price';
+import { addPricebookItemAction } from '@/app/actions';
 import { Alert, AlertTitle, AlertDescription } from '../ui/alert';
-import { Badge } from '../ui/badge';
+import { useToast } from '@/hooks/use-toast';
+import type { LineItem } from '@/lib/types';
+
 
 type ActionState = {
   data?: GeneratePriceOutput | null;
@@ -27,6 +31,17 @@ function GenerateButton() {
         </Button>
     )
 }
+
+function SaveItemButton() {
+    const { pending } = useFormStatus();
+     return (
+        <Button type="submit" variant="secondary" disabled={pending}>
+            {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+            {pending ? 'Saving...' : 'Save as Item'}
+        </Button>
+    )
+}
+
 
 async function generatePriceAction(prevState: ActionState, formData: FormData): Promise<ActionState> {
     const jobDescription = formData.get('jobDescription') as string;
@@ -44,14 +59,28 @@ async function generatePriceAction(prevState: ActionState, formData: FormData): 
 }
 
 export function AiPriceGenerator() {
-    const [state, formAction] = useActionState(generatePriceAction, { data: null, error: null });
+    const router = useRouter();
+    const { toast } = useToast();
+    const [generateState, generateAction] = useActionState(generatePriceAction, { data: null, error: null });
+    const [saveState, saveAction] = useActionState(addPricebookItemAction, { success: false, message: '' });
+    
     const [editableResult, setEditableResult] = useState<GeneratePriceOutput | null>(null);
 
     useEffect(() => {
-        if (state.data) {
-            setEditableResult(state.data);
+        if (generateState.data) {
+            setEditableResult(generateState.data);
         }
-    }, [state.data]);
+    }, [generateState.data]);
+
+    useEffect(() => {
+        if (saveState?.message) {
+            toast({
+                title: saveState.success ? 'Success' : 'Error',
+                description: saveState.message,
+                variant: saveState.success ? 'default' : 'destructive',
+            })
+        }
+    }, [saveState, toast])
 
     const handleFieldChange = (field: keyof GeneratePriceOutput, value: string | number | string[]) => {
         if (editableResult) {
@@ -73,6 +102,23 @@ export function AiPriceGenerator() {
         }
     }
 
+    const handleAddToEstimate = () => {
+        if (!editableResult) return;
+        
+        const lineItem: LineItem = {
+            description: editableResult.serviceDescription,
+            quantity: 1,
+            unitPrice: editableResult.suggestedPrice
+        }
+        
+        const query = new URLSearchParams({
+            title: editableResult.recommendedTitle,
+            lineItems: JSON.stringify([lineItem])
+        }).toString();
+
+        router.push(`/dashboard/estimates/new?${query}`);
+    }
+
   return (
     <Card className="shadow-lg">
         <CardHeader className="flex flex-row items-start justify-between">
@@ -85,7 +131,7 @@ export function AiPriceGenerator() {
                 History
             </Button>
         </CardHeader>
-        <form action={formAction}>
+        <form action={generateAction}>
             <CardContent>
                 <div className="grid gap-2">
                     <Label htmlFor="jobDescription" className="sr-only">Job Description</Label>
@@ -96,7 +142,7 @@ export function AiPriceGenerator() {
                         rows={3}
                         className="text-base"
                     />
-                     {state.error && <p className="text-sm font-medium text-destructive">{state.error}</p>}
+                     {generateState.error && <p className="text-sm font-medium text-destructive">{generateState.error}</p>}
                 </div>
             </CardContent>
             <CardFooter>
@@ -110,7 +156,13 @@ export function AiPriceGenerator() {
                     <AlertTitle>AI Generated Result</AlertTitle>
                     <AlertDescription>Review and edit the generated details below before saving or adding to an estimate.</AlertDescription>
                 </Alert>
-                <div className="space-y-4">
+                
+                <form action={saveAction} className="space-y-4">
+                     <input type="hidden" name="title" value={editableResult.recommendedTitle} />
+                     <input type="hidden" name="description" value={editableResult.serviceDescription} />
+                     <input type="hidden" name="price" value={editableResult.suggestedPrice} />
+                     <input type="hidden" name="trade" value="General" />
+
                      <div className="grid gap-2">
                         <Label htmlFor="recommendedTitle">Recommended Title</Label>
                         <Input id="recommendedTitle" value={editableResult.recommendedTitle} onChange={e => handleFieldChange('recommendedTitle', e.target.value)} />
@@ -136,12 +188,12 @@ export function AiPriceGenerator() {
                            <PlusCircle className="mr-2 h-4 w-4" /> Add Material
                         </Button>
                     </div>
-                </div>
 
-                <div className="flex items-center gap-2 pt-4 border-t">
-                    <Button><PlusCircle className="mr-2 h-4 w-4" /> Add to Estimate</Button>
-                    <Button variant="secondary"><Save className="mr-2 h-4 w-4" /> Save as Item</Button>
-                </div>
+                    <div className="flex items-center gap-2 pt-4 border-t">
+                        <Button type="button" onClick={handleAddToEstimate}><PlusCircle className="mr-2 h-4 w-4" /> Add to Estimate</Button>
+                        <SaveItemButton />
+                    </div>
+                </form>
             </CardContent>
         )}
     </Card>
