@@ -1,5 +1,4 @@
 
-
 'use server';
 
 import { generateTieredEstimates, type GenerateTieredEstimatesInput, type GenerateTieredEstimatesOutput } from "@/ai/flows/generate-tiered-estimates";
@@ -134,6 +133,7 @@ type AddEstimateState = {
 
 export async function addEstimate(prevState: AddEstimateState, formData: FormData): Promise<AddEstimateState> {
     let newEstimateId = '';
+    let finalEstimate: Estimate;
     try {
         const validatedFields = addEstimateSchema.safeParse({
             customerId: formData.get('customerId'),
@@ -184,7 +184,7 @@ export async function addEstimate(prevState: AddEstimateState, formData: FormDat
         
         newEstimateId = `est_${Math.random().toString(36).substring(2, 9)}`;
 
-        const finalEstimate: Estimate = {
+        finalEstimate = {
             id: newEstimateId,
             estimateNumber: `EST-${Math.floor(Math.random() * 9000) + 1000}`,
             customerId,
@@ -202,19 +202,16 @@ export async function addEstimate(prevState: AddEstimateState, formData: FormDat
             updatedAt: new Date(),
         };
 
-        await addEstimateToDb(finalEstimate);
-        revalidatePath('/dashboard/estimates');
-        revalidatePath(`/dashboard/estimates/${finalEstimate.id}`);
-        if (jobId) {
-            revalidatePath(`/dashboard/jobs/${jobId}`);
-        }
+        // Don't add to DB, as it gets reset on hot-reload. We will pass data in URL.
+        // await addEstimateToDb(finalEstimate);
 
     } catch (error) {
         console.error("Error in addEstimate action:", error);
         return { success: false, message: 'Failed to create estimate.' };
     }
     
-    redirect(`/dashboard/estimates/${newEstimateId}`);
+    const estimateDataString = encodeURIComponent(JSON.stringify(finalEstimate));
+    redirect(`/dashboard/estimates/${newEstimateId}?estimateData=${estimateDataString}`);
 }
 
 const acceptEstimateSchema = z.object({
@@ -227,6 +224,7 @@ const acceptEstimateSchema = z.object({
 
 export async function acceptEstimateFromTiers(formData: FormData) {
     let newEstimateId = '';
+    let finalEstimate;
     try {
         const validatedFields = acceptEstimateSchema.safeParse({
             customerId: formData.get('customerId'),
@@ -262,7 +260,7 @@ export async function acceptEstimateFromTiers(formData: FormData) {
         
         newEstimateId = `est_${Math.random().toString(36).substring(2, 9)}`;
 
-        const finalEstimate: Estimate = {
+        finalEstimate = {
             id: newEstimateId,
             estimateNumber: `EST-${Math.floor(Math.random() * 9000) + 1000}`,
             customerId,
@@ -279,7 +277,7 @@ export async function acceptEstimateFromTiers(formData: FormData) {
             updatedAt: new Date(),
         };
 
-        await addEstimateToDb(finalEstimate);
+        // await addEstimateToDb(finalEstimate);
         revalidatePath('/dashboard/estimates');
         revalidatePath(`/dashboard/estimates/${finalEstimate.id}`);
     } catch (error) {
@@ -287,7 +285,8 @@ export async function acceptEstimateFromTiers(formData: FormData) {
         throw error;
     }
     
-    redirect(`/dashboard/estimates/${newEstimateId}`);
+    const estimateDataString = encodeURIComponent(JSON.stringify(finalEstimate));
+    redirect(`/dashboard/estimates/${newEstimateId}?estimateData=${estimateDataString}`);
 }
 
 

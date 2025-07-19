@@ -12,7 +12,7 @@ import { cn, getEstimateStatusStyles } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EstimateActions } from './EstimateActions';
 import { Logo } from '@/components/logo';
-
+import type { EstimateData, Estimate } from '@/lib/types';
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
@@ -28,11 +28,43 @@ const InfoCard = ({ icon: Icon, label, children }: { icon: React.ElementType, la
     </div>
 );
 
+// Helper function to safely parse dates from JSON
+const parseDates = (estimate: any): Estimate => {
+    return {
+        ...estimate,
+        createdAt: new Date(estimate.createdAt),
+        updatedAt: new Date(estimate.updatedAt),
+    };
+}
+
 
 export default async function EstimateDetailsPage({ params, searchParams }: { params: { estimateId: string }, searchParams: { [key: string]: string | string[] | undefined } }) {
   const estimateId = params.estimateId;
   const role = searchParams.role || 'admin';
-  const data = await getEstimateData(estimateId);
+  const estimateDataString = searchParams?.estimateData as string;
+
+  let data: EstimateData | null = null;
+  
+  if (estimateDataString) {
+      try {
+        const parsedEstimate = parseDates(JSON.parse(decodeURIComponent(estimateDataString)));
+        // This is a simplified data shape since we don't have customer/job from the URL
+        // In a real app, you might fetch these based on IDs in the parsedEstimate
+        data = {
+            estimate: parsedEstimate,
+            customer: { id: parsedEstimate.customerId, primaryContact: { name: 'New Customer' }, companyInfo: { name: '' } } as any,
+            job: parsedEstimate.jobId ? { id: parsedEstimate.jobId, title: 'Newly Created Job' } as any : null
+        }
+      } catch (e) {
+          console.error("Failed to parse estimate data from URL", e);
+      }
+  }
+  
+  // Fallback to fetching from "DB" if URL data is not present
+  if (!data) {
+      data = await getEstimateData(estimateId);
+  }
+
 
   if (!data) {
     notFound();
