@@ -1,6 +1,5 @@
 
 
-
 // This file contains the TypeScript types for your Firestore collections.
 
 // A generic type for Firestore Timestamps. In Firestore, these are objects,
@@ -148,6 +147,13 @@ export type Payment = {
   recordedBy: string; // userId
 }
 
+export type Commission = {
+  technicianId: string;
+  technicianName?: string;
+  rate: number; // e.g., 0.10 for 10%
+  amount: number;
+}
+
 // Invoice model from /invoices/{invoiceId}
 export type Invoice = {
   id: string;
@@ -168,6 +174,7 @@ export type Invoice = {
   dueDate: Timestamp | Date;
   issueDate: Timestamp | Date;
   createdAt: Timestamp | Date;
+  commission?: Commission[];
   quickbooksSync?: {
       status: 'pending' | 'synced' | 'error';
       lastSync?: Timestamp | Date;

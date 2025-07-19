@@ -1,13 +1,16 @@
 
+
 'use client';
 import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarSeparator,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
 } from "@/components/ui/sidebar";
 import { UserRole } from "@/lib/types";
-import { LayoutDashboard, Calendar, UserSquare, Users, BarChart3, Book, Warehouse, Calculator, FileText, FileDiff, FileSignature, ClipboardList, DollarSign, Clock, AppWindow, Settings, LifeBuoy, LogOut, FilePlus, Bot, ListChecks } from "lucide-react";
+import { LayoutDashboard, Calendar, UserSquare, Users, BarChart3, Book, Warehouse, Calculator, FileText, FileDiff, FileSignature, ClipboardList, DollarSign, Clock, AppWindow, Settings, LifeBuoy, LogOut, FilePlus, Bot, ListChecks, UserCog } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from 'next/navigation';
 
@@ -17,7 +20,11 @@ const navItems = [
     { href: "/dashboard/scheduling", icon: Calendar, label: "Scheduling" },
     { href: "/dashboard/my-schedule", icon: UserSquare, label: "My Schedule" },
     { href: "/dashboard/customers", icon: Users, label: "Customers" },
-    { href: "/dashboard/reports", icon: BarChart3, label: "KPIs / Reports" },
+    { href: "/dashboard/reports", icon: BarChart3, label: "KPIs / Reports",
+      subItems: [
+        { href: "/dashboard/reports/technician-earnings", icon: UserCog, label: "Tech Earnings" },
+      ]
+    },
     { href: "/dashboard/price-book", icon: Book, label: "Price Book" },
     { href: "/dashboard/inventory", icon: Warehouse, label: "Inventory" },
     { href: "/dashboard/estimates", icon: Calculator, label: "Estimates" },
@@ -63,6 +70,20 @@ export function MainNav({ role }: { role: UserRole }) {
                             <span>{item.label}</span>
                         </Link>
                     </SidebarMenuButton>
+                     {item.subItems && (
+                        <SidebarMenuSub>
+                            {item.subItems.map(subItem => (
+                                <SidebarMenuItem key={subItem.href}>
+                                    <SidebarMenuSubButton asChild isActive={pathname.startsWith(subItem.href)}>
+                                         <Link href={getHref(subItem.href)}>
+                                            <subItem.icon />
+                                            <span>{subItem.label}</span>
+                                        </Link>
+                                    </SidebarMenuSubButton>
+                                </SidebarMenuItem>
+                            ))}
+                        </SidebarMenuSub>
+                     )}
                 </SidebarMenuItem>
             ))}
         </SidebarMenu>

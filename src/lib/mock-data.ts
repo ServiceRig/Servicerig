@@ -174,7 +174,10 @@ export const mockData = {
       quickbooksSync: {
         status: 'synced',
         lastSync: new Date(),
-      }
+      },
+      commission: [
+        { technicianId: 'tech1', rate: 0.1, amount: 32.40, technicianName: 'John Doe' }
+      ]
     },
     {
       id: 'inv2',
@@ -202,7 +205,10 @@ export const mockData = {
         status: 'error',
         lastSync: new Date(new Date().getTime() - 24 * 60 * 60 * 1000), // 1 day ago
         error: 'Customer mapping failed: Customer "Solutions Corp." not found in QuickBooks.',
-      }
+      },
+       commission: [
+        { technicianId: 'tech2', rate: 0.12, amount: 103.68, technicianName: 'Jane Smith' }
+      ]
     },
     {
       id: 'inv3',
@@ -226,7 +232,10 @@ export const mockData = {
       createdAt: new Date('2024-07-18'),
       quickbooksSync: {
         status: 'pending',
-      }
+      },
+       commission: [
+        { technicianId: 'tech3', rate: 0.08, amount: 25.92, technicianName: 'Mike Johnson' }
+      ]
     },
      {
       id: 'inv4',
