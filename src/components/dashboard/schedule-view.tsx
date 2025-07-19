@@ -156,7 +156,7 @@ const WeeklyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDa
                             </div>
                              <div className="relative min-h-[calc(16*60px)]">
                                 {hours.map(h => <div key={h} className="h-[60px] border-t border-dashed border-gray-300" />)}
-                                {technicians.map(tech => (
+                                {(technicians ?? []).map(tech => (
                                     <React.Fragment key={tech.id}>
                                         {hours.map(hour => (
                                             [0, 15, 30, 45].map(minute => {
@@ -176,15 +176,15 @@ const WeeklyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDa
                                 ))}
                                 {jobs.filter(job => isSameDay(job.schedule.start, day))
                                     .map(job => {
-                                      const techIndex = technicians.findIndex(t => t.id === job.technicianId);
+                                      const techIndex = (technicians ?? []).findIndex(t => t.id === job.technicianId);
                                       if (techIndex === -1) return null;
                                       return (
                                         <div
                                             key={job.id}
                                             className="absolute w-full"
                                             style={{
-                                                left: `${techIndex * 100 / technicians.length}%`,
-                                                width: `${100 / technicians.length}%`,
+                                                left: `${techIndex * 100 / (technicians ?? []).length}%`,
+                                                width: `${100 / (technicians ?? []).length}%`,
                                             }}
                                         >
                                             <DraggableJob job={job} onStatusChange={onJobStatusChange} isCompact />
