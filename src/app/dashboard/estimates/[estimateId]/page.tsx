@@ -43,23 +43,34 @@ function EstimateDetailsPageContent({ estimateId }: { estimateId: string }) {
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [job, setJob] = useState<Job | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
         setIsLoading(true);
+        setError(null);
         const fetchedEstimate = await getEstimateById(estimateId);
         
         if (!fetchedEstimate) {
-            setEstimate(null);
-        } else {
-            setEstimate(fetchedEstimate);
-            const [fetchedCustomer, fetchedJob] = await Promise.all([
-                getCustomerById(fetchedEstimate.customerId),
-                fetchedEstimate.jobId ? getJobById(fetchedEstimate.jobId) : Promise.resolve(null)
-            ]);
-            setCustomer(fetchedCustomer);
-            setJob(fetchedJob);
+            setError(`Estimate with ID "${estimateId}" not found.`);
+            setIsLoading(false);
+            return;
         }
+
+        setEstimate(fetchedEstimate);
+        const [fetchedCustomer, fetchedJob] = await Promise.all([
+            getCustomerById(fetchedEstimate.customerId),
+            fetchedEstimate.jobId ? getJobById(fetchedEstimate.jobId) : Promise.resolve(null)
+        ]);
+        
+        if (!fetchedCustomer) {
+            setError(`Customer with ID "${fetchedEstimate.customerId}" not found for this estimate.`);
+            setIsLoading(false);
+            return;
+        }
+
+        setCustomer(fetchedCustomer);
+        setJob(fetchedJob);
         setIsLoading(false);
     };
 
@@ -74,7 +85,27 @@ function EstimateDetailsPageContent({ estimateId }: { estimateId: string }) {
       );
   }
 
+  if (error) {
+      return (
+          <div className="flex items-center justify-center h-64">
+              <Card className="w-full max-w-md">
+                  <CardHeader>
+                      <CardTitle>Error</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                      <p className="text-destructive">{error}</p>
+                      <p className="text-muted-foreground mt-2 text-sm">This can sometimes happen in the development environment if the page reloads. Please try creating the estimate again.</p>
+                       <Button asChild className="mt-4">
+                            <Link href="/dashboard/estimates">Go back to Estimates</Link>
+                        </Button>
+                  </CardContent>
+              </Card>
+          </div>
+      );
+  }
+
   if (!estimate || !customer) {
+    // This case should be covered by the error state, but as a fallback:
     return notFound();
   }
 
