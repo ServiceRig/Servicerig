@@ -10,7 +10,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import type { Estimate, GbbTier, LineItem, PricebookItem, Job } from "@/lib/types";
 import { addEstimateTemplate } from "@/lib/firestore/templates";
-import { mockCustomers } from "@/lib/mock-data";
+import { mockData } from "@/lib/mock-data";
 import { addPricebookItem } from "@/lib/firestore/pricebook";
 
 const tieredEstimatesSchema = z.object({
@@ -117,7 +117,6 @@ const addEstimateSchema = z.object({
         }
         try {
             const parsed = JSON.parse(val);
-            // Ensure it's an object with the correct keys, even if values are empty
             if (typeof parsed === 'object' && parsed !== null && 'good' in parsed && 'better' in parsed && 'best' in parsed) {
                 return parsed as GbbTier;
             }
@@ -151,12 +150,11 @@ export async function addEstimate(prevState: AddEstimateState, formData: FormDat
 
         let { customerId, title, jobId, lineItems, gbbTier } = validatedFields.data;
         
-        const customer = mockCustomers.find(c => c.id === customerId);
+        const customer = mockData.customers.find(c => c.id === customerId);
         if (!customer) {
             return { success: false, message: 'Customer not found.' };
         }
 
-        // If no job ID is provided, create a new job
         if (!jobId) {
             console.log("No Job ID provided, creating a new job.");
             const newJobId = `job_${Math.random().toString(36).substring(2, 9)}`;
@@ -175,7 +173,7 @@ export async function addEstimate(prevState: AddEstimateState, formData: FormDat
                 updatedAt: new Date(),
             };
             await addJob(newJob);
-            jobId = newJobId; // Use the new job ID for the estimate
+            jobId = newJobId;
             console.log(`Auto-created new job with ID: ${jobId}`);
         }
         
@@ -245,7 +243,7 @@ export async function acceptEstimateFromTiers(formData: FormData) {
         const { customerId, title, jobId } = validatedFields.data;
         const selectedTier = JSON.parse(validatedFields.data.selectedTier) as { description: string, price: number };
 
-        const customer = mockCustomers.find(c => c.id === customerId);
+        const customer = mockData.customers.find(c => c.id === customerId);
         if (!customer) {
             throw new Error('Customer not found.');
         }
