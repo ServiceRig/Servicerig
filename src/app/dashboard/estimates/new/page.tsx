@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Trash2, PlusCircle, Loader2, Save } from 'lucide-react';
+import { Trash2, PlusCircle, Loader2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { mockData } from '@/lib/mock-data';
 import type { Customer, Job, EstimateTemplate, LineItem } from '@/lib/types';
@@ -17,25 +17,12 @@ import { useToast } from '@/hooks/use-toast';
 import { AITierGenerator, TierData } from '@/components/dashboard/ai-tier-generator';
 import { CustomerPresentationView } from '@/components/dashboard/customer-presentation-view';
 import { addEstimate } from '@/app/actions';
-import { useFormStatus } from 'react-dom';
+import { SubmitButton } from './SubmitButton';
+
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
 };
-
-function SubmitButton({ disabled }: { disabled?: boolean }) {
-    const { pending } = useFormStatus();
-    return (
-        <Button 
-            type="submit" 
-            disabled={pending || disabled} 
-            form="estimate-form"
-        >
-            {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-            {pending ? 'Saving...' : 'Save as Draft'}
-        </Button>
-    )
-}
 
 function NewEstimatePageContent() {
   const { toast } = useToast();
@@ -262,7 +249,7 @@ function NewEstimatePageContent() {
                     </div>
                     <div className="grid gap-2 md:col-span-2 lg:col-span-3">
                         <Label htmlFor="title">Estimate Title</Label>
-                        <Input id="title-input" placeholder="e.g., HVAC Repair" value={estimateTitle} onChange={e => setEstimateTitle(e.target.value)} required />
+                        <Input id="title" placeholder="e.g., HVAC Repair" value={estimateTitle} onChange={e => setEstimateTitle(e.target.value)} required />
                     </div>
                     </CardContent>
                 </Card>
@@ -351,3 +338,5 @@ export default function NewEstimatePage() {
         </Suspense>
     )
 }
+
+    
