@@ -111,11 +111,12 @@ const addEstimateSchema = z.object({
         }
     }),
     gbbTier: z.string().nullable().transform((val, ctx) => {
-         if (val === '' || val === 'null' || !val) {
+         if (val === null || val === 'null' || val === '') {
             return null;
         }
         try {
             const parsed = JSON.parse(val);
+            // We can add more specific GbbTier validation here if needed
             return parsed as GbbTier | null;
         } catch {
              ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Invalid JSON for gbbTier."});
