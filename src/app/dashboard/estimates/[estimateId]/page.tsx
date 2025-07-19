@@ -276,10 +276,9 @@ function EstimateDetailsPageContent({ estimateId }: { estimateId: string }) {
 
 
 export default function EstimateDetailsPage({ params }: { params: { estimateId: string }}) {
-    const estimateId = params.estimateId;
     return (
         <Suspense fallback={<div className="flex items-center justify-center h-64"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>}>
-            <EstimateDetailsPageContent estimateId={estimateId} />
+            <EstimateDetailsPageContent estimateId={params.estimateId} />
         </Suspense>
     )
 }
