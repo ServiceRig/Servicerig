@@ -4,7 +4,7 @@
 import { generateTieredEstimates, type GenerateTieredEstimatesInput, type GenerateTieredEstimatesOutput } from "@/ai/flows/generate-tiered-estimates";
 import { z } from "zod";
 import { addEstimate as addEstimateToDb, getEstimateById, updateEstimate } from "@/lib/firestore/estimates";
-import { addJob } from "@/lib/firestore/jobs";
+import { addJob as addJobToDb } from "@/lib/firestore/jobs";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import type { Estimate, GbbTier, LineItem, PricebookItem, Job } from "@/lib/types";
@@ -175,7 +175,7 @@ export async function addEstimate(prevState: AddEstimateState, formData: FormDat
                 createdAt: new Date(),
                 updatedAt: new Date(),
             };
-            await addJob(newJob);
+            await addJobToDb(newJob);
             jobId = newJobId;
             console.log(`Auto-created new job with ID: ${jobId}`);
         }
