@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useState, useEffect, Suspense, use } from 'react';
@@ -216,6 +217,7 @@ function InvoiceDetailsPageContent({ invoiceId }: { invoiceId: string }) {
                     <Table>
                         <TableHeader>
                             <TableRow>
+                                <TableHead className="w-12"></TableHead>
                                 <TableHead>Description</TableHead>
                                 <TableHead className="text-center">Qty</TableHead>
                                 <TableHead className="text-right">Unit Price</TableHead>
@@ -225,6 +227,20 @@ function InvoiceDetailsPageContent({ invoiceId }: { invoiceId: string }) {
                         <TableBody>
                             {invoice.lineItems.map((item, index) => (
                                 <TableRow key={index}>
+                                    <TableCell>
+                                      {item.origin && (
+                                        <TooltipProvider>
+                                          <Tooltip>
+                                            <TooltipTrigger>
+                                                <FileText className="h-4 w-4 text-muted-foreground" />
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <p>From {item.origin.type}: {item.origin.id}</p>
+                                            </TooltipContent>
+                                          </Tooltip>
+                                        </TooltipProvider>
+                                      )}
+                                    </TableCell>
                                     <TableCell className="font-medium">{item.description}</TableCell>
                                     <TableCell className="text-center">{item.quantity}</TableCell>
                                     <TableCell className="text-right">{formatCurrency(item.unitPrice)}</TableCell>

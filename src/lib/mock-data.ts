@@ -160,8 +160,8 @@ export const mockData = {
       issueDate: new Date('2024-07-10'),
       dueDate: new Date('2024-08-09'),
       lineItems: [
-        { description: 'Annual HVAC Maintenance Service', quantity: 1, unitPrice: 250 },
-        { description: 'Replacement 1-inch Filter', quantity: 2, unitPrice: 25 },
+        { description: 'Annual HVAC Maintenance Service', quantity: 1, unitPrice: 250, origin: { type: 'estimate', id: 'est1' } },
+        { description: 'Replacement 1-inch Filter', quantity: 2, unitPrice: 25, origin: { type: 'estimate', id: 'est1' } },
       ],
       subtotal: 300.00,
       tax: 24.00,
@@ -190,8 +190,8 @@ export const mockData = {
       dueDate: new Date('2024-07-01'),
       lineItems: [
         { description: 'Emergency Callout Fee', quantity: 1, unitPrice: 150 },
-        { description: 'Repair Kitchen Sink Leak', quantity: 1, unitPrice: 200 },
-        { description: 'Replace Garbage Disposal', quantity: 1, unitPrice: 450 },
+        { description: 'Repair Kitchen Sink Leak', quantity: 1, unitPrice: 200, origin: { type: 'estimate', id: 'est2' } },
+        { description: 'Replace Garbage Disposal', quantity: 1, unitPrice: 450, origin: { type: 'estimate', id: 'est2' } },
       ],
       subtotal: 800.00,
       tax: 64.00,
@@ -246,7 +246,7 @@ export const mockData = {
       issueDate: new Date('2024-07-20'),
       dueDate: new Date('2024-08-19'),
        lineItems: [
-        { description: 'Q3 Service Agreement Maintenance', quantity: 1, unitPrice: 500 },
+        { description: 'Q3 Service Agreement Maintenance', quantity: 1, unitPrice: 500, origin: { type: 'agreement', id: 'sa1' } },
       ],
       subtotal: 500.00,
       tax: 40.00,

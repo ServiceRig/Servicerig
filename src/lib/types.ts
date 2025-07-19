@@ -93,6 +93,11 @@ export type LineItem = {
     quantity: number;
     unitPrice: number;
     inventoryParts?: EstimateLineItemPart[];
+    origin?: {
+      type: 'estimate' | 'change_order' | 'agreement';
+      id: string; // The ID of the source estimate/change order
+      lineItemId?: string; // Optional: The specific ID of the line item in the source
+    };
 };
 
 export type GbbTier = {
