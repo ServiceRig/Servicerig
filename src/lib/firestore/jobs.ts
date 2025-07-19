@@ -1,7 +1,7 @@
 // In a real app, you would import the firestore instance:
 // import { db } from './firebase';
 // import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
-import { mockJobs, mockData } from '@/lib/mock-data';
+import { mockData } from '@/lib/mock-data';
 import type { Job } from '@/lib/types';
 
 /**
@@ -12,7 +12,7 @@ import type { Job } from '@/lib/types';
 export async function getJobById(id: string): Promise<Job | null> {
     console.log(`Fetching job with id: ${id}`);
     // Simulate Firestore getDoc
-    const job = mockJobs.find(j => j.id === id) || null;
+    const job = mockData.jobs.find(j => j.id === id) || null;
 
     // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, 200));
@@ -33,7 +33,7 @@ export async function getJobById(id: string): Promise<Job | null> {
 export async function getJobsByCustomerId(customerId: string): Promise<Job[]> {
     console.log(`Fetching jobs for customer id: ${customerId}`);
     // Simulate Firestore query
-    const jobs = mockJobs.filter(j => j.customerId === customerId);
+    const jobs = mockData.jobs.filter(j => j.customerId === customerId);
 
     // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, 300));
