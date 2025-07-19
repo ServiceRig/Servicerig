@@ -166,6 +166,16 @@ export type Commission = {
   amount: number;
 }
 
+export type Refund = {
+    id: string;
+    invoiceId: string;
+    amount: number;
+    date: Timestamp | Date;
+    reason?: string;
+    method: 'original_payment' | 'credit_memo';
+    processedBy: string; // userId
+}
+
 // Invoice model from /invoices/{invoiceId}
 export type Invoice = {
   id: string;
@@ -173,7 +183,7 @@ export type Invoice = {
   title: string;
   jobId?: string;
   customerId: string;
-  status: 'draft' | 'sent' | 'paid' | 'overdue' | 'partially_paid';
+  status: 'draft' | 'sent' | 'paid' | 'overdue' | 'partially_paid' | 'refunded' | 'credited';
   lineItems: LineItem[];
   subtotal: number;
   tax: number;
@@ -205,6 +215,7 @@ export type Invoice = {
   job?: Job;
   customer?: Customer;
   payments?: Payment[];
+  refunds?: Refund[];
 };
 
 

@@ -33,6 +33,10 @@ export const getInvoiceStatusStyles = (status: Invoice['status']) => {
       return 'bg-yellow-500 hover:bg-yellow-600 text-white';
     case 'overdue':
       return 'bg-red-500 hover:bg-red-600 text-white';
+    case 'refunded':
+      return 'bg-purple-500 hover:bg-purple-600 text-white';
+    case 'credited':
+      return 'bg-indigo-500 hover:bg-indigo-600 text-white';
     case 'sent':
       return 'bg-blue-500 hover:bg-blue-600 text-white';
     case 'draft':

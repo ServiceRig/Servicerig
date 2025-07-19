@@ -10,15 +10,16 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Separator } from '@/components/ui/separator';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { User, Calendar, Tag, FileText, FileSignature, FileDiff, Printer, CreditCard, Send, Edit, Copy, RefreshCw, AlertCircle, CheckCircle } from 'lucide-react';
+import { User, Calendar, Tag, FileText, FileSignature, FileDiff, Printer, CreditCard, Send, Edit, Copy, RefreshCw, AlertCircle, CheckCircle, RotateCcw } from 'lucide-react';
 import { cn, getInvoiceStatusStyles } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/logo';
 import { mockData } from '@/lib/mock-data';
-import type { Invoice, Customer, Job, Payment } from '@/lib/types';
+import type { Invoice, Customer, Job, Payment, Refund } from '@/lib/types';
 import { useRole } from '@/hooks/use-role';
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { AddPaymentDialog } from '@/components/dashboard/invoices/AddPaymentDialog';
+import { IssueRefundDialog } from '@/components/dashboard/invoices/IssueRefundDialog';
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
@@ -45,24 +46,37 @@ const getInvoiceData = async (invoiceId: string): Promise<Invoice | null> => {
     const customer = mockData.customers.find(c => c.id === invoice.customerId);
     const job = invoice.jobId ? mockData.jobs.find(j => j.id === invoice.jobId) : undefined;
     
-    // Enrich with payments
+    // Enrich with payments and refunds
     const payments = mockData.payments.filter(p => p.invoiceId === invoiceId);
+    const refunds = mockData.refunds.filter(r => r.invoiceId === invoiceId);
 
     // This simulates what would happen on a server or in a data-fetching layer
     // In our mock setup, we have to calculate these on the fly.
     const amountPaid = payments.reduce((sum, p) => sum + p.amount, 0);
-    const balanceDue = invoice.total - amountPaid;
-    const status: Invoice['status'] = balanceDue <= 0 ? 'paid' : (amountPaid > 0 ? 'partially_paid' : (new Date() > new Date(invoice.dueDate) ? 'overdue' : invoice.status));
-
+    const amountRefunded = refunds.reduce((sum, r) => sum + r.amount, 0);
+    const netPaid = amountPaid - amountRefunded;
+    const balanceDue = invoice.total - netPaid;
+    
+    let status = invoice.status;
+    if (status !== 'draft' && status !== 'refunded' && status !== 'credited') {
+      if (balanceDue <= 0 && netPaid > 0) {
+        status = 'paid';
+      } else if (netPaid > 0) {
+        status = 'partially_paid';
+      } else if (new Date() > new Date(invoice.dueDate)) {
+        status = 'overdue';
+      }
+    }
 
     return {
         ...invoice,
         customer,
         job,
         payments,
-        amountPaid,
+        refunds,
+        amountPaid: netPaid,
         balanceDue,
-        status: status === 'paid' ? 'paid' : (status === 'partially_paid' ? 'partially_paid' : invoice.status) // Keep original if not paid
+        status: invoice.status === 'refunded' ? 'refunded' : status // Preserve original refunded status
     };
 };
 
@@ -125,8 +139,8 @@ function InvoiceDetailsPageContent({ invoiceId }: { invoiceId: string }) {
     fetchData();
   }, [invoiceId]);
 
-  const handlePaymentAdded = (newPayment: Payment) => {
-      // Re-fetch data to update the invoice details after a payment is added
+  const handleDataChange = () => {
+      // Re-fetch all data to update the invoice details after a change
       fetchData();
   };
 
@@ -197,7 +211,7 @@ function InvoiceDetailsPageContent({ invoiceId }: { invoiceId: string }) {
                 <CardContent><p className="text-2xl font-bold">{formatCurrency(invoice.total)}</p></CardContent>
             </Card>
             <Card>
-                <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Amount Paid</CardTitle></CardHeader>
+                <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Net Paid</CardTitle></CardHeader>
                 <CardContent><p className="text-2xl font-bold">{formatCurrency(invoice.amountPaid)}</p></CardContent>
             </Card>
             <Card className={invoice.balanceDue > 0 ? "border-destructive" : "border-green-500"}>
@@ -294,7 +308,7 @@ function InvoiceDetailsPageContent({ invoiceId }: { invoiceId: string }) {
                         </TableBody>
                     </Table>
                     <div className="mt-4 flex items-center gap-2">
-                        <AddPaymentDialog invoice={invoice} onPaymentAdded={handlePaymentAdded} />
+                        <AddPaymentDialog invoice={invoice} onPaymentAdded={handleDataChange} />
                          <Button
                             variant="outline"
                             disabled={invoice.balanceDue <= 0}
@@ -303,6 +317,43 @@ function InvoiceDetailsPageContent({ invoiceId }: { invoiceId: string }) {
                             <CreditCard className="mr-2 h-4 w-4" />
                             Pay with Stripe
                         </Button>
+                    </div>
+                </CardContent>
+            </Card>
+
+            <Card className="print:shadow-none print:border-none">
+                <CardHeader>
+                    <CardTitle>Refunds & Credits</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Date</TableHead>
+                                <TableHead>Amount</TableHead>
+                                <TableHead>Method</TableHead>
+                                <TableHead>Reason</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {invoice.refunds && invoice.refunds.length > 0 ? (
+                                invoice.refunds.map((refund) => (
+                                    <TableRow key={refund.id}>
+                                        <TableCell>{format(new Date(refund.date), 'PP')}</TableCell>
+                                        <TableCell>{formatCurrency(refund.amount)}</TableCell>
+                                        <TableCell className="capitalize">{refund.method.replace('_', ' ')}</TableCell>
+                                        <TableCell>{refund.reason || 'N/A'}</TableCell>
+                                    </TableRow>
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell colSpan={4} className="text-center h-24">No refunds or credits issued</TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                    <div className="mt-4">
+                        <IssueRefundDialog invoice={invoice} onRefundIssued={handleDataChange} />
                     </div>
                 </CardContent>
             </Card>
