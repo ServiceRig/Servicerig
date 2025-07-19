@@ -14,7 +14,7 @@ import { cn, getInvoiceStatusStyles } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/logo';
 import { mockData } from '@/lib/mock-data';
-import type { Invoice, Customer, Job } from '@/lib/types';
+import type { Invoice, Customer, Job, Payment } from '@/lib/types';
 import { useRole } from '@/hooks/use-role';
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { AddPaymentDialog } from '@/components/dashboard/invoices/AddPaymentDialog';
@@ -33,15 +33,37 @@ const InfoCard = ({ icon: Icon, label, children }: { icon: React.ElementType, la
     </div>
 );
 
+// This function simulates fetching an invoice and enriching it with related data
 const getInvoiceData = async (invoiceId: string): Promise<Invoice | null> => {
-    let invoice = mockData.invoices.find(inv => inv.id === invoiceId) || null;
-    if (invoice) {
-        invoice.customer = mockData.customers.find(c => c.id === invoice.customerId);
-        invoice.job = mockData.jobs.find(j => j.id === invoice.jobId);
-        invoice.payments = mockData.payments.filter(p => p.invoiceId === invoiceId);
-    }
-    return invoice;
-}
+    // In a real app, this would be a Firestore query.
+    // We are finding the invoice in our mock data.
+    const invoice = mockData.invoices.find(inv => inv.id === invoiceId) || null;
+    if (!invoice) return null;
+
+    // Enrich with customer and job data
+    const customer = mockData.customers.find(c => c.id === invoice.customerId);
+    const job = invoice.jobId ? mockData.jobs.find(j => j.id === invoice.jobId) : undefined;
+    
+    // Enrich with payments
+    const payments = mockData.payments.filter(p => p.invoiceId === invoiceId);
+
+    // This simulates what would happen on a server or in a data-fetching layer
+    // In our mock setup, we have to calculate these on the fly.
+    const amountPaid = payments.reduce((sum, p) => sum + p.amount, 0);
+    const balanceDue = invoice.total - amountPaid;
+    const status: Invoice['status'] = balanceDue <= 0 ? 'paid' : (amountPaid > 0 ? 'partially_paid' : (new Date() > new Date(invoice.dueDate) ? 'overdue' : invoice.status));
+
+
+    return {
+        ...invoice,
+        customer,
+        job,
+        payments,
+        amountPaid,
+        balanceDue,
+        status: status === 'paid' ? 'paid' : (status === 'partially_paid' ? 'partially_paid' : invoice.status) // Keep original if not paid
+    };
+};
 
 function QuickBooksSyncCard({ syncStatus }: { syncStatus: Invoice['quickbooksSync']}) {
   const statusConfig = {
@@ -93,13 +115,19 @@ function InvoiceDetailsPageContent({ invoiceId }: { invoiceId: string }) {
   const { role } = useRole();
   const [invoice, setInvoice] = useState<Invoice | null>(null);
 
+  const fetchData = async () => {
+      const data = await getInvoiceData(invoiceId);
+      setInvoice(data);
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-        const data = await getInvoiceData(invoiceId);
-        setInvoice(data);
-    };
     fetchData();
   }, [invoiceId]);
+
+  const handlePaymentAdded = (newPayment: Payment) => {
+      // Re-fetch data to update the invoice details after a payment is added
+      fetchData();
+  };
 
   if (!invoice) {
     // In a real app, you might show a loading skeleton here
@@ -171,7 +199,7 @@ function InvoiceDetailsPageContent({ invoiceId }: { invoiceId: string }) {
                 <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Amount Paid</CardTitle></CardHeader>
                 <CardContent><p className="text-2xl font-bold">{formatCurrency(invoice.amountPaid)}</p></CardContent>
             </Card>
-            <Card className={invoice.balanceDue > 0 ? "border-destructive" : ""}>
+            <Card className={invoice.balanceDue > 0 ? "border-destructive" : "border-green-500"}>
                 <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Balance Due</CardTitle></CardHeader>
                 <CardContent><p className="text-2xl font-bold">{formatCurrency(invoice.balanceDue)}</p></CardContent>
             </Card>
@@ -250,7 +278,7 @@ function InvoiceDetailsPageContent({ invoiceId }: { invoiceId: string }) {
                         </TableBody>
                     </Table>
                     <div className="mt-4 flex items-center gap-2">
-                        <AddPaymentDialog invoice={invoice} />
+                        <AddPaymentDialog invoice={invoice} onPaymentAdded={handlePaymentAdded} />
                          <Button
                             variant="outline"
                             disabled={invoice.balanceDue <= 0}

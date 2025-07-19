@@ -11,14 +11,14 @@ import { useToast } from "@/hooks/use-toast";
 import type { Invoice, Payment } from "@/lib/types";
 import { CreditCard, PlusCircle } from 'lucide-react';
 import { format } from 'date-fns';
+import { mockData } from '@/lib/mock-data';
 
 interface AddPaymentDialogProps {
     invoice: Invoice;
-    // In a real app, you would have a callback to refresh data
-    // onPaymentAdded: (newPayment: Payment) => void; 
+    onPaymentAdded: (newPayment: Payment) => void; 
 }
 
-export function AddPaymentDialog({ invoice }: AddPaymentDialogProps) {
+export function AddPaymentDialog({ invoice, onPaymentAdded }: AddPaymentDialogProps) {
     const { toast } = useToast();
     const [isOpen, setIsOpen] = useState(false);
     const [amount, setAmount] = useState(invoice.balanceDue);
@@ -28,7 +28,7 @@ export function AddPaymentDialog({ invoice }: AddPaymentDialogProps) {
     const [notes, setNotes] = useState('');
 
     const handleAddPayment = () => {
-        if (amount <= 0 || amount > invoice.balanceDue) {
+        if (amount <= 0 || amount > invoice.balanceDue + 0.001) { // Add tolerance for floating point issues
             toast({
                 variant: 'destructive',
                 title: 'Invalid Amount',
@@ -37,9 +37,8 @@ export function AddPaymentDialog({ invoice }: AddPaymentDialogProps) {
             return;
         }
 
-        // In a real app, you would call a server action here to save the payment
-        // and update the invoice in Firestore.
-        console.log({
+        const newPayment: Payment = {
+            id: `pay_${Math.random().toString(36).substring(2, 9)}`,
             invoiceId: invoice.id,
             customerId: invoice.customerId,
             amount,
@@ -47,17 +46,26 @@ export function AddPaymentDialog({ invoice }: AddPaymentDialogProps) {
             date: new Date(paymentDate),
             transactionId,
             notes,
-        });
+            recordedBy: 'user_admin_01'
+        };
+
+        // In a real app, you would call a server action here to save the payment
+        // and update the invoice in Firestore. Here, we just update mock data.
+        mockData.payments.push(newPayment);
+        console.log("Adding new payment:", newPayment);
+
 
         toast({
             title: 'Payment Recorded',
             description: `A payment of $${amount.toFixed(2)} has been recorded for invoice ${invoice.invoiceNumber}.`,
         });
 
-        // Here you would typically call onPaymentAdded() to refresh parent component data
+        if (onPaymentAdded) {
+            onPaymentAdded(newPayment);
+        }
         
         // Reset form and close
-        setAmount(invoice.balanceDue);
+        setAmount(invoice.balanceDue - amount);
         setMethod('Credit Card');
         setPaymentDate(format(new Date(), 'yyyy-MM-dd'));
         setTransactionId('');
@@ -76,7 +84,7 @@ export function AddPaymentDialog({ invoice }: AddPaymentDialogProps) {
                 <DialogHeader>
                     <DialogTitle>Add Payment for Invoice {invoice.invoiceNumber}</DialogTitle>
                     <DialogDescription>
-                        Record a new payment. The remaining balance is ${invoice.balanceDue.toFixed(2)}.
+                        The remaining balance is ${invoice.balanceDue.toFixed(2)}.
                     </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
