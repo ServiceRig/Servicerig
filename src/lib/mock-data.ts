@@ -1,6 +1,6 @@
 
 
-import { Customer, Invoice, Job, Technician, UserRole, Equipment, Estimate, EstimateTemplate, PricebookItem, InventoryItem, Payment } from './types';
+import { Customer, Invoice, Job, Technician, UserRole, Equipment, Estimate, EstimateTemplate, PricebookItem, InventoryItem, Payment, ServiceAgreement } from './types';
 
 const getDay = (day: number) => {
     const newDate = new Date();
@@ -13,6 +13,48 @@ const getDay = (day: number) => {
 // Wrapping our mock data in a single object makes it mutable across requests
 // in a Node.js development server environment. This simulates a persistent store.
 export const mockData = {
+  serviceAgreements: [
+    {
+        id: 'sa1',
+        title: 'Innovate Inc. HVAC Platinum Plan',
+        customerId: 'cust1',
+        status: 'active',
+        billingSchedule: { frequency: 'quarterly', nextDueDate: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1) },
+        autoInvoiceEnabled: true,
+        startDate: new Date('2023-01-01'),
+        linkedJobIds: [],
+        amount: 500,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+    },
+    {
+        id: 'sa2',
+        title: 'Solutions Corp. Monthly Maintenance',
+        customerId: 'cust2',
+        status: 'active',
+        billingSchedule: { frequency: 'monthly', nextDueDate: new Date(new Date().getFullYear(), new Date().getMonth(), 20) },
+        autoInvoiceEnabled: false,
+        startDate: new Date('2024-03-01'),
+        linkedJobIds: [],
+        amount: 250,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+    },
+     {
+        id: 'sa3',
+        title: 'Gadgets & More Annual Checkup',
+        customerId: 'cust3',
+        status: 'cancelled',
+        billingSchedule: { frequency: 'annually', nextDueDate: new Date('2025-01-15') },
+        autoInvoiceEnabled: true,
+        startDate: new Date('2023-01-15'),
+        endDate: new Date('2024-01-14'),
+        linkedJobIds: [],
+        amount: 800,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+    },
+  ] as ServiceAgreement[],
   payments: [
     { id: 'pay1', invoiceId: 'inv1', customerId: 'cust1', amount: 324.00, date: new Date('2024-07-15'), method: 'Credit Card', transactionId: 'ch_12345', recordedBy: 'user_admin_01' },
     { id: 'pay2', invoiceId: 'inv2', customerId: 'cust2', amount: 400.00, date: new Date('2024-07-05'), method: 'Check', transactionId: 'check_1054', recordedBy: 'user_admin_01' },
@@ -397,4 +439,4 @@ export const mockData = {
 };
 
 // Re-exporting for easy access if needed, but primary interaction should be via mockData
-export const { mockTechnicians, mockCustomers, mockJobs, mockInvoices, mockEquipment, mockEstimates, mockEstimateTemplates, mockPricebookItems, mockInventoryItems, mockPayments } = mockData;
+export const { mockTechnicians, mockCustomers, mockJobs, mockInvoices, mockEquipment, mockEstimates, mockEstimateTemplates, mockPricebookItems, mockInventoryItems, mockPayments, mockServiceAgreements } = mockData;

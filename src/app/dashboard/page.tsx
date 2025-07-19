@@ -1,4 +1,5 @@
 
+
 'use client';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { useRole } from "@/hooks/use-role";
@@ -8,9 +9,21 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { DollarSign, BarChart } from "lucide-react";
+import { mockData } from "@/lib/mock-data";
+import { format } from "date-fns";
+import Link from "next/link";
 
 
-const DispatcherDashboard = () => (
+const DispatcherDashboard = () => {
+
+    const upcomingServices = mockData.serviceAgreements
+        .filter(sa => sa.status === 'active' && new Date(sa.billingSchedule.nextDueDate) < new Date(new Date().setDate(new Date().getDate() + 30)))
+        .map(sa => ({
+            ...sa,
+            customerName: mockData.customers.find(c => c.id === sa.customerId)?.primaryContact.name || 'Unknown',
+        }));
+
+    return (
     <div className="space-y-6">
         <div className="flex justify-between items-center">
              <h1 className="text-3xl font-bold font-headline">
@@ -106,12 +119,37 @@ const DispatcherDashboard = () => (
                 <CardDescription>Recurring services that are due soon. Drag to the schedule to create a job.</CardDescription>
             </CardHeader>
             <CardContent>
-                <p className="text-sm text-muted-foreground text-center py-8">No upcoming services in the next 30 days.</p>
+                {upcomingServices.length > 0 ? (
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Customer</TableHead>
+                                <TableHead>Agreement</TableHead>
+                                <TableHead>Due Date</TableHead>
+                                <TableHead className="text-right">Action</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {upcomingServices.map(sa => (
+                                <TableRow key={sa.id}>
+                                    <TableCell>{sa.customerName}</TableCell>
+                                    <TableCell>{sa.title}</TableCell>
+                                    <TableCell>{format(new Date(sa.billingSchedule.nextDueDate), 'PP')}</TableCell>
+                                    <TableCell className="text-right">
+                                        <Button variant="secondary" size="sm">Create Job</Button>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                ) : (
+                    <p className="text-sm text-muted-foreground text-center py-8">No upcoming services in the next 30 days.</p>
+                )}
             </CardContent>
         </Card>
 
     </div>
-);
+)};
 
 function DashboardPageContent() {
   const { role, isLoading } = useRole();

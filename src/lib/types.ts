@@ -127,16 +127,23 @@ export type Estimate = {
 
 
 // ServiceAgreement model from /serviceAgreements/{agreementId}
-export interface ServiceAgreement {
+export type ServiceAgreement = {
+  id: string;
+  title: string;
   customerId: string;
-  recurringInterval: 'monthly' | 'quarterly' | 'annual' | 'one_time';
-  startDate: Timestamp;
-  endDate?: Timestamp;
+  customerName?: string;
+  status: 'active' | 'paused' | 'cancelled' | 'expired';
+  billingSchedule: {
+    frequency: 'monthly' | 'quarterly' | 'annually';
+    nextDueDate: Timestamp | Date;
+  };
+  autoInvoiceEnabled: boolean;
+  startDate: Timestamp | Date;
+  endDate?: Timestamp | Date;
   linkedJobIds: string[];
-  billingAmount: number;
-  billingFrequency: string;
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
+  amount: number;
+  createdAt: Timestamp | Date;
+  updatedAt: Timestamp | Date;
 }
 
 // Payment model from /payments/{paymentId} (or subcollection of invoices)
