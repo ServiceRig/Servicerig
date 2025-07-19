@@ -5,9 +5,10 @@
 import { generateTieredEstimates, type GenerateTieredEstimatesInput, type GenerateTieredEstimatesOutput } from "@/ai/flows/generate-tiered-estimates";
 import { z } from "zod";
 import { getEstimateById, addEstimate as addEstimateToDb } from "@/lib/firestore/estimates";
+import { addJob } from "@/lib/firestore/jobs";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import type { Estimate, GbbTier, LineItem, PricebookItem } from "@/lib/types";
+import type { Estimate, GbbTier, LineItem, PricebookItem, Job } from "@/lib/types";
 import { addEstimateTemplate } from "@/lib/firestore/templates";
 import { mockCustomers } from "@/lib/mock-data";
 import { addPricebookItem } from "@/lib/firestore/pricebook";
@@ -116,10 +117,13 @@ const addEstimateSchema = z.object({
         }
         try {
             const parsed = JSON.parse(val);
-            return parsed as GbbTier | null;
+            // Ensure it's an object with the correct keys, even if values are empty
+            if (typeof parsed === 'object' && parsed !== null && 'good' in parsed && 'better' in parsed && 'best' in parsed) {
+                return parsed as GbbTier;
+            }
+            return null;
         } catch {
-             ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Invalid JSON for gbbTier."});
-            return z.NEVER;
+            return null; // Be lenient, if it's not valid JSON, treat as null
         }
     }),
 });
@@ -145,11 +149,34 @@ export async function addEstimate(prevState: AddEstimateState, formData: FormDat
             return { success: false, message: 'Invalid estimate data provided.' };
         }
 
-        const { customerId, title, jobId, lineItems, gbbTier } = validatedFields.data;
+        let { customerId, title, jobId, lineItems, gbbTier } = validatedFields.data;
         
         const customer = mockCustomers.find(c => c.id === customerId);
         if (!customer) {
             return { success: false, message: 'Customer not found.' };
+        }
+
+        // If no job ID is provided, create a new job
+        if (!jobId) {
+            console.log("No Job ID provided, creating a new job.");
+            const newJobId = `job_${Math.random().toString(36).substring(2, 9)}`;
+            const newJob: Job = {
+                id: newJobId,
+                customerId,
+                title: `Job for: ${title}`,
+                description: `This job was auto-created from estimate for "${title}".`,
+                status: 'unscheduled',
+                technicianId: '',
+                schedule: { start: new Date(), end: new Date() },
+                duration: 0,
+                details: { serviceType: 'Unspecified' },
+                isAutoCreated: true,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            };
+            await addJob(newJob);
+            jobId = newJobId; // Use the new job ID for the estimate
+            console.log(`Auto-created new job with ID: ${jobId}`);
         }
         
         const subtotal = lineItems.reduce((acc, item) => acc + item.quantity * item.unitPrice, 0);
@@ -180,6 +207,9 @@ export async function addEstimate(prevState: AddEstimateState, formData: FormDat
         await addEstimateToDb(finalEstimate);
         revalidatePath('/dashboard/estimates');
         revalidatePath(`/dashboard/estimates/${finalEstimate.id}`);
+        if (jobId) {
+            revalidatePath(`/dashboard/jobs/${jobId}`);
+        }
 
     } catch (error) {
         console.error("Error in addEstimate action:", error);

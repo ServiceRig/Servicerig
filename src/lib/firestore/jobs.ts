@@ -1,7 +1,7 @@
 // In a real app, you would import the firestore instance:
 // import { db } from './firebase';
 // import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
-import { mockJobs } from '@/lib/mock-data';
+import { mockJobs, mockData } from '@/lib/mock-data';
 import type { Job } from '@/lib/types';
 
 /**
@@ -39,4 +39,15 @@ export async function getJobsByCustomerId(customerId: string): Promise<Job[]> {
     await new Promise(resolve => setTimeout(resolve, 300));
 
     return jobs;
+}
+
+
+/**
+ * Adds a new job to the mock data.
+ * @param job The job object to add.
+ */
+export async function addJob(job: Job) {
+    console.log("Adding job to DB:", job.id);
+    mockData.jobs.unshift(job);
+    await new Promise(resolve => setTimeout(resolve, 100));
 }
