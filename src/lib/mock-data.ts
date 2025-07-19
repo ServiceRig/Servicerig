@@ -1,6 +1,6 @@
 
 
-import { Customer, Invoice, Job, Technician, UserRole, Equipment, Estimate, EstimateTemplate, PricebookItem, InventoryItem, Payment, ServiceAgreement, Refund } from './types';
+import { Customer, Invoice, Job, Technician, UserRole, Equipment, Estimate, EstimateTemplate, PricebookItem, InventoryItem, Payment, ServiceAgreement, Refund, TaxLine } from './types';
 
 const getDay = (day: number) => {
     const newDate = new Date();
@@ -80,6 +80,7 @@ export const mockData = {
       id: 'cust1',
       primaryContact: { name: 'Alice Williams', email: 'alice@example.com', phone: '123-456-7890' },
       companyInfo: { name: 'Innovate Inc.', address: '123 Tech Park, Silicon Valley, CA 94000' },
+      taxRegion: 'CA-SV',
       createdAt: new Date(),
       updatedAt: new Date(),
     },
@@ -87,6 +88,7 @@ export const mockData = {
       id: 'cust2',
       primaryContact: { name: 'Bob Davis', email: 'bob@example.com', phone: '234-567-8901' },
       companyInfo: { name: 'Solutions Corp.', address: '456 Business Blvd, Metropolis, IL 62960' },
+      taxRegion: 'IL-METRO',
       createdAt: new Date(),
       updatedAt: new Date(),
     },
@@ -94,6 +96,7 @@ export const mockData = {
       id: 'cust3',
       primaryContact: { name: 'Charlie Miller', email: 'charlie@example.com', phone: '345-678-9012' },
       companyInfo: { name: 'Gadgets & More', address: '789 Market St, Gotham, NY 10001' },
+      taxRegion: 'NY-GOTHAM',
       createdAt: new Date(),
       updatedAt: new Date(),
     },
@@ -209,7 +212,7 @@ export const mockData = {
         { description: 'Replacement 1-inch Filter', quantity: 2, unitPrice: 25, origin: { type: 'estimate', id: 'est1' } },
       ],
       subtotal: 300.00,
-      tax: 24.00,
+      taxes: [ { name: 'CA State Tax', amount: 24.00, rate: 0.08 }],
       total: 324.00,
       amountPaid: 324.00,
       balanceDue: 0.00,
@@ -239,7 +242,7 @@ export const mockData = {
         { description: 'Replace Garbage Disposal', quantity: 1, unitPrice: 450, origin: { type: 'estimate', id: 'est2' } },
       ],
       subtotal: 800.00,
-      tax: 64.00,
+      taxes: [{ name: 'IL State Tax', amount: 64.00, rate: 0.08 }],
       total: 864.00,
       amountPaid: 400.00,
       balanceDue: 464.00,
@@ -269,7 +272,7 @@ export const mockData = {
         { description: 'Haul away old appliance', quantity: 1, unitPrice: 50 },
       ],
       subtotal: 300.00,
-      tax: 24.00,
+      taxes: [{ name: 'NY State Tax', amount: 24.00, rate: 0.08 }],
       total: 324.00,
       amountPaid: 0.00,
       balanceDue: 324.00,
@@ -294,7 +297,7 @@ export const mockData = {
         { description: 'Q3 Service Agreement Maintenance', quantity: 1, unitPrice: 500, origin: { type: 'agreement', id: 'sa1' } },
       ],
       subtotal: 500.00,
-      tax: 40.00,
+      taxes: [{ name: 'CA State Tax', amount: 40.00, rate: 0.08 }],
       total: 540.00,
       amountPaid: 0.00,
       balanceDue: 540.00,
@@ -348,7 +351,10 @@ export const mockData = {
           ],
           subtotal: 10420,
           discount: 500,
-          tax: 694.40,
+          taxes: [
+            { name: "State Sales Tax", rate: 0.06, amount: 595.20 },
+            { name: "County Sales Tax", rate: 0.01, amount: 99.20 }
+          ],
           total: 10614.40,
           notes: 'This estimate includes a 5-year parts and labor warranty. A 10-year extended warranty is available.',
           gbbTier: {
@@ -373,7 +379,7 @@ export const mockData = {
           ],
           subtotal: 250,
           discount: 0,
-          tax: 20,
+          taxes: [{ name: "Sales Tax", rate: 0.08, amount: 20 }],
           total: 270,
           notes: 'Repair of existing Moen faucet in master bathroom.',
           gbbTier: {

@@ -15,7 +15,7 @@ import { cn, getInvoiceStatusStyles } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/logo';
 import { mockData } from '@/lib/mock-data';
-import type { Invoice, Customer, Job, Payment, Refund } from '@/lib/types';
+import type { Invoice, Customer, Job, Payment, Refund, TaxLine } from '@/lib/types';
 import { useRole } from '@/hooks/use-role';
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { AddPaymentDialog } from '@/components/dashboard/invoices/AddPaymentDialog';
@@ -55,7 +55,9 @@ const getInvoiceData = async (invoiceId: string): Promise<Invoice | null> => {
     const amountPaid = payments.reduce((sum, p) => sum + p.amount, 0);
     const amountRefunded = refunds.reduce((sum, r) => sum + r.amount, 0);
     const netPaid = amountPaid - amountRefunded;
-    const balanceDue = invoice.total - netPaid;
+    const totalTax = (invoice.taxes || []).reduce((sum, tax) => sum + tax.amount, 0);
+    const total = invoice.subtotal + totalTax;
+    const balanceDue = total - netPaid;
     
     let status = invoice.status;
     if (status !== 'draft' && status !== 'refunded' && status !== 'credited') {
@@ -76,6 +78,7 @@ const getInvoiceData = async (invoiceId: string): Promise<Invoice | null> => {
         refunds,
         amountPaid: netPaid,
         balanceDue,
+        total,
         status: invoice.status === 'refunded' ? 'refunded' : status // Preserve original refunded status
     };
 };
@@ -267,8 +270,12 @@ function InvoiceDetailsPageContent({ invoiceId }: { invoiceId: string }) {
                     <div className="grid grid-cols-2 gap-2 text-sm w-full ml-auto max-w-xs">
                         <div className="font-medium text-muted-foreground">Subtotal:</div>
                         <div className="text-right">{formatCurrency(invoice.subtotal)}</div>
-                        <div className="font-medium text-muted-foreground">Tax:</div>
-                        <div className="text-right">{formatCurrency(invoice.tax)}</div>
+                        {(invoice.taxes || []).map((tax, index) => (
+                          <div key={index} className="contents">
+                            <div className="font-medium text-muted-foreground">{tax.name}:</div>
+                            <div className="text-right">{formatCurrency(tax.amount)}</div>
+                          </div>
+                        ))}
                         <div className="font-bold text-base text-right col-span-2 border-t pt-2 mt-1">
                            {formatCurrency(invoice.total)}
                         </div>

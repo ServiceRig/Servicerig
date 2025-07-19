@@ -38,6 +38,7 @@ export type Customer = {
   id:string;
   primaryContact: { name: string; email: string; phone: string };
   companyInfo: { name: string; address: string };
+  taxRegion?: string; // For tax jurisdiction
   notes?: string;
   equipmentIds?: string[];
   createdAt: Timestamp | Date;
@@ -92,6 +93,7 @@ export type LineItem = {
     description: string;
     quantity: number;
     unitPrice: number;
+    taxCode?: string; // For item-specific tax rules
     inventoryParts?: EstimateLineItemPart[];
     origin?: {
       type: 'estimate' | 'change_order' | 'agreement';
@@ -106,6 +108,12 @@ export type GbbTier = {
     best: string;
 };
 
+export type TaxLine = {
+    name: string;
+    rate?: number; // Optional rate, e.g., 0.08 for 8%
+    amount: number;
+}
+
 export type Estimate = {
     id: string;
     estimateNumber: string;
@@ -116,7 +124,7 @@ export type Estimate = {
     lineItems: LineItem[];
     subtotal: number;
     discount: number;
-    tax: number;
+    taxes: TaxLine[];
     total: number;
     notes?: string;
     gbbTier?: GbbTier | null;
@@ -186,7 +194,7 @@ export type Invoice = {
   status: 'draft' | 'sent' | 'paid' | 'overdue' | 'partially_paid' | 'refunded' | 'credited';
   lineItems: LineItem[];
   subtotal: number;
-  tax: number;
+  taxes: TaxLine[];
   total: number;
   amountPaid: number;
   balanceDue: number;

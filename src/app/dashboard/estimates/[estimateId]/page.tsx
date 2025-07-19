@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useState, useEffect, Suspense, use } from 'react';
@@ -207,8 +208,12 @@ function EstimateDetailsPageContent({ estimateId }: { estimateId: string }) {
                         <div className="text-right">{formatCurrency(estimate.subtotal)}</div>
                         <div className="font-medium text-muted-foreground">Discount:</div>
                         <div className="text-right">{formatCurrency(estimate.discount)}</div>
-                        <div className="font-medium text-muted-foreground">Tax:</div>
-                        <div className="text-right">{formatCurrency(estimate.tax)}</div>
+                        {(estimate.taxes || []).map((tax, index) => (
+                          <div key={index} className="contents">
+                            <div className="font-medium text-muted-foreground">{tax.name}:</div>
+                            <div className="text-right">{formatCurrency(tax.amount)}</div>
+                          </div>
+                        ))}
                         <div className="font-bold text-base text-right col-span-2 border-t pt-2 mt-1">
                            {formatCurrency(estimate.total)}
                         </div>
