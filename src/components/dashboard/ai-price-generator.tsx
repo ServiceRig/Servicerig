@@ -15,6 +15,7 @@ import { addPricebookItemAction } from '@/app/actions';
 import { Alert, AlertTitle, AlertDescription } from '../ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import type { LineItem } from '@/lib/types';
+import { useRole } from '@/hooks/use-role';
 
 
 type ActionState = {
@@ -60,6 +61,7 @@ async function generatePriceAction(prevState: ActionState, formData: FormData): 
 
 export function AiPriceGenerator() {
     const router = useRouter();
+    const { role } = useRole();
     const { toast } = useToast();
     const [generateState, generateAction] = useActionState(generatePriceAction, { data: null, error: null });
     const [saveState, saveAction] = useActionState(addPricebookItemAction, { success: false, message: '' });
@@ -111,10 +113,16 @@ export function AiPriceGenerator() {
             unitPrice: editableResult.suggestedPrice
         }
         
-        const query = new URLSearchParams({
+        const params: Record<string, string> = {
             title: editableResult.recommendedTitle,
             lineItems: JSON.stringify([lineItem])
-        }).toString();
+        }
+
+        if (role) {
+            params.role = role;
+        }
+        
+        const query = new URLSearchParams(params).toString();
 
         router.push(`/dashboard/estimates/new?${query}`);
     }
