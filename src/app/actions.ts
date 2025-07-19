@@ -186,6 +186,80 @@ export async function addEstimate(prevState: AddEstimateState, formData: FormDat
     redirect(`/dashboard/estimates/${newEstimateId}`);
 }
 
+const acceptEstimateSchema = z.object({
+  customerId: z.string().min(1),
+  jobId: z.string().optional(),
+  title: z.string().min(1),
+  selectedTier: z.string(), // This will be JSON string
+});
+
+
+export async function acceptEstimateFromTiers(formData: FormData) {
+    let newEstimateId = '';
+    try {
+        const validatedFields = acceptEstimateSchema.safeParse({
+            customerId: formData.get('customerId'),
+            jobId: formData.get('jobId'),
+            title: formData.get('title'),
+            selectedTier: formData.get('selectedTier'),
+        });
+
+        if (!validatedFields.success) {
+            console.error("Validation failed:", validatedFields.error.flatten().fieldErrors);
+            throw new Error('Invalid estimate data provided.');
+        }
+
+        const { customerId, title, jobId } = validatedFields.data;
+        const selectedTier = JSON.parse(validatedFields.data.selectedTier) as { description: string, price: number };
+
+        const customer = mockCustomers.find(c => c.id === customerId);
+        if (!customer) {
+            throw new Error('Customer not found.');
+        }
+
+        const lineItems: LineItem[] = [{
+            description: selectedTier.description,
+            quantity: 1,
+            unitPrice: selectedTier.price || 0,
+        }];
+
+        const subtotal = lineItems.reduce((acc, item) => acc + item.quantity * item.unitPrice, 0);
+        const discount = 0;
+        const tax = subtotal * 0.08; // Example 8% tax
+        const total = subtotal - discount + tax;
+        
+        newEstimateId = `est_${Math.random().toString(36).substring(2, 9)}`;
+
+        const finalEstimate: Estimate = {
+            id: newEstimateId,
+            estimateNumber: `EST-${Math.floor(Math.random() * 9000) + 1000}`,
+            customerId,
+            title,
+            status: 'accepted',
+            jobId: jobId || undefined,
+            lineItems,
+            subtotal,
+            discount,
+            tax,
+            total,
+            createdBy: 'customer_acceptance',
+            createdAt: new Date(),
+            updatedAt: new Date(),
+        };
+
+        await addEstimateToDb(finalEstimate);
+        revalidatePath('/dashboard/estimates');
+        revalidatePath(`/dashboard/estimates/${finalEstimate.id}`);
+    } catch (error) {
+        console.error("Error in acceptEstimateFromTiers action:", error);
+        // We can't return state here, so we redirect to an error page or handle it differently client-side
+        // For now, we will let it throw and Next.js will catch it.
+        throw error;
+    }
+    
+    redirect(`/dashboard/estimates/${newEstimateId}`);
+}
+
 
 export async function convertEstimateToInvoice(estimateId: string) {
     if (!estimateId) {

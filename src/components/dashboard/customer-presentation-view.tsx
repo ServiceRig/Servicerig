@@ -9,6 +9,7 @@ import { Check, Signature, Loader2 } from 'lucide-react';
 import type { TierData } from './ai-tier-generator';
 import { cn } from '@/lib/utils';
 import { Label } from '../ui/label';
+import { acceptEstimateFromTiers } from '@/app/actions';
 
 
 const formatCurrency = (amount?: number) => {
@@ -36,7 +37,6 @@ interface CustomerPresentationViewProps {
     isOpen: boolean;
     onOpenChange: (open: boolean) => void;
     tiers: TierData[];
-    onAccept: (formData: FormData) => void;
     baseEstimateData: {
       customerId: string;
       jobId?: string;
@@ -44,7 +44,7 @@ interface CustomerPresentationViewProps {
     }
 }
 
-export function CustomerPresentationView({ isOpen, onOpenChange, tiers, onAccept, baseEstimateData }: CustomerPresentationViewProps) {
+export function CustomerPresentationView({ isOpen, onOpenChange, tiers, baseEstimateData }: CustomerPresentationViewProps) {
     const [selectedTier, setSelectedTier] = useState<TierData | null>(null);
 
     const handleSelectTier = (tier: TierData) => {
@@ -63,11 +63,6 @@ export function CustomerPresentationView({ isOpen, onOpenChange, tiers, onAccept
         Better: { border: 'border-primary', text: 'text-primary', ring: 'ring-primary' },
         Best: { border: 'border-amber-500', text: 'text-amber-500', ring: 'ring-amber-500' },
     }
-    
-    const getAcceptedLineItems = () => {
-        if (!selectedTier) return [];
-        return [{ description: selectedTier.description, quantity: 1, unitPrice: selectedTier.price || 0 }];
-    }
 
     return (
         <Dialog open={isOpen} onOpenChange={handleOpenChange}>
@@ -76,13 +71,12 @@ export function CustomerPresentationView({ isOpen, onOpenChange, tiers, onAccept
                     <DialogTitle className="text-center text-4xl font-bold">Please Choose an Option</DialogTitle>
                     <DialogDescription className="text-center text-lg">Review the options below and make a selection.</DialogDescription>
                 </DialogHeader>
-                 <form action={onAccept} className="overflow-y-auto">
+                 <form action={acceptEstimateFromTiers} className="overflow-y-auto">
                     {/* Hidden fields for the accepted estimate */}
                     <input type="hidden" name="customerId" value={baseEstimateData.customerId} />
                     <input type="hidden" name="jobId" value={baseEstimateData.jobId} />
                     <input type="hidden" name="title" value={selectedTier ? `${baseEstimateData.title} - ${selectedTier.title}` : baseEstimateData.title} />
-                    <input type="hidden" name="status" value="accepted" />
-                    <input type="hidden" name="lineItems" value={JSON.stringify(getAcceptedLineItems())} />
+                    {selectedTier && <input type="hidden" name="selectedTier" value={JSON.stringify(selectedTier)} />}
 
                     <div className="p-8 pt-4">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 py-4 px-2">
@@ -111,7 +105,7 @@ export function CustomerPresentationView({ isOpen, onOpenChange, tiers, onAccept
                                                 variant={isSelected ? 'default' : 'outline'}
                                             >
                                                 {isSelected && <Check className="mr-2 h-5 w-5" />}
-                                                Accept Option
+                                                {isSelected ? 'Selected' : 'Select Option'}
                                             </Button>
                                     </CardFooter>
                                 </Card>
