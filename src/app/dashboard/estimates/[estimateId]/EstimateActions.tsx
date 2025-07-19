@@ -8,7 +8,7 @@ import { convertEstimateToInvoice } from "@/app/actions";
 import { SubmitButton } from "./SubmitButton";
 import type { Estimate } from "@/lib/types";
 
-export function EstimateActions({ estimate }: { estimate: Estimate }) {
+export function EstimateActions({ estimate, onEstimateUpdate }: { estimate: Estimate, onEstimateUpdate: (estimate: Estimate) => void }) {
     const convertAction = convertEstimateToInvoice.bind(null, estimate.id);
     
     return (
@@ -18,7 +18,7 @@ export function EstimateActions({ estimate }: { estimate: Estimate }) {
                 <Printer className="mr-2 h-4 w-4" />
                 Print / PDF
             </Button>
-            <StatusUpdateButtons estimate={estimate} />
+            <StatusUpdateButtons estimate={estimate} onEstimateUpdate={onEstimateUpdate} />
              {estimate.status === 'accepted' && (
                 <form action={convertAction}>
                     <SubmitButton

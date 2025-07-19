@@ -324,6 +324,8 @@ const updateStatusSchema = z.object({
 
 type UpdateStatusState = {
     message: string | null;
+    data?: Estimate | null;
+    error?: string | null;
 }
 
 export async function updateEstimateStatus(prevState: UpdateStatusState, formData: FormData): Promise<UpdateStatusState> {
@@ -333,23 +335,30 @@ export async function updateEstimateStatus(prevState: UpdateStatusState, formDat
   });
 
   if (!validatedFields.success) {
-    return { message: "Invalid data provided." };
+    return { message: "Invalid data provided.", error: "Invalid data" };
   }
   
   const { estimateId, newStatus } = validatedFields.data;
 
-  const estimate = await getEstimateById(estimateId);
-  if (!estimate) {
-    return { message: "Estimate not found." };
-  }
+  try {
+    const estimate = await getEstimateById(estimateId);
+    if (!estimate) {
+      return { message: "Estimate not found.", error: "Not Found" };
+    }
 
-  estimate.status = newStatus;
-  estimate.updatedAt = new Date();
-  await updateEstimate(estimate);
-  
-  revalidatePath(`/dashboard/estimates/${estimateId}`);
-  revalidatePath('/dashboard/estimates');
-  return { message: `Estimate status updated to ${newStatus}.` };
+    estimate.status = newStatus;
+    estimate.updatedAt = new Date();
+    await updateEstimate(estimate);
+    
+    // Re-fetch to ensure we have the latest data, although updateEstimate modifies in place for mocks
+    const updatedEstimate = await getEstimateById(estimateId);
+    
+    revalidatePath(`/dashboard/estimates/${estimateId}`);
+    revalidatePath('/dashboard/estimates');
+    return { message: `Estimate status updated to ${newStatus}.`, data: updatedEstimate };
+  } catch (e: any) {
+    return { message: "Failed to update status.", error: e.message };
+  }
 }
 
 const acceptEstimateWithSignatureSchema = z.object({

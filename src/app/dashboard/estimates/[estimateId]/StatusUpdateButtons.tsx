@@ -1,14 +1,13 @@
 
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, useEffect } from 'react';
 import { useFormStatus } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { updateEstimateStatus } from '@/app/actions';
 import type { Estimate } from '@/lib/types';
 import { Send, Check, X, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useEffect, useState } from 'react';
 
 interface StatusButtonProps {
   newStatus: Estimate['status'];
@@ -26,29 +25,26 @@ function StatusButton({ newStatus, children, variant }: StatusButtonProps) {
 }
 
 
-export function StatusUpdateButtons({ estimate }: { estimate: Estimate }) {
+export function StatusUpdateButtons({ estimate, onEstimateUpdate }: { estimate: Estimate, onEstimateUpdate: (estimate: Estimate) => void }) {
   const [state, formAction] = useActionState(updateEstimateStatus, { message: null });
-  const [currentStatus, setCurrentStatus] = useState(estimate.status);
   const { toast } = useToast();
 
   useEffect(() => {
     if (state.message) {
       toast({
-        title: "Status Updated",
+        title: state.error ? "Error" : "Status Updated",
         description: state.message,
+        variant: state.error ? "destructive" : "default",
       });
-      // This is a bit of a workaround to update the UI immediately
-      // In a real app with a proper state management or optimistic UI, this would be smoother
-      const newStatus = state.message?.split(' ').pop()?.replace('.', '');
-       if (newStatus && ['draft', 'sent', 'accepted', 'rejected'].includes(newStatus)) {
-           setCurrentStatus(newStatus as Estimate['status']);
-       }
+      if (state.data) {
+        onEstimateUpdate(state.data);
+      }
     }
-  }, [state, toast]);
+  }, [state, toast, onEstimateUpdate]);
 
-  const canBeSent = currentStatus === 'draft';
-  const canBeAcceptedOrRejected = currentStatus === 'sent';
-  const isFinal = currentStatus === 'accepted' || currentStatus === 'rejected';
+  const canBeSent = estimate.status === 'draft';
+  const canBeAcceptedOrRejected = estimate.status === 'sent';
+  const isFinal = estimate.status === 'accepted' || estimate.status === 'rejected';
 
 
   return (

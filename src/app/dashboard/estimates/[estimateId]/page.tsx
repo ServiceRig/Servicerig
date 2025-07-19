@@ -1,25 +1,25 @@
 
-import { getEstimateData } from '@/lib/firestore';
-import { notFound } from 'next/navigation';
+'use client';
+
+import { useState, useEffect } from 'react';
+import { notFound, useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { User, Calendar, Tag, Signature, Check } from 'lucide-react';
+import { User, Calendar, Tag, Signature, Check, Loader2 } from 'lucide-react';
 import { cn, getEstimateStatusStyles } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EstimateActions } from './EstimateActions';
 import { Logo } from '@/components/logo';
 import { getCustomerById } from '@/lib/firestore/customers';
 import { getJobById } from '@/lib/firestore/jobs';
+import { getEstimateById } from '@/lib/firestore/estimates';
 import type { Estimate, Customer, Job } from '@/lib/types';
 import { acceptEstimateWithSignature } from '@/app/actions';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
 import { SubmitButton } from './SubmitButton';
-
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
@@ -36,36 +36,52 @@ const InfoCard = ({ icon: Icon, label, children }: { icon: React.ElementType, la
 );
 
 
-export default async function EstimateDetailsPage({ params, searchParams }: { params: { estimateId: string }, searchParams: { [key: string]: string | string[] | undefined } }) {
-  const estimateId = params.estimateId;
-  const role = searchParams.role || 'admin';
+export default function EstimateDetailsPage({ params }: { params: { estimateId: string }}) {
+  const searchParams = useSearchParams();
+  const role = searchParams.get('role') || 'admin';
   
-  let estimate: Estimate | null = null;
-  let customer: Customer | null = null;
-  let job: Job | null = null;
-  
-  const data = await getEstimateData(estimateId);
-  if(data) {
-      estimate = data.estimate;
+  const [estimate, setEstimate] = useState<Estimate | null>(null);
+  const [customer, setCustomer] = useState<Customer | null>(null);
+  const [job, setJob] = useState<Job | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+        setIsLoading(true);
+        const fetchedEstimate = await getEstimateById(params.estimateId);
+        
+        if (!fetchedEstimate) {
+            setEstimate(null);
+        } else {
+            setEstimate(fetchedEstimate);
+            const [fetchedCustomer, fetchedJob] = await Promise.all([
+                getCustomerById(fetchedEstimate.customerId),
+                fetchedEstimate.jobId ? getJobById(fetchedEstimate.jobId) : Promise.resolve(null)
+            ]);
+            setCustomer(fetchedCustomer);
+            setJob(fetchedJob);
+        }
+        setIsLoading(false);
+    };
+
+    fetchData();
+  }, [params.estimateId]);
+
+
+  if (isLoading) {
+      return (
+          <div className="flex items-center justify-center h-64">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          </div>
+      );
   }
-  
-  if (!estimate) {
+
+  if (!estimate || !customer) {
     notFound();
   }
-
-  customer = await getCustomerById(estimate.customerId);
-  if (estimate.jobId) {
-    job = await getJobById(estimate.jobId);
-  }
-
-  if (!customer) {
-    notFound();
-  }
-
 
   return (
     <div className="space-y-6" id="printable-area">
-      {/* Printable Header */}
        <div className="hidden print:block">
             <div className="flex justify-between items-start mb-8">
                 <div>
@@ -96,7 +112,6 @@ export default async function EstimateDetailsPage({ params, searchParams }: { pa
              <Separator className="my-8" />
         </div>
 
-      {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 print:hidden">
         <div>
           <h1 className="text-3xl font-bold">{estimate.title}</h1>
@@ -107,13 +122,12 @@ export default async function EstimateDetailsPage({ params, searchParams }: { pa
             </Badge>
           </div>
         </div>
-        <EstimateActions estimate={estimate} />
+        <EstimateActions estimate={estimate} onEstimateUpdate={setEstimate} />
       </div>
       
       <Separator className="print:hidden" />
 
       <div className="grid md:grid-cols-3 gap-6">
-        {/* Main Content - Left Column */}
         <div className="md:col-span-2 space-y-6">
             <Card className="print:shadow-none print:border-none">
                 <CardHeader className="print:hidden">
@@ -206,11 +220,10 @@ export default async function EstimateDetailsPage({ params, searchParams }: { pa
                         <input type="hidden" name="estimateId" value={estimate.id} />
                         <CardContent className="space-y-4">
                             <div>
-                                <Label htmlFor="signature">Signature</Label>
+                                <label htmlFor="signature" className="text-sm font-medium">Signature</label>
                                 <div id="signature" className="mt-1 w-full h-32 bg-muted rounded-md border-2 border-dashed flex items-center justify-center">
                                     <p className="text-muted-foreground">Signature Pad Placeholder</p>
                                 </div>
-                                {/* In a real app, you would use a library like react-signature-canvas and store the data URL in a hidden input */}
                                 <input type="hidden" name="signature" value="customer_signature_data" />
                             </div>
                             <SubmitButton 
@@ -235,7 +248,6 @@ export default async function EstimateDetailsPage({ params, searchParams }: { pa
             )}
         </div>
 
-        {/* Side Content - Right Column */}
         <div className="space-y-6 print:hidden">
           <Card>
             <CardHeader>
