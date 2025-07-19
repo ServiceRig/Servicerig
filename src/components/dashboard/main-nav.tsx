@@ -7,7 +7,7 @@ import {
   SidebarSeparator,
 } from "@/components/ui/sidebar";
 import { UserRole } from "@/lib/types";
-import { LayoutDashboard, Calendar, UserSquare, Users, BarChart3, Book, Warehouse, Calculator, FileText, FileDiff, FileSignature, ClipboardList, DollarSign, Clock, AppWindow, Settings, LifeBuoy, LogOut, FilePlus } from "lucide-react";
+import { LayoutDashboard, Calendar, UserSquare, Users, BarChart3, Book, Warehouse, Calculator, FileText, FileDiff, FileSignature, ClipboardList, DollarSign, Clock, AppWindow, Settings, LifeBuoy, LogOut, FilePlus, Bot } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from 'next/navigation';
 
@@ -33,6 +33,7 @@ const navItems = [
 const settingsItems = [
     { href: "/dashboard/settings", icon: Settings, label: "Settings" },
     { href: "/dashboard/settings/estimates", icon: FilePlus, label: "Estimate Templates" },
+    { href: "/dashboard/settings/automations", icon: Bot, label: "Automations" },
     { href: "/dashboard/support", icon: LifeBuoy, label: "Support" },
 ]
 
