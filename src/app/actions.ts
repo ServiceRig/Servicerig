@@ -118,7 +118,7 @@ const addEstimateSchema = z.object({
     status: z.enum(['draft', 'sent', 'accepted', 'rejected']),
     jobId: z.string().optional(),
     lineItems: z.preprocess((val) => safeJsonParse<LineItem[]>(val, []), z.array(lineItemSchema)),
-    gbbTier: z.preprocess((val) => safeJsonParse<GbbTier>(val, null), gbbTierSchema),
+    gbbTier: z.preprocess((val) => safeJsonParse<GbbTier>(val, null), gbbTierSchema.nullable()),
 });
 
 type AddEstimateState = {
