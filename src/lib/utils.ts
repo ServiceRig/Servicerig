@@ -29,6 +29,8 @@ export const getInvoiceStatusStyles = (status: Invoice['status']) => {
   switch (status) {
     case 'paid':
       return 'bg-green-500 hover:bg-green-600 text-white';
+    case 'partially_paid':
+      return 'bg-yellow-500 hover:bg-yellow-600 text-white';
     case 'overdue':
       return 'bg-red-500 hover:bg-red-600 text-white';
     case 'sent':

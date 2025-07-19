@@ -83,6 +83,7 @@ function InvoicingPageContent() {
                         <SelectItem value="all">All Statuses</SelectItem>
                         <SelectItem value="draft">Draft</SelectItem>
                         <SelectItem value="sent">Sent</SelectItem>
+                        <SelectItem value="partially_paid">Partially Paid</SelectItem>
                         <SelectItem value="paid">Paid</SelectItem>
                         <SelectItem value="overdue">Overdue</SelectItem>
                     </SelectContent>
@@ -114,7 +115,7 @@ function InvoicingPageContent() {
                    <TableCell className="text-right">{formatCurrency(invoice.total)}</TableCell>
                   <TableCell>
                     <Badge className={cn("capitalize", getInvoiceStatusStyles(invoice.status))}>
-                      {invoice.status}
+                      {invoice.status.replace('_', ' ')}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">

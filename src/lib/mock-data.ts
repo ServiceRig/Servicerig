@@ -1,6 +1,6 @@
 
 
-import { Customer, Invoice, Job, Technician, UserRole, Equipment, Estimate, EstimateTemplate, PricebookItem, InventoryItem } from './types';
+import { Customer, Invoice, Job, Technician, UserRole, Equipment, Estimate, EstimateTemplate, PricebookItem, InventoryItem, Payment } from './types';
 
 const getDay = (day: number) => {
     const newDate = new Date();
@@ -13,6 +13,10 @@ const getDay = (day: number) => {
 // Wrapping our mock data in a single object makes it mutable across requests
 // in a Node.js development server environment. This simulates a persistent store.
 export const mockData = {
+  payments: [
+    { id: 'pay1', invoiceId: 'inv1', customerId: 'cust1', amount: 324.00, date: new Date('2024-07-15'), method: 'Credit Card', transactionId: 'ch_12345', recordedBy: 'user_admin_01' },
+    { id: 'pay2', invoiceId: 'inv2', customerId: 'cust2', amount: 400.00, date: new Date('2024-07-05'), method: 'Check', transactionId: 'check_1054', recordedBy: 'user_admin_01' },
+  ] as Payment[],
   inventoryItems: [
     { id: 'inv_part_001', name: 'Dual-run Capacitor 45/5 MFD', description: 'Oval run capacitor for HVAC condenser units.', sku: 'CAP-45-5', partNumber: 'PRCFD455A', warehouseLocation: 'Aisle 3, Bin 4', quantityOnHand: 50, reorderThreshold: 10, unitCost: 12.50, marketPrice: 45.00, ourPrice: 35.00, vendor: 'Johnstone Supply', trade: 'HVAC', createdAt: new Date() },
     { id: 'inv_part_002', name: '1/2" PEX-A Pipe (100ft)', description: 'Uponor PEX-A pipe for plumbing.', sku: 'PEX-A-050-100', partNumber: 'F1040500', warehouseLocation: 'Aisle 1, Bay 2', quantityOnHand: 20, reorderThreshold: 5, unitCost: 45.00, marketPrice: 89.00, ourPrice: 75.00, vendor: 'Ferguson', trade: 'Plumbing', createdAt: new Date() },
@@ -162,6 +166,8 @@ export const mockData = {
       subtotal: 300.00,
       tax: 24.00,
       total: 324.00,
+      amountPaid: 324.00,
+      balanceDue: 0.00,
       paymentTerms: 'Net 30',
       createdAt: new Date('2024-07-10'),
       linkedEstimateIds: ['est1'],
@@ -176,7 +182,7 @@ export const mockData = {
       customerId: 'cust2',
       jobId: 'job2',
       title: 'Plumbing Repair Invoice',
-      status: 'overdue',
+      status: 'partially_paid',
       issueDate: new Date('2024-06-01'),
       dueDate: new Date('2024-07-01'),
       lineItems: [
@@ -187,6 +193,8 @@ export const mockData = {
       subtotal: 800.00,
       tax: 64.00,
       total: 864.00,
+      amountPaid: 400.00,
+      balanceDue: 464.00,
       paymentTerms: 'Due on receipt',
       createdAt: new Date('2024-06-01'),
       linkedEstimateIds: ['est2'],
@@ -212,6 +220,8 @@ export const mockData = {
       subtotal: 300.00,
       tax: 24.00,
       total: 324.00,
+      amountPaid: 0.00,
+      balanceDue: 324.00,
       paymentTerms: 'Net 30',
       createdAt: new Date('2024-07-18'),
       quickbooksSync: {
@@ -232,6 +242,8 @@ export const mockData = {
       subtotal: 500.00,
       tax: 40.00,
       total: 540.00,
+      amountPaid: 0.00,
+      balanceDue: 540.00,
       paymentTerms: 'Net 30',
       createdAt: new Date('2024-07-20'),
       linkedServiceAgreementId: 'sa1'
@@ -376,4 +388,4 @@ export const mockData = {
 };
 
 // Re-exporting for easy access if needed, but primary interaction should be via mockData
-export const { mockTechnicians, mockCustomers, mockJobs, mockInvoices, mockEquipment, mockEstimates, mockEstimateTemplates, mockPricebookItems, mockInventoryItems } = mockData;
+export const { mockTechnicians, mockCustomers, mockJobs, mockInvoices, mockEquipment, mockEstimates, mockEstimateTemplates, mockPricebookItems, mockInventoryItems, mockPayments } = mockData;

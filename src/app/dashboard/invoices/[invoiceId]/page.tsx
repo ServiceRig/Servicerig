@@ -17,6 +17,7 @@ import { mockData } from '@/lib/mock-data';
 import type { Invoice, Customer, Job } from '@/lib/types';
 import { useRole } from '@/hooks/use-role';
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+import { AddPaymentDialog } from '@/components/dashboard/invoices/AddPaymentDialog';
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
@@ -37,6 +38,7 @@ const getInvoiceData = async (invoiceId: string): Promise<Invoice | null> => {
     if (invoice) {
         invoice.customer = mockData.customers.find(c => c.id === invoice.customerId);
         invoice.job = mockData.jobs.find(j => j.id === invoice.jobId);
+        invoice.payments = mockData.payments.filter(p => p.invoiceId === invoiceId);
     }
     return invoice;
 }
@@ -147,7 +149,7 @@ function InvoiceDetailsPageContent({ invoiceId }: { invoiceId: string }) {
           <div className="flex items-center gap-2 mt-1">
             <p className="text-muted-foreground">{invoice.invoiceNumber}</p>
             <Badge className={cn("capitalize", getInvoiceStatusStyles(invoice.status))}>
-              {invoice.status}
+              {invoice.status.replace('_', ' ')}
             </Badge>
           </div>
         </div>
@@ -156,13 +158,25 @@ function InvoiceDetailsPageContent({ invoiceId }: { invoiceId: string }) {
             <Button variant="outline"><Copy className="mr-2 h-4 w-4" /> Duplicate</Button>
             <Button variant="outline" onClick={() => window.print()}><Printer className="mr-2 h-4 w-4" /> Print / PDF</Button>
             <Button><Send className="mr-2 h-4 w-4" /> Send Invoice</Button>
-             {invoice.status !== 'paid' && (
-                <Button variant="secondary"><CreditCard className="mr-2 h-4 w-4" /> Mark as Paid</Button>
-            )}
         </div>
       </div>
       
       <Separator className="print:hidden" />
+       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card>
+                <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Total</CardTitle></CardHeader>
+                <CardContent><p className="text-2xl font-bold">{formatCurrency(invoice.total)}</p></CardContent>
+            </Card>
+            <Card>
+                <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Amount Paid</CardTitle></CardHeader>
+                <CardContent><p className="text-2xl font-bold">{formatCurrency(invoice.amountPaid)}</p></CardContent>
+            </Card>
+            <Card className={invoice.balanceDue > 0 ? "border-destructive" : ""}>
+                <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Balance Due</CardTitle></CardHeader>
+                <CardContent><p className="text-2xl font-bold">{formatCurrency(invoice.balanceDue)}</p></CardContent>
+            </Card>
+        </div>
+
 
       <div className="grid md:grid-cols-3 gap-6">
         <div className="md:col-span-2 space-y-6">
@@ -205,10 +219,47 @@ function InvoiceDetailsPageContent({ invoiceId }: { invoiceId: string }) {
             </Card>
 
              <Card className="print:shadow-none print:border-none">
+                <CardHeader>
+                    <CardTitle>Payments</CardTitle>
+                </CardHeader>
+                 <CardContent>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Date</TableHead>
+                                <TableHead>Amount</TableHead>
+                                <TableHead>Method</TableHead>
+                                <TableHead>Transaction ID</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {invoice.payments && invoice.payments.length > 0 ? (
+                                invoice.payments.map((payment) => (
+                                    <TableRow key={payment.id}>
+                                        <TableCell>{format(new Date(payment.date), 'PP')}</TableCell>
+                                        <TableCell>{formatCurrency(payment.amount)}</TableCell>
+                                        <TableCell>{payment.method}</TableCell>
+                                        <TableCell>{payment.transactionId || 'N/A'}</TableCell>
+                                    </TableRow>
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell colSpan={4} className="text-center h-24">No payments recorded</TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                    <div className="mt-4">
+                        <AddPaymentDialog invoice={invoice} />
+                    </div>
+                </CardContent>
+            </Card>
+
+             <Card className="print:shadow-none print:border-none">
                 <CardHeader className="print:p-0">
                     <CardTitle>Notes</CardTitle>
                 </CardHeader>
-                <CardContent className="print:p-0">
+                <CardContent className="print:p-0 pt-4">
                     <p className="text-sm text-muted-foreground">{invoice.notes || 'No notes for this invoice.'}</p>
                      <p className="text-sm mt-2"><strong>Payment Terms:</strong> {invoice.paymentTerms || 'N/A'}</p>
                 </CardContent>
