@@ -88,8 +88,8 @@ export async function runGenerateTieredEstimates(prevState: GenerateTiersState, 
 
 const lineItemSchema = z.object({
     description: z.string(),
-    quantity: z.number(),
-    unitPrice: z.number(),
+    quantity: z.coerce.number(),
+    unitPrice: z.coerce.number(),
     inventoryParts: z.array(z.any()).optional(),
 });
 
@@ -363,7 +363,7 @@ export async function createEstimateTemplateAction(prevState: CreateTemplateStat
         return { success: false, message: 'Failed to create template.' };
     }
     
-    return { success: true };
+    return { success: true, message: 'Template created successfully.' };
 }
 
 
