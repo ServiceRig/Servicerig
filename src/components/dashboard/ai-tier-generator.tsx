@@ -1,23 +1,21 @@
 
 'use client';
-import { useActionState } from 'react';
-import { useFormStatus } from 'react-dom';
+import { useActionState, useState, useTransition } from 'react';
 import { runGenerateTieredEstimates } from '@/app/actions';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Wand2, Loader, Presentation } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '../ui/input';
 
-function GenerateButton() {
-  const { pending } = useFormStatus();
+function GenerateButton({ isPending }: { isPending: boolean }) {
   return (
-    <Button type="submit" disabled={pending} className="w-full">
-      {pending ? <Loader className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
-      {pending ? 'Generating...' : 'Generate Tiers'}
+    <Button type="button" disabled={isPending} className="w-full">
+      {isPending ? <Loader className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
+      {isPending ? 'Generating...' : 'Generate Tiers'}
     </Button>
   );
 }
@@ -36,6 +34,9 @@ export function AITierGenerator({ onTiersFinalized }: AITierGeneratorProps) {
   const initialState = { message: null, errors: null, data: null };
   const [state, dispatch] = useActionState(runGenerateTieredEstimates, initialState);
   const { toast } = useToast();
+  
+  const [isPending, startTransition] = useTransition();
+  const [jobDetails, setJobDetails] = useState('');
 
   const [editableTiers, setEditableTiers] = useState<TierData[] | null>(null);
 
@@ -77,28 +78,41 @@ export function AITierGenerator({ onTiersFinalized }: AITierGeneratorProps) {
     }
   }
 
+  const handleGenerateClick = () => {
+    startTransition(() => {
+      const formData = new FormData();
+      formData.append('jobDetails', jobDetails);
+      formData.append('customerHistory', 'No history provided.');
+      dispatch(formData);
+    });
+  }
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>AI-Powered Tier Generation</CardTitle>
         <CardDescription>Describe the job to generate Good/Better/Best pricing tiers automatically.</CardDescription>
       </CardHeader>
-      <form action={dispatch}>
+      <div>
         <CardContent className="space-y-4">
             <div className="grid gap-2">
                 <Label htmlFor="jobDetails">Job Description</Label>
                 <Textarea
                 id="jobDetails"
                 name="jobDetails"
+                value={jobDetails}
+                onChange={(e) => setJobDetails(e.target.value)}
                 placeholder="e.g., Customer reports HVAC unit is not cooling. Unit is a 10-year-old 3-ton system. Suspect a coolant leak or compressor failure..."
                 rows={6}
                 />
                 {state?.errors?.jobDetails && <p className="text-sm font-medium text-destructive">{state.errors.jobDetails[0]}</p>}
             </div>
-             <input type="hidden" name="customerHistory" value="No history provided." />
-             <GenerateButton />
+             <Button type="button" onClick={handleGenerateClick} disabled={isPending} className="w-full">
+                {isPending ? <Loader className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
+                {isPending ? 'Generating...' : 'Generate Tiers'}
+             </Button>
         </CardContent>
-      </form>
+      </div>
       {editableTiers && (
         <>
             <CardContent className="space-y-4 border-t pt-4 mt-4">
