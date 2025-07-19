@@ -18,7 +18,8 @@ export async function getJobById(id: string): Promise<Job | null> {
     await new Promise(resolve => setTimeout(resolve, 200));
 
     if (!job) {
-        console.error(`Job with id ${id} not found.`);
+        // This can happen in dev with hot-reloading, so we don't want to spam the console.
+        // console.error(`Job with id ${id} not found.`);
         return null;
     }
     return job;
