@@ -12,25 +12,45 @@ import type { Estimate } from '@/lib/types';
 import { useRole } from '@/hooks/use-role';
 import { UserRole } from '@/lib/types';
 import { Plus } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
 }
 
-export default function EstimatesPage() {
+function EstimatesPageContent() {
     const { role } = useRole();
+    const searchParams = useSearchParams();
     const [estimates, setEstimates] = useState<Estimate[]>([]);
 
     useEffect(() => {
         // This is a workaround for mock data to "re-fetch" when navigated to.
         // In a real app with Firestore, this would be a real-time listener or a fetch call.
-        setEstimates([...mockData.estimates].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
-    }, []);
+        const sortedEstimates = [...mockData.estimates].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        
+        const newEstimateId = searchParams.get('newEstimateId');
+        // If a new estimate was just created, check if it's already in our list.
+        // This handles the stateful nature of the mock data array.
+        if (newEstimateId && !sortedEstimates.some(e => e.id === newEstimateId)) {
+            // This is a minimal placeholder. In a real app, you'd fetch this or get it from state.
+            // For now, it will just show up with minimal data to allow navigation.
+             const newEstimate: Estimate | undefined = mockData.estimates.find(e => e.id === newEstimateId);
+            if (newEstimate) {
+                setEstimates([newEstimate, ...sortedEstimates]);
+            } else {
+                 setEstimates(sortedEstimates);
+            }
+        } else {
+            setEstimates(sortedEstimates);
+        }
+    }, [searchParams]);
 
 
     const getHref = (path: string) => {
-        return `${path}?role=${role || UserRole.Admin}`
+        const roleParam = role ? `?role=${role}` : '';
+        const hasQuery = path.includes('?');
+        return `${path}${hasQuery ? '&' : '?'}${roleParam.replace('?', '')}`;
     }
 
   return (
@@ -90,4 +110,12 @@ export default function EstimatesPage() {
       </CardContent>
     </Card>
   )
+}
+
+export default function EstimatesPage() {
+    return (
+        <Suspense fallback={<div>Loading estimates...</div>}>
+            <EstimatesPageContent />
+        </Suspense>
+    )
 }

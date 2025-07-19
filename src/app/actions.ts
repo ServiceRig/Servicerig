@@ -213,9 +213,12 @@ export async function addEstimate(prevState: AddEstimateState, formData: FormDat
         return { success: false, message: 'Failed to create estimate.' };
     }
     
-    const roleQuery = role ? `?role=${role}` : '';
+    const roleQuery = role ? `role=${role}` : '';
+    const newEstimateQuery = `newEstimateId=${newEstimateId}`;
+    const query = [roleQuery, newEstimateQuery].filter(Boolean).join('&');
+
     revalidatePath('/dashboard/estimates');
-    redirect(`/dashboard/estimates/${newEstimateId}${roleQuery}`);
+    redirect(`/dashboard/estimates?${query}`);
 }
 
 const acceptEstimateSchema = z.object({
