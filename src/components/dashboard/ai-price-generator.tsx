@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useActionState, useState } from 'react';
+import { useActionState, useState, useEffect } from 'react';
 import { useFormStatus } from 'react-dom';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -47,11 +47,11 @@ export function AiPriceGenerator() {
     const [state, formAction] = useActionState(generatePriceAction, { data: null, error: null });
     const [editableResult, setEditableResult] = useState<GeneratePriceOutput | null>(null);
 
-    useState(() => {
+    useEffect(() => {
         if (state.data) {
             setEditableResult(state.data);
         }
-    });
+    }, [state.data]);
 
     const handleFieldChange = (field: keyof GeneratePriceOutput, value: string | number | string[]) => {
         if (editableResult) {
