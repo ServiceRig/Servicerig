@@ -52,7 +52,7 @@ export function MainNav({ role }: { role: UserRole }) {
         <SidebarMenu className="flex-1">
             {navItems.map((item) => (
                 <SidebarMenuItem key={item.href}>
-                    <SidebarMenuButton asChild isActive={pathname === item.href} tooltip={item.label}>
+                    <SidebarMenuButton asChild isActive={pathname.startsWith(item.href)} tooltip={item.label}>
                         <Link href={getHref(item.href)}>
                             <item.icon/>
                             <span>{item.label}</span>

@@ -141,16 +141,24 @@ export type Invoice = {
   title: string;
   jobId?: string;
   customerId: string;
-  amount: number;
   status: 'draft' | 'sent' | 'paid' | 'overdue';
+  lineItems: LineItem[];
+  subtotal: number;
+  tax: number;
+  total: number;
+  paymentTerms?: string;
+  notes?: string;
   stripePaymentLink?: string;
   dueDate: Timestamp | Date;
   issueDate: Timestamp | Date;
   createdAt: Timestamp | Date;
-  lineItems: LineItem[];
-  linkedEstimateId?: string;
+  linkedEstimateIds?: string[];
+  linkedChangeOrderIds?: string[];
+  linkedServiceAgreementId?: string;
   // For UI enrichment
   customerName?: string;
+  job?: Job;
+  customer?: Customer;
 };
 
 
