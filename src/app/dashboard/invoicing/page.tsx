@@ -15,8 +15,9 @@ import { format } from 'date-fns';
 import { cn, getInvoiceStatusStyles } from '@/lib/utils';
 import type { Invoice } from '@/lib/types';
 import { useRole } from '@/hooks/use-role';
-import { Plus, MoreHorizontal, CreditCard } from 'lucide-react';
+import { Plus, MoreHorizontal, CreditCard, Download } from 'lucide-react';
 import { DateRangePicker } from '@/components/dashboard/date-range-picker';
+import { unparse } from 'papaparse';
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
@@ -46,6 +47,32 @@ function InvoicingPageContent() {
             return matchesSearch && matchesStatus;
         });
     }, [invoices, searchTerm, statusFilter]);
+    
+    const handleExport = () => {
+        const dataToExport = filteredInvoices.map(invoice => ({
+            'Invoice #': invoice.invoiceNumber,
+            'Customer': invoice.customerName,
+            'Issue Date': format(new Date(invoice.issueDate), 'yyyy-MM-dd'),
+            'Due Date': format(new Date(invoice.dueDate), 'yyyy-MM-dd'),
+            'Total': invoice.total,
+            'Balance Due': invoice.balanceDue,
+            'Status': invoice.status,
+            'Job ID': invoice.jobId || 'N/A',
+            'Line Items': JSON.stringify(invoice.lineItems),
+            'Payment Info': JSON.stringify(invoice.payments),
+        }));
+
+        const csv = unparse(dataToExport);
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `invoices-export-${format(new Date(), 'yyyy-MM-dd')}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
 
     const getHref = (path: string) => {
         let roleParam = role ? `role=${role}` : '';
@@ -60,12 +87,18 @@ function InvoicingPageContent() {
                 <CardTitle>Invoicing</CardTitle>
                 <CardDescription>Manage, send, and track all your customer invoices.</CardDescription>
             </div>
-            <Button asChild>
-                <Link href="#">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Create Invoice
-                </Link>
-            </Button>
+             <div className="flex items-center gap-2">
+                <Button variant="outline" onClick={handleExport}>
+                    <Download className="mr-2 h-4 w-4" />
+                    Export CSV
+                </Button>
+                <Button asChild>
+                    <Link href="#">
+                        <Plus className="mr-2 h-4 w-4" />
+                        Create Invoice
+                    </Link>
+                </Button>
+            </div>
         </div>
         <div className="mt-4 flex flex-col md:flex-row items-center gap-4">
             <Input 
