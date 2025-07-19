@@ -3,7 +3,7 @@
 
 import { useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
 import { DateRangePicker } from '@/components/dashboard/date-range-picker';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
@@ -171,14 +171,16 @@ export default function AgingReportPage() {
                                 </TableRow>
                             ))}
                         </TableBody>
-                        <TableRow className="font-bold bg-muted/50">
-                            <TableCell>Total</TableCell>
-                            <TableCell className="text-right">{formatCurrency(totals.current)}</TableCell>
-                            <TableCell className="text-right">{formatCurrency(totals['31-60'])}</TableCell>
-                            <TableCell className="text-right">{formatCurrency(totals['61-90'])}</TableCell>
-                            <TableCell className="text-right">{formatCurrency(totals['90+'])}</TableCell>
-                            <TableCell className="text-right">{formatCurrency(totals.total)}</TableCell>
-                        </TableRow>
+                        <TableFooter>
+                            <TableRow className="font-bold bg-muted/50">
+                                <TableCell>Total</TableCell>
+                                <TableCell className="text-right">{formatCurrency(totals.current)}</TableCell>
+                                <TableCell className="text-right">{formatCurrency(totals['31-60'])}</TableCell>
+                                <TableCell className="text-right">{formatCurrency(totals['61-90'])}</TableCell>
+                                <TableCell className="text-right">{formatCurrency(totals['90+'])}</TableCell>
+                                <TableCell className="text-right">{formatCurrency(totals.total)}</TableCell>
+                            </TableRow>
+                        </TableFooter>
                     </Table>
                 </CardContent>
             </Card>
