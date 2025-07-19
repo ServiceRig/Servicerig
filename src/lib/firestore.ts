@@ -1,5 +1,5 @@
 
-import { mockCustomers, mockJobs, mockEquipment, mockInvoices, mockTechnicians } from './mock-data';
+import { mockData } from './mock-data';
 import { getJobsByCustomerId } from './firestore/jobs';
 import { getEstimatesByCustomerId, getEstimatesByJobId, getEstimateById } from './firestore/estimates';
 import type { CustomerData, JobData, EstimateData } from './types';
@@ -9,20 +9,20 @@ import type { CustomerData, JobData, EstimateData } from './types';
 
 export async function getCustomerData(customerId: string): Promise<CustomerData | null> {
   // Simulate fetching a customer
-  const customer = mockCustomers.find(c => c.id === customerId);
+  const customer = mockData.customers.find(c => c.id === customerId);
   if (!customer) {
     return null;
   }
 
   // Simulate fetching related data
   const jobsForCustomer = await getJobsByCustomerId(customerId);
-  const equipmentForCustomer = mockEquipment.filter(e => e.customerId === customerId);
-  const invoicesForCustomer = mockInvoices.filter(i => i.customerId === customerId);
+  const equipmentForCustomer = mockData.equipment.filter(e => e.customerId === customerId);
+  const invoicesForCustomer = mockData.invoices.filter(i => i.customerId === customerId);
   const estimatesForCustomer = await getEstimatesByCustomerId(customerId);
   
   // Enrich job data with technician names
   const enrichedJobs = jobsForCustomer.map(job => {
-      const technician = mockTechnicians.find(t => t.id === job.technicianId);
+      const technician = mockData.technicians.find(t => t.id === job.technicianId);
       return {
           ...job,
           technicianName: technician ? technician.name : 'Unassigned',
@@ -62,17 +62,17 @@ export async function getCustomerData(customerId: string): Promise<CustomerData 
 
 
 export async function getJobData(jobId: string): Promise<JobData | null> {
-  const job = mockJobs.find(j => j.id === jobId);
+  const job = mockData.jobs.find(j => j.id === jobId);
   if (!job) {
     return null;
   }
 
-  const customer = mockCustomers.find(c => c.id === job.customerId);
+  const customer = mockData.customers.find(c => c.id === job.customerId);
   if (!customer) {
     return null; // Or handle as an error, a job must have a customer
   }
 
-  const technician = mockTechnicians.find(t => t.id === job.technicianId);
+  const technician = mockData.technicians.find(t => t.id === job.technicianId);
   const estimates = await getEstimatesByJobId(jobId);
 
   const jobData: JobData = {
@@ -94,12 +94,12 @@ export async function getEstimateData(estimateId: string): Promise<EstimateData 
         return null;
     }
 
-    const customer = mockCustomers.find(c => c.id === estimate.customerId);
+    const customer = mockData.customers.find(c => c.id === estimate.customerId);
     if (!customer) {
         return null;
     }
 
-    const job = estimate.jobId ? mockJobs.find(j => j.id === estimate.jobId) : null;
+    const job = estimate.jobId ? mockData.jobs.find(j => j.id === estimate.jobId) : null;
 
     const estimateData: EstimateData = {
         estimate,
