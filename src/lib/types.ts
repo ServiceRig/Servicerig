@@ -1,5 +1,4 @@
 
-
 // This file contains the TypeScript types for your Firestore collections.
 
 // A generic type for Firestore Timestamps. In Firestore, these are objects,
@@ -152,6 +151,11 @@ export type Invoice = {
   dueDate: Timestamp | Date;
   issueDate: Timestamp | Date;
   createdAt: Timestamp | Date;
+  quickbooksSync?: {
+      status: 'pending' | 'synced' | 'error';
+      lastSync?: Timestamp | Date;
+      error?: string;
+  };
   linkedEstimateIds?: string[];
   linkedChangeOrderIds?: string[];
   linkedServiceAgreementId?: string;

@@ -165,6 +165,10 @@ export const mockData = {
       paymentTerms: 'Net 30',
       createdAt: new Date('2024-07-10'),
       linkedEstimateIds: ['est1'],
+      quickbooksSync: {
+        status: 'synced',
+        lastSync: new Date(),
+      }
     },
     {
       id: 'inv2',
@@ -186,6 +190,11 @@ export const mockData = {
       paymentTerms: 'Due on receipt',
       createdAt: new Date('2024-06-01'),
       linkedEstimateIds: ['est2'],
+      quickbooksSync: {
+        status: 'error',
+        lastSync: new Date(new Date().getTime() - 24 * 60 * 60 * 1000), // 1 day ago
+        error: 'Customer mapping failed: Customer "Solutions Corp." not found in QuickBooks.',
+      }
     },
     {
       id: 'inv3',
@@ -205,6 +214,9 @@ export const mockData = {
       total: 324.00,
       paymentTerms: 'Net 30',
       createdAt: new Date('2024-07-18'),
+      quickbooksSync: {
+        status: 'pending',
+      }
     },
      {
       id: 'inv4',

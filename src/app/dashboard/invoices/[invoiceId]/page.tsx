@@ -9,13 +9,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Separator } from '@/components/ui/separator';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { User, Calendar, Tag, FileText, FileSignature, FileDiff, Printer, CreditCard, Send, Edit, Copy } from 'lucide-react';
+import { User, Calendar, Tag, FileText, FileSignature, FileDiff, Printer, CreditCard, Send, Edit, Copy, RefreshCw, AlertCircle, CheckCircle } from 'lucide-react';
 import { cn, getInvoiceStatusStyles } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/logo';
 import { mockData } from '@/lib/mock-data';
 import type { Invoice, Customer, Job } from '@/lib/types';
 import { useRole } from '@/hooks/use-role';
+import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
@@ -38,6 +39,52 @@ const getInvoiceData = async (invoiceId: string): Promise<Invoice | null> => {
         invoice.job = mockData.jobs.find(j => j.id === invoice.jobId);
     }
     return invoice;
+}
+
+function QuickBooksSyncCard({ syncStatus }: { syncStatus: Invoice['quickbooksSync']}) {
+  const statusConfig = {
+    synced: {
+      icon: CheckCircle,
+      color: 'text-green-600',
+      label: 'Synced with QuickBooks',
+      description: `Last sync: ${syncStatus?.lastSync ? format(new Date(syncStatus.lastSync), 'PPpp') : 'N/A'}`,
+    },
+    pending: {
+      icon: RefreshCw,
+      color: 'text-yellow-600 animate-spin',
+      label: 'Sync Pending',
+      description: 'Waiting to sync with QuickBooks.',
+    },
+    error: {
+      icon: AlertCircle,
+      color: 'text-red-600',
+      label: 'Sync Error',
+      description: syncStatus?.error || 'An unknown error occurred.',
+    },
+  };
+
+  const config = syncStatus ? statusConfig[syncStatus.status] : statusConfig.pending;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>QuickBooks Sync</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex items-center gap-3">
+          <config.icon className={cn("h-6 w-6", config.color)} />
+          <div>
+            <p className="font-semibold">{config.label}</p>
+            <p className="text-sm text-muted-foreground">{config.description}</p>
+          </div>
+        </div>
+        <Button variant="outline" className="w-full">
+          <RefreshCw className="mr-2 h-4 w-4" />
+          Sync Now
+        </Button>
+      </CardContent>
+    </Card>
+  );
 }
 
 function InvoiceDetailsPageContent({ invoiceId }: { invoiceId: string }) {
@@ -186,6 +233,8 @@ function InvoiceDetailsPageContent({ invoiceId }: { invoiceId: string }) {
             </CardContent>
           </Card>
 
+          <QuickBooksSyncCard syncStatus={invoice.quickbooksSync} />
+
            <Card>
             <CardHeader>
                 <CardTitle>Linked Documents</CardTitle>
@@ -202,7 +251,7 @@ function InvoiceDetailsPageContent({ invoiceId }: { invoiceId: string }) {
                     </InfoCard>
                 ))}
                 {invoice.linkedChangeOrderIds && invoice.linkedChangeOrderIds.map(coId => (
-                     <InfoCard key={coId} icon={FileDiff} label="Change Order">
+                     <InfoCard icon={FileDiff} label="Change Order">
                         <Link href={`/dashboard/change-orders/${coId}?role=${role}`} className="text-primary hover:underline">{coId}</Link>
                     </InfoCard>
                 ))}
@@ -222,8 +271,10 @@ function InvoiceDetailsPageContent({ invoiceId }: { invoiceId: string }) {
 
 export default function InvoiceDetailsPage({ params }: { params: { invoiceId: string } }) {
     return (
-        <Suspense fallback={<div>Loading invoice details...</div>}>
-            <InvoiceDetailsPageContent invoiceId={params.invoiceId} />
-        </Suspense>
+        <TooltipProvider>
+            <Suspense fallback={<div>Loading invoice details...</div>}>
+                <InvoiceDetailsPageContent invoiceId={params.invoiceId} />
+            </Suspense>
+        </TooltipProvider>
     )
 }
