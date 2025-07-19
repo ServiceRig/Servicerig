@@ -22,7 +22,7 @@ const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
 }
 
-function InvoicesPageContent() {
+function InvoicingPageContent() {
     const { role } = useRole();
     const [invoices, setInvoices] = useState<Invoice[]>(() => {
         const enriched = mockData.invoices.map(inv => ({
