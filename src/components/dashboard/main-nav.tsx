@@ -1,5 +1,4 @@
 
-
 'use client';
 import {
   SidebarMenu,
@@ -10,7 +9,7 @@ import {
   SidebarMenuSubButton,
 } from "@/components/ui/sidebar";
 import { UserRole } from "@/lib/types";
-import { LayoutDashboard, Calendar, UserSquare, Users, BarChart3, Book, Warehouse, Calculator, FileText, FileDiff, FileSignature, ClipboardList, DollarSign, Clock, AppWindow, Settings, LifeBuoy, LogOut, FilePlus, Bot, ListChecks, UserCog } from "lucide-react";
+import { LayoutDashboard, Calendar, UserSquare, Users, BarChart3, Book, Warehouse, Calculator, FileText, FileDiff, FileSignature, ClipboardList, DollarSign, Clock, AppWindow, Settings, LifeBuoy, LogOut, FilePlus, Bot, ListChecks, UserCog, History } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from 'next/navigation';
 
@@ -23,6 +22,7 @@ const navItems = [
     { href: "/dashboard/reports", icon: BarChart3, label: "KPIs / Reports",
       subItems: [
         { href: "/dashboard/reports/technician-earnings", icon: UserCog, label: "Tech Earnings" },
+        { href: "/dashboard/reports/aging-report", icon: History, label: "Aging Report" },
       ]
     },
     { href: "/dashboard/price-book", icon: Book, label: "Price Book" },
@@ -64,7 +64,7 @@ export function MainNav({ role }: { role: UserRole }) {
         <SidebarMenu className="flex-1">
             {navItems.map((item) => (
                 <SidebarMenuItem key={item.href}>
-                    <SidebarMenuButton asChild isActive={pathname.startsWith(item.href)} tooltip={item.label}>
+                    <SidebarMenuButton asChild isActive={pathname.startsWith(item.href) && !item.subItems} tooltip={item.label}>
                         <Link href={getHref(item.href)}>
                             <item.icon/>
                             <span>{item.label}</span>
