@@ -50,29 +50,35 @@ function EstimateDetailsPageContent({ estimateId }: { estimateId: string }) {
     const fetchData = async () => {
         setIsLoading(true);
         setError(null);
-        const fetchedEstimate = await getEstimateById(estimateId);
-        
-        if (!fetchedEstimate) {
-            setError(`Estimate with ID "${estimateId}" not found.`);
-            setIsLoading(false);
-            return;
-        }
+        try {
+            const fetchedEstimate = await getEstimateById(estimateId);
+            
+            if (!fetchedEstimate) {
+                setError(`Estimate with ID "${estimateId}" not found.`);
+                setIsLoading(false);
+                return;
+            }
 
-        setEstimate(fetchedEstimate);
-        const [fetchedCustomer, fetchedJob] = await Promise.all([
-            getCustomerById(fetchedEstimate.customerId),
-            fetchedEstimate.jobId ? getJobById(fetchedEstimate.jobId) : Promise.resolve(null)
-        ]);
-        
-        if (!fetchedCustomer) {
-            setError(`Customer with ID "${fetchedEstimate.customerId}" not found for this estimate.`);
-            setIsLoading(false);
-            return;
-        }
+            setEstimate(fetchedEstimate);
+            const [fetchedCustomer, fetchedJob] = await Promise.all([
+                getCustomerById(fetchedEstimate.customerId),
+                fetchedEstimate.jobId ? getJobById(fetchedEstimate.jobId) : Promise.resolve(null)
+            ]);
+            
+            if (!fetchedCustomer) {
+                setError(`Customer with ID "${fetchedEstimate.customerId}" not found for this estimate.`);
+            } else {
+                 setCustomer(fetchedCustomer);
+            }
 
-        setCustomer(fetchedCustomer);
-        setJob(fetchedJob);
-        setIsLoading(false);
+            setJob(fetchedJob);
+
+        } catch (e: any) {
+            console.error("Failed to fetch estimate data:", e);
+            setError("An unexpected error occurred while fetching estimate details.");
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     fetchData();
@@ -316,3 +322,5 @@ export default function EstimateDetailsPage({ params }: { params: Promise<{ esti
         </Suspense>
     )
 }
+
+    
