@@ -86,18 +86,6 @@ export async function runGenerateTieredEstimates(prevState: GenerateTiersState, 
   }
 }
 
-function safeJsonParse<T>(val: unknown, fallback: T): T {
-    if (typeof val !== 'string' || !val || val === 'null' || val === '') {
-        return fallback;
-    }
-    try {
-        return JSON.parse(val) as T;
-    } catch {
-        return fallback;
-    }
-}
-
-
 const lineItemSchema = z.object({
     description: z.string(),
     quantity: z.number(),
@@ -105,20 +93,36 @@ const lineItemSchema = z.object({
     inventoryParts: z.array(z.any()).optional(),
 });
 
-const gbbTierSchema = z.object({
-    good: z.string(),
-    better: z.string(),
-    best: z.string(),
-}).nullable();
-
-
 const addEstimateSchema = z.object({
     customerId: z.string().min(1, { message: 'Customer is required.' }),
     title: z.string().min(1, { message: 'Title is required.' }),
     status: z.enum(['draft', 'sent', 'accepted', 'rejected']),
     jobId: z.string().optional(),
-    lineItems: z.preprocess((val) => safeJsonParse<LineItem[]>(val, []), z.array(lineItemSchema)),
-    gbbTier: z.preprocess((val) => safeJsonParse<GbbTier>(val, null), gbbTierSchema.nullable()),
+    lineItems: z.string().transform((val, ctx) => {
+        try {
+            const parsed = JSON.parse(val);
+            if (Array.isArray(parsed)) {
+                // Ensure every item in the array is parsed correctly
+                return z.array(lineItemSchema).parse(parsed);
+            }
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Line items must be an array."});
+            return z.NEVER;
+        } catch(e) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Invalid JSON for line items."});
+            return z.NEVER;
+        }
+    }),
+    gbbTier: z.string().transform((val, ctx) => {
+         if (val === '' || val === 'null' || !val) {
+            return null;
+        }
+        try {
+            return JSON.parse(val) as GbbTier | null;
+        } catch {
+             ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Invalid JSON for gbbTier."});
+            return z.NEVER;
+        }
+    }),
 });
 
 type AddEstimateState = {
