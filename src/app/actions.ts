@@ -96,7 +96,7 @@ const lineItemSchema = z.object({
 const addEstimateSchema = z.object({
     customerId: z.string().min(1, { message: 'Customer is required.' }),
     title: z.string().min(1, { message: 'Title is required.' }),
-    jobId: z.string().optional(),
+    jobId: z.string().optional().transform(val => val === '' ? undefined : val),
     lineItems: z.string().transform((val, ctx) => {
         try {
             const parsed = JSON.parse(val);
@@ -116,7 +116,6 @@ const addEstimateSchema = z.object({
         }
         try {
             const parsed = JSON.parse(val);
-            // We can add more specific GbbTier validation here if needed
             return parsed as GbbTier | null;
         } catch {
              ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Invalid JSON for gbbTier."});
