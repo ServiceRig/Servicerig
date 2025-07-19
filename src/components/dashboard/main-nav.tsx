@@ -7,7 +7,7 @@ import {
   SidebarSeparator,
 } from "@/components/ui/sidebar";
 import { UserRole } from "@/lib/types";
-import { LayoutDashboard, Calendar, UserSquare, Users, BarChart3, Book, Warehouse, Calculator, FileText, FileDiff, FileSignature, ClipboardList, DollarSign, Clock, AppWindow, Settings, LifeBuoy, LogOut } from "lucide-react";
+import { LayoutDashboard, Calendar, UserSquare, Users, BarChart3, Book, Warehouse, Calculator, FileText, FileDiff, FileSignature, ClipboardList, DollarSign, Clock, AppWindow, Settings, LifeBuoy, LogOut, FilePlus } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from 'next/navigation';
 
@@ -32,6 +32,7 @@ const navItems = [
 
 const settingsItems = [
     { href: "/dashboard/settings", icon: Settings, label: "Settings" },
+    { href: "/dashboard/settings/estimates", icon: FilePlus, label: "Estimate Templates" },
     { href: "/dashboard/support", icon: LifeBuoy, label: "Support" },
 ]
 
@@ -51,7 +52,7 @@ export function MainNav({ role }: { role: UserRole }) {
         <SidebarMenu className="flex-1">
             {navItems.map((item) => (
                 <SidebarMenuItem key={item.href}>
-                    <SidebarMenuButton asChild isActive={pathname === item.href} tooltip={item.label}>
+                    <SidebarMenuButton asChild isActive={pathname.startsWith(item.href)} tooltip={item.label}>
                         <Link href={getHref(item.href)}>
                             <item.icon/>
                             <span>{item.label}</span>
@@ -64,7 +65,7 @@ export function MainNav({ role }: { role: UserRole }) {
         <SidebarMenu>
              {settingsItems.map((item) => (
                 <SidebarMenuItem key={item.href}>
-                    <SidebarMenuButton asChild isActive={pathname === item.href} tooltip={item.label}>
+                    <SidebarMenuButton asChild isActive={pathname.startsWith(item.href)} tooltip={item.label}>
                         <Link href={getHref(item.href)}>
                             <item.icon/>
                             <span>{item.label}</span>
