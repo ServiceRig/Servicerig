@@ -14,6 +14,7 @@ import { UserRole } from '@/lib/types';
 import { Plus } from 'lucide-react';
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { getEstimateById } from '@/lib/firestore/estimates';
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
@@ -23,27 +24,26 @@ function EstimatesPageContent() {
     const { role } = useRole();
     const searchParams = useSearchParams();
     const [estimates, setEstimates] = useState<Estimate[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        // This is a workaround for mock data to "re-fetch" when navigated to.
-        // In a real app with Firestore, this would be a real-time listener or a fetch call.
         const sortedEstimates = [...mockData.estimates].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-        
+        setEstimates(sortedEstimates);
+        setIsLoading(false);
+    }, []);
+
+    useEffect(() => {
         const newEstimateId = searchParams.get('newEstimateId');
-        // If a new estimate was just created, check if it's already in our list.
-        // This handles the stateful nature of the mock data array.
-        if (newEstimateId && !sortedEstimates.some(e => e.id === newEstimateId)) {
-            // This is a minimal placeholder. In a real app, you'd fetch this or get it from state.
-            // For now, it will just show up with minimal data to allow navigation.
-             const newEstimate: Estimate | undefined = mockData.estimates.find(e => e.id === newEstimateId);
-            if (newEstimate) {
-                setEstimates([newEstimate, ...sortedEstimates]);
-            } else {
-                 setEstimates(sortedEstimates);
-            }
-        } else {
-            setEstimates(sortedEstimates);
+        if (newEstimateId && !estimates.some(e => e.id === newEstimateId)) {
+            const fetchNewEstimate = async () => {
+                const newEstimate = await getEstimateById(newEstimateId);
+                if (newEstimate) {
+                    setEstimates(prevEstimates => [newEstimate, ...prevEstimates]);
+                }
+            };
+            fetchNewEstimate();
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchParams]);
 
 
@@ -80,7 +80,11 @@ function EstimatesPageContent() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {estimates.map((estimate) => (
+              {isLoading ? (
+                  <TableRow>
+                      <TableCell colSpan={6} className="text-center h-24">Loading estimates...</TableCell>
+                  </TableRow>
+              ) : estimates.map((estimate) => (
                 <TableRow key={estimate.id}>
                   <TableCell className="font-medium">{estimate.estimateNumber}</TableCell>
                    <TableCell>{estimate.title}</TableCell>
@@ -100,7 +104,7 @@ function EstimatesPageContent() {
                   </TableCell>
                 </TableRow>
               ))}
-               {estimates.length === 0 && (
+               {!isLoading && estimates.length === 0 && (
                     <TableRow>
                         <TableCell colSpan={6} className="text-center h-24">No estimates found.</TableCell>
                     </TableRow>
