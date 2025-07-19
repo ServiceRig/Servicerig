@@ -17,11 +17,25 @@ import { useToast } from '@/hooks/use-toast';
 import { AITierGenerator, TierData } from '@/components/dashboard/ai-tier-generator';
 import { CustomerPresentationView } from '@/components/dashboard/customer-presentation-view';
 import { addEstimate } from '@/app/actions';
-import { SubmitButton } from './SubmitButton';
+import { useFormStatus } from 'react-dom';
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
 };
+
+function SubmitButton({ disabled }: { disabled?: boolean }) {
+    const { pending } = useFormStatus();
+    return (
+        <Button 
+            type="submit" 
+            disabled={pending || disabled} 
+            form="estimate-form"
+        >
+            {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+            {pending ? 'Saving...' : 'Save as Draft'}
+        </Button>
+    )
+}
 
 function NewEstimatePageContent() {
   const { toast } = useToast();
@@ -192,7 +206,7 @@ function NewEstimatePageContent() {
             good: gbbTiers.find(t => t.title === 'Good')?.description || '',
             better: gbbTiers.find(t => t.title === 'Better')?.description || '',
             best: gbbTiers.find(t => t.title === 'Best')?.description || '',
-        }) : null} />
+        }) : 'null'} />
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-6">
                 <Card>
