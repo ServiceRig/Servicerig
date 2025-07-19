@@ -35,7 +35,7 @@ function EstimatesPageContent() {
         const newEstimateData = searchParams.get('newEstimateData');
         if (newEstimateData) {
             try {
-                const newEstimate = JSON.parse(newEstimateData);
+                const newEstimate = JSON.parse(decodeURIComponent(newEstimateData));
                 // Ensure date strings are converted to Date objects
                 newEstimate.createdAt = new Date(newEstimate.createdAt);
                 newEstimate.updatedAt = new Date(newEstimate.updatedAt);

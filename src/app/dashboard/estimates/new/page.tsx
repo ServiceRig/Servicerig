@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback, Suspense, useActionState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,6 +27,7 @@ const formatCurrency = (amount: number) => {
 
 function NewEstimatePageContent() {
   const { toast } = useToast();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [addEstimateState, formAction] = useActionState(addEstimate, { success: false, message: null });
   const { role } = useRole();
@@ -163,6 +164,18 @@ function NewEstimatePageContent() {
       description: `Loaded the "${template.title}" template.`,
     });
   };
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const hiddenRoleInput = documentcreateElement('input');
+    hiddenRoleInput.type = 'hidden';
+    hiddenRoleInput.name = 'role';
+    hiddenRoleInput.value = role || '';
+    e.currentTarget.appendChild(hiddenRoleInput);
+    formAction(formData);
+    e.currentTarget.removeChild(hiddenRoleInput);
+  }
 
   return (
     <>

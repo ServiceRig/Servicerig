@@ -134,7 +134,7 @@ type AddEstimateState = {
 }
 
 export async function addEstimate(prevState: AddEstimateState, formData: FormData): Promise<AddEstimateState> {
-    let newEstimateId = '';
+    let newEstimate: Estimate;
     let role = '';
     try {
         const validatedFields = addEstimateSchema.safeParse({
@@ -185,9 +185,9 @@ export async function addEstimate(prevState: AddEstimateState, formData: FormDat
         const tax = subtotal * 0.08;
         const total = subtotal - discount + tax;
         
-        newEstimateId = `est_${Math.random().toString(36).substring(2, 9)}`;
+        const newEstimateId = `est_${Math.random().toString(36).substring(2, 9)}`;
 
-        const finalEstimate: Estimate = {
+        newEstimate = {
             id: newEstimateId,
             estimateNumber: `EST-${Math.floor(Math.random() * 9000) + 1000}`,
             customerId,
@@ -205,7 +205,7 @@ export async function addEstimate(prevState: AddEstimateState, formData: FormDat
             updatedAt: new Date(),
         };
 
-        await addEstimateToDb(finalEstimate);
+        await addEstimateToDb(newEstimate);
 
     } catch (error) {
         console.error("Error in addEstimate action:", error);
@@ -213,7 +213,8 @@ export async function addEstimate(prevState: AddEstimateState, formData: FormDat
     }
     
     revalidatePath('/dashboard/estimates');
-    redirect(`/dashboard/estimates/${newEstimateId}?role=${role}`);
+    const newEstimateData = encodeURIComponent(JSON.stringify(newEstimate));
+    redirect(`/dashboard/estimates?role=${role}&newEstimateData=${newEstimateData}`);
 }
 
 const acceptEstimateSchema = z.object({
@@ -226,7 +227,7 @@ const acceptEstimateSchema = z.object({
 
 
 export async function acceptEstimateFromTiers(formData: FormData) {
-    let newEstimateId = '';
+    let newEstimate: Estimate;
     let role = '';
     try {
         const validatedFields = acceptEstimateSchema.safeParse({
@@ -263,9 +264,9 @@ export async function acceptEstimateFromTiers(formData: FormData) {
         const tax = subtotal * 0.08; // Example 8% tax
         const total = subtotal - discount + tax;
         
-        newEstimateId = `est_${Math.random().toString(36).substring(2, 9)}`;
+        const newEstimateId = `est_${Math.random().toString(36).substring(2, 9)}`;
 
-        const finalEstimate: Estimate = {
+        newEstimate = {
             id: newEstimateId,
             estimateNumber: `EST-${Math.floor(Math.random() * 9000) + 1000}`,
             customerId,
@@ -282,15 +283,16 @@ export async function acceptEstimateFromTiers(formData: FormData) {
             updatedAt: new Date(),
         };
 
-        await addEstimateToDb(finalEstimate);
+        await addEstimateToDb(newEstimate);
         revalidatePath('/dashboard/estimates');
-        revalidatePath(`/dashboard/estimates/${finalEstimate.id}`);
+        revalidatePath(`/dashboard/estimates/${newEstimate.id}`);
     } catch (error) {
         console.error("Error in acceptEstimateFromTiers action:", error);
         throw error;
     }
     
-    redirect(`/dashboard/estimates/${newEstimateId}?role=${role}`);
+    const newEstimateData = encodeURIComponent(JSON.stringify(newEstimate));
+    redirect(`/dashboard/estimates?role=${role}&newEstimateData=${newEstimateData}`);
 }
 
 export async function convertEstimateToInvoice(estimateId: string) {
