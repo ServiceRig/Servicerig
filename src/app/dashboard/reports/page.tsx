@@ -7,7 +7,6 @@ import { StatCard } from '@/components/dashboard/stat-card';
 import {
   DollarSign,
   TrendingUp,
-  Clock,
   Briefcase,
   Users,
   Repeat,
@@ -16,7 +15,8 @@ import {
   UserCheck,
   CalendarCheck,
   Timer,
-  TrendingUpIcon
+  TrendingUpIcon,
+  HeartHandshake
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ProfitabilityChart } from '@/components/dashboard/reports/ProfitabilityChart';
@@ -81,8 +81,8 @@ export default function ReportsPage() {
 
          <Card>
           <CardHeader>
-            <CardTitle>Efficiency & Customer KPIs</CardTitle>
-            <CardDescription>How your team and business are performing.</CardDescription>
+            <CardTitle>Revenue &amp; Conversion</CardTitle>
+            <CardDescription>How effectively you're converting leads and generating revenue.</CardDescription>
           </CardHeader>
            <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <StatCard
@@ -92,12 +92,39 @@ export default function ReportsPage() {
               icon={Percent}
             />
             <StatCard
+              title="Average Invoice Value"
+              value="$875"
+              change="+5% vs last period"
+              icon={FileText}
+            />
+             <StatCard
+              title="Customer Lifetime Value"
+              value="$4,250"
+              change="Avg. customer value"
+              icon={HeartHandshake}
+            />
+             <StatCard
+              title="Recurring Revenue %"
+              value="15%"
+              change="From service agreements"
+              icon={Repeat}
+            />
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Operational Efficiency</CardTitle>
+            <CardDescription>How your team and business are performing day-to-day.</CardDescription>
+          </CardHeader>
+           <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <StatCard
               title="First-Time Fix Rate"
               value="92%"
               change="+3% vs last period"
               icon={Briefcase}
             />
-             <StatCard
+            <StatCard
               title="Jobs per Day per Technician"
               value="3.8"
               change="Target: 4.0"
@@ -109,9 +136,15 @@ export default function ReportsPage() {
               change="Healthy retention"
               icon={Repeat}
             />
+             <StatCard
+              title="On-Time Arrival Rate"
+              value="97%"
+              change="Slightly down from 98%"
+              icon={Timer}
+            />
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader>
             <CardTitle>Technician Performance</CardTitle>
@@ -131,10 +164,10 @@ export default function ReportsPage() {
               icon={CalendarCheck}
             />
              <StatCard
-              title="On-Time Arrival Rate"
-              value="97%"
-              change="Slightly down from 98%"
-              icon={Timer}
+              title="Billable Utilization Rate"
+              value="85%"
+              change="Target: 90%"
+              icon={Percent}
             />
              <StatCard
               title="Upsell/Addon Rate"
@@ -149,4 +182,3 @@ export default function ReportsPage() {
     </div>
   );
 }
-
