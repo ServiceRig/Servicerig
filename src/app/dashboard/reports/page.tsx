@@ -12,7 +12,11 @@ import {
   Users,
   Repeat,
   FileText,
-  Percent
+  Percent,
+  UserCheck,
+  CalendarCheck,
+  Timer,
+  TrendingUpIcon
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ProfitabilityChart } from '@/components/dashboard/reports/ProfitabilityChart';
@@ -107,8 +111,42 @@ export default function ReportsPage() {
             />
           </CardContent>
         </Card>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Technician Performance</CardTitle>
+            <CardDescription>Individual and team performance metrics.</CardDescription>
+          </CardHeader>
+           <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <StatCard
+              title="Avg. Revenue per Technician"
+              value="$15,678"
+              change="Top performer: John D."
+              icon={UserCheck}
+            />
+            <StatCard
+              title="Avg. Jobs per Tech per Week"
+              value="19.2"
+              change="Target: 20"
+              icon={CalendarCheck}
+            />
+             <StatCard
+              title="On-Time Arrival Rate"
+              value="97%"
+              change="Slightly down from 98%"
+              icon={Timer}
+            />
+             <StatCard
+              title="Upsell/Addon Rate"
+              value="12%"
+              change="Per-job average addon value: $150"
+              icon={TrendingUpIcon}
+            />
+          </CardContent>
+        </Card>
 
       </div>
     </div>
   );
 }
+
