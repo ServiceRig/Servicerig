@@ -160,7 +160,6 @@ export async function addEstimate(prevState: AddEstimateState, formData: FormDat
         }
 
         if (!jobId) {
-            console.log("No Job ID provided, creating a new job.");
             const newJobId = `job_${Math.random().toString(36).substring(2, 9)}`;
             const newJob: Job = {
                 id: newJobId,

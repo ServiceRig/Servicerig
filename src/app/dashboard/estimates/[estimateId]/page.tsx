@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { notFound, useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -75,7 +75,7 @@ function EstimateDetailsPageContent({ estimateId }: { estimateId: string }) {
   }
 
   if (!estimate || !customer) {
-    notFound();
+    return notFound();
   }
 
   return (
@@ -275,10 +275,11 @@ function EstimateDetailsPageContent({ estimateId }: { estimateId: string }) {
 }
 
 
-export default function EstimateDetailsPage({ params }: { params: { estimateId: string }}) {
+export default function EstimateDetailsPage({ params }: { params: Promise<{ estimateId: string }> }) {
+    const resolvedParams = React.use(params);
     return (
         <Suspense fallback={<div className="flex items-center justify-center h-64"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>}>
-            <EstimateDetailsPageContent estimateId={params.estimateId} />
+            <EstimateDetailsPageContent estimateId={resolvedParams.estimateId} />
         </Suspense>
     )
 }
