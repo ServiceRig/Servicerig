@@ -23,7 +23,7 @@ const settingsLinks = [
         description: 'Add, remove, and manage user roles and permissions.'
     },
     {
-        href: '#',
+        href: '/dashboard/settings/appearance',
         icon: Palette,
         title: 'Appearance',
         description: 'Customize the look and feel of the application.'
