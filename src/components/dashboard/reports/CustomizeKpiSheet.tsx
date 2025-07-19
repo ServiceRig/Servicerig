@@ -3,7 +3,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Kpi } from "@/lib/kpi-data";
 import { Settings2 } from "lucide-react";
@@ -21,8 +21,9 @@ export function CustomizeKpiSheet({ allKpis, visibleKpis, onKpiToggle }: Customi
 
     const kpiCategories = useMemo(() => {
         const categories = allKpis.reduce((acc, kpi) => {
-            if (!acc.find(c => c.id === kpi.category)) {
-                acc.push({ id: kpi.category, name: `${kpi.category} KPIs` });
+            const categoryName = kpi.category;
+            if (!acc.find(c => c.id === categoryName)) {
+                acc.push({ id: categoryName, name: `${categoryName}` });
             }
             return acc;
         }, [] as {id: string, name: string}[]);
