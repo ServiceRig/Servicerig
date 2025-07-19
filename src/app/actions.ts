@@ -102,7 +102,6 @@ const addEstimateSchema = z.object({
         try {
             const parsed = JSON.parse(val);
             if (Array.isArray(parsed)) {
-                // Ensure every item in the array is parsed correctly
                 return z.array(lineItemSchema).parse(parsed);
             }
             ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Line items must be an array."});
@@ -112,12 +111,14 @@ const addEstimateSchema = z.object({
             return z.NEVER;
         }
     }),
-    gbbTier: z.string().transform((val, ctx) => {
+    gbbTier: z.string().nullable().transform((val, ctx) => {
          if (val === '' || val === 'null' || !val) {
             return null;
         }
         try {
-            return JSON.parse(val) as GbbTier | null;
+            const parsed = JSON.parse(val);
+            // We can add more specific GbbTier validation here if needed
+            return parsed as GbbTier | null;
         } catch {
              ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Invalid JSON for gbbTier."});
             return z.NEVER;
