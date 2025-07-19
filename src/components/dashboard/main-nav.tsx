@@ -7,7 +7,7 @@ import {
   SidebarSeparator,
 } from "@/components/ui/sidebar";
 import { UserRole } from "@/lib/types";
-import { LayoutDashboard, Calendar, UserSquare, Users, BarChart3, Book, Warehouse, Calculator, FileText, FileDiff, FileSignature, ClipboardList, DollarSign, Clock, AppWindow, Settings, LifeBuoy, LogOut, FilePlus, Bot } from "lucide-react";
+import { LayoutDashboard, Calendar, UserSquare, Users, BarChart3, Book, Warehouse, Calculator, FileText, FileDiff, FileSignature, ClipboardList, DollarSign, Clock, AppWindow, Settings, LifeBuoy, LogOut, FilePlus, Bot, ListChecks } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from 'next/navigation';
 
@@ -21,7 +21,11 @@ const navItems = [
     { href: "/dashboard/price-book", icon: Book, label: "Price Book" },
     { href: "/dashboard/inventory", icon: Warehouse, label: "Inventory" },
     { href: "/dashboard/estimates", icon: Calculator, label: "Estimates" },
-    { href: "/dashboard/invoicing", icon: FileText, label: "Invoicing" },
+    { href: "/dashboard/invoicing", icon: FileText, label: "Invoicing",
+      subItems: [
+        { href: "/dashboard/invoicing/batch", icon: ListChecks, label: "Batch Billing" },
+      ]
+    },
     { href: "/dashboard/change-orders", icon: FileDiff, label: "Change Orders" },
     { href: "/dashboard/service-agreements", icon: FileSignature, label: "Service Agreements" },
     { href: "/dashboard/forms", icon: ClipboardList, label: "Forms" },
