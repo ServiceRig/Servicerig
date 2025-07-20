@@ -10,12 +10,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Separator } from '@/components/ui/separator';
 import Link from 'next/link';
 import { format, isPast } from 'date-fns';
-import { User, Calendar, Tag, FileText, FileSignature, FileDiff, Printer, CreditCard, Send, Edit, Copy, RefreshCw, AlertCircle, CheckCircle, RotateCcw, ThumbsUp, MessageSquare, Clock, Wand2, Loader2, ListChecks, ShieldAlert } from 'lucide-react';
+import { User, Calendar, Tag, FileText, FileSignature, FileDiff, Printer, CreditCard, Send, Edit, Copy, RefreshCw, AlertCircle, CheckCircle, RotateCcw, ThumbsUp, MessageSquare, Clock, Wand2, Loader2, ListChecks, ShieldAlert, History } from 'lucide-react';
 import { cn, getInvoiceStatusStyles } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/logo';
 import { mockData } from '@/lib/mock-data';
-import type { Invoice, Customer, Job, Payment, Refund, TaxLine, Estimate } from '@/lib/types';
+import type { Invoice, Customer, Job, Payment, Refund, TaxLine, Estimate, AuditLogEntry } from '@/lib/types';
 import { useRole, UserRole } from '@/hooks/use-role';
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { AddPaymentDialog } from '@/components/dashboard/invoices/AddPaymentDialog';
@@ -29,6 +29,7 @@ import { analyzeInvoiceAction } from '@/app/actions';
 import { Switch } from '@/components/ui/switch';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { InvoiceAuditLog } from '@/components/dashboard/invoices/InvoiceAuditLog';
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
@@ -629,6 +630,8 @@ function InvoiceDetailsPageContent({ invoiceId }: { invoiceId: string }) {
                 </InfoCard>
             </CardContent>
           </Card>
+          
+          {isInternalUser && invoice.auditLog && <InvoiceAuditLog logs={invoice.auditLog} />}
 
           <QuickBooksSyncCard syncStatus={invoice.quickbooksSync} />
 

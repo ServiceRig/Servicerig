@@ -1,6 +1,6 @@
 
 
-import { Customer, Invoice, Job, Technician, UserRole, Equipment, Estimate, EstimateTemplate, PricebookItem, InventoryItem, Payment, ServiceAgreement, Refund, TaxLine, PaymentPlan, Deposit, ChangeOrder } from './types';
+import { Customer, Invoice, Job, Technician, UserRole, Equipment, Estimate, EstimateTemplate, PricebookItem, InventoryItem, Payment, ServiceAgreement, Refund, TaxLine, PaymentPlan, Deposit, ChangeOrder, AuditLogEntry } from './types';
 
 const getDay = (day: number) => {
     const newDate = new Date();
@@ -261,7 +261,14 @@ export const mockData = {
       },
       commission: [
         { technicianId: 'tech1', rate: 0.1, amount: 32.40, technicianName: 'John Doe' }
-      ]
+      ],
+      auditLog: [
+        { id: 'log1', timestamp: new Date('2024-07-10T11:05:00Z'), userId: 'tech1', userName: 'John Doe', action: 'Invoice Created', details: 'Created from job JOB-9611 after completion.' },
+        { id: 'log2', timestamp: new Date('2024-07-10T14:20:00Z'), userId: 'admin1', userName: 'Admin User', action: 'Invoice Approved', details: 'Approved after review.' },
+        { id: 'log3', timestamp: new Date('2024-07-10T14:21:00Z'), userId: 'system', userName: 'System', action: 'Email Sent', details: 'Invoice sent to alice@example.com.' },
+        { id: 'log4', timestamp: new Date('2024-07-15T09:15:00Z'), userId: 'cust1', userName: 'Alice Williams', action: 'Payment Received', details: 'Paid $324.00 via Credit Card.' },
+        { id: 'log5', timestamp: new Date('2024-07-16T10:00:00Z'), userId: 'admin1', userName: 'Admin User', action: 'Refund Issued', details: 'Refunded $50.00 as goodwill gesture.' },
+      ] as AuditLogEntry[],
     },
     {
       id: 'inv2',

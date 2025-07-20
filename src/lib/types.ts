@@ -207,6 +207,15 @@ export type Deposit = {
     originalInvoiceId?: string; // The invoice used to pay for the deposit
 }
 
+export type AuditLogEntry = {
+    id: string;
+    timestamp: Timestamp | Date;
+    userId: string;
+    userName: string;
+    action: string;
+    details?: string;
+};
+
 
 // Invoice model from /invoices/{invoiceId}
 export type Invoice = {
@@ -248,6 +257,7 @@ export type Invoice = {
   linkedEstimateIds?: string[];
   linkedChangeOrderIds?: string[];
   linkedServiceAgreementId?: string;
+  auditLog?: AuditLogEntry[];
   // For UI enrichment
   customerName?: string;
   job?: Job;
