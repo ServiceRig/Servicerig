@@ -10,7 +10,7 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
-export const AnalyzeInvoiceInputSchema = z.object({
+const AnalyzeInvoiceInputSchema = z.object({
   jobDetails: z.string().describe('A detailed description of the job that was performed, including scope and tasks.'),
   estimateDetails: z.string().describe('The details from the original estimate, including line items and total. Can be "N/A" if no estimate exists.'),
   invoiceDetails: z.string().describe('The details of the invoice being analyzed, including line items and total.'),
@@ -22,7 +22,7 @@ const AnomalySchema = z.object({
     description: z.string().describe('A clear, concise description of the anomaly or potential issue.'),
 });
 
-export const AnalyzeInvoiceOutputSchema = z.object({
+const AnalyzeInvoiceOutputSchema = z.object({
   isConsistent: z.boolean().describe('A boolean indicating if the invoice appears consistent with the provided details. This should be false if any significant anomalies are found.'),
   analysisSummary: z.string().describe('A one-sentence summary of the overall analysis findings.'),
   anomalies: z.array(AnomalySchema).describe('A list of specific discrepancies or potential issues found between the invoice, job details, and estimate.'),
