@@ -27,6 +27,8 @@ import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { useActionState } from 'react';
 import { analyzeInvoiceAction } from '@/app/actions';
 import { Switch } from '@/components/ui/switch';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
@@ -354,6 +356,25 @@ function InvoiceDetailsPageContent({ invoiceId }: { invoiceId: string }) {
       // Re-fetch all data to update the invoice details after a change
       fetchData();
   };
+  
+    const handlePrint = () => {
+        const input = document.getElementById('printable-area');
+        if (input) {
+            html2canvas(input, { scale: 2 }).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = pdf.internal.pageSize.getHeight();
+                const imgWidth = canvas.width;
+                const imgHeight = canvas.height;
+                const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+                const imgX = (pdfWidth - imgWidth * ratio) / 2;
+                const imgY = 10;
+                pdf.addImage(imgData, 'PNG', imgX, imgY, imgWidth * ratio, imgHeight * ratio);
+                pdf.save(`invoice-${invoice?.invoiceNumber}.pdf`);
+            });
+        }
+    };
 
   if (!invoice) {
     // In a real app, you might show a loading skeleton here
@@ -367,6 +388,25 @@ function InvoiceDetailsPageContent({ invoiceId }: { invoiceId: string }) {
   const isInternalUser = role === UserRole.Admin || role === UserRole.Dispatcher;
 
   return (
+    <>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 print:hidden mb-6">
+        <div>
+          <h1 className="text-3xl font-bold">{invoice.title}</h1>
+          <div className="flex items-center gap-2 mt-1">
+            <p className="text-muted-foreground">{invoice.invoiceNumber}</p>
+            <Badge className={cn("capitalize", getInvoiceStatusStyles(invoice.status))}>
+              {invoice.status.replace('_', ' ')}
+            </Badge>
+          </div>
+        </div>
+        <div className="flex flex-wrap gap-2">
+            <Button variant="outline"><Edit className="mr-2 h-4 w-4" /> Edit</Button>
+            <Button variant="outline"><Copy className="mr-2 h-4 w-4" /> Duplicate</Button>
+            <Button variant="outline" onClick={handlePrint}><Printer className="mr-2 h-4 w-4" /> Print / PDF</Button>
+            <Button><Send className="mr-2 h-4 w-4" /> Send Invoice</Button>
+        </div>
+      </div>
+
     <div className="space-y-6" id="printable-area">
        <div className="hidden print:block">
             <div className="flex justify-between items-start mb-8">
@@ -399,25 +439,6 @@ function InvoiceDetailsPageContent({ invoiceId }: { invoiceId: string }) {
              <Separator className="my-8" />
         </div>
 
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 print:hidden">
-        <div>
-          <h1 className="text-3xl font-bold">{invoice.title}</h1>
-          <div className="flex items-center gap-2 mt-1">
-            <p className="text-muted-foreground">{invoice.invoiceNumber}</p>
-            <Badge className={cn("capitalize", getInvoiceStatusStyles(invoice.status))}>
-              {invoice.status.replace('_', ' ')}
-            </Badge>
-          </div>
-        </div>
-        <div className="flex flex-wrap gap-2">
-            <Button variant="outline"><Edit className="mr-2 h-4 w-4" /> Edit</Button>
-            <Button variant="outline"><Copy className="mr-2 h-4 w-4" /> Duplicate</Button>
-            <Button variant="outline" onClick={() => window.print()}><Printer className="mr-2 h-4 w-4" /> Print / PDF</Button>
-            <Button><Send className="mr-2 h-4 w-4" /> Send Invoice</Button>
-        </div>
-      </div>
-      
-      <Separator className="print:hidden" />
        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card>
                 <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Total</CardTitle></CardHeader>
@@ -641,6 +662,7 @@ function InvoiceDetailsPageContent({ invoiceId }: { invoiceId: string }) {
         </div>
       </div>
     </div>
+    </>
   );
 }
 

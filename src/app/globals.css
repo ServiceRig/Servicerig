@@ -90,27 +90,37 @@ body {
 
 @media print {
   body {
-    background: #fff;
-    color: #000;
+    background: #fff !important;
+    color: #000 !important;
   }
   .print-container {
     padding: 0;
   }
-  #printable-area {
-    display: block;
-  }
-  .no-print, [data-sidebar], [data-sidebar='trigger'], .sidebar-inset > .p-4 > .flex {
+  .print\:hidden {
     display: none !important;
   }
-   main {
+  .print\:block {
+    display: block !important;
+  }
+  main {
     padding: 0 !important;
+    margin: 0 !important;
   }
   .sidebar-inset {
     padding: 0 !important;
     margin: 0 !important;
   }
-  div[data-variant="inset"] > .p-4.md\:p-6,
+   div[data-variant="inset"] > .p-4.md\:p-6,
   .p-4.md\:p-6, .p-6, .p-4 {
+    padding: 0 !important;
+  }
+   .print\:shadow-none {
+    box-shadow: none !important;
+  }
+  .print\:border-none {
+    border: none !important;
+  }
+  .print\:p-0 {
     padding: 0 !important;
   }
 }
