@@ -4,7 +4,7 @@
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { ScheduleView } from "@/components/dashboard/schedule-view";
-import { mockCustomers, mockJobs, mockTechnicians } from "@/lib/mock-data";
+import { mockData } from "@/lib/mock-data";
 import { Job, Customer, Technician } from "@/lib/types";
 import { useEffect, useState, useCallback } from "react";
 import { addDays } from 'date-fns';
@@ -26,9 +26,9 @@ const useMockFirestore = () => {
     // Simulate fetching data
     setTimeout(() => {
       setData({
-          jobs: mockJobs,
-          customers: mockCustomers,
-          technicians: mockTechnicians
+          jobs: mockData.jobs as Job[],
+          customers: mockData.customers as Customer[],
+          technicians: mockData.technicians as Technician[]
       });
       setLoading(false);
     }, 500);
