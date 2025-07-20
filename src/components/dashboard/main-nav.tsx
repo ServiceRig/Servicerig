@@ -9,7 +9,7 @@ import {
   SidebarMenuSubButton,
 } from "@/components/ui/sidebar";
 import { UserRole } from "@/lib/types";
-import { LayoutDashboard, Calendar, UserSquare, Users, BarChart3, Book, Warehouse, Calculator, FileText, FileDiff, FileSignature, ClipboardList, DollarSign, Clock, AppWindow, Settings, LifeBuoy, LogOut, FilePlus, Bot, ListChecks, UserCog, History, HardHat } from "lucide-react";
+import { LayoutDashboard, Calendar, UserSquare, Users, BarChart3, Book, Warehouse, Calculator, FileText, FileDiff, FileSignature, ClipboardList, DollarSign, Clock, AppWindow, Settings, LifeBuoy, LogOut, FilePlus, Bot, ListChecks, UserCog, History, HardHat, ShoppingBasket } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from 'next/navigation';
 
@@ -27,6 +27,7 @@ const navItems = [
     },
     { href: "/dashboard/price-book", icon: Book, label: "Price Book" },
     { href: "/dashboard/inventory", icon: Warehouse, label: "Inventory" },
+    { href: "/dashboard/purchase-orders", icon: ShoppingBasket, label: "Purchase Orders" },
     { href: "/dashboard/estimates", icon: Calculator, label: "Estimates" },
     { href: "/dashboard/invoicing", icon: FileText, label: "Invoicing",
       subItems: [
@@ -46,6 +47,7 @@ const settingsItems = [
     { href: "/dashboard/settings", icon: Settings, label: "Settings" },
     { href: "/dashboard/settings/estimates", icon: FilePlus, label: "Estimate Templates" },
     { href: "/dashboard/settings/automations", icon: Bot, label: "Automations" },
+    { href: "/dashboard/settings/tax", icon: LandPlot, label: "Tax Settings" },
     { href: "/dashboard/support", icon: LifeBuoy, label: "Support" },
 ]
 

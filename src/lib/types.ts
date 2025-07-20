@@ -2,6 +2,7 @@
 
 
 
+
 // This file contains the TypeScript types for your Firestore collections.
 
 // A generic type for Firestore Timestamps. In Firestore, these are objects,
@@ -326,17 +327,25 @@ export interface ChangeOrder {
   jobTitle?: string; // For UI enrichment
 }
 
+export type PurchaseOrderPart = {
+    partId: string;
+    qty: number;
+    unitCost: number;
+}
+
 // PurchaseOrder model from /purchaseOrders/{poId}
 export interface PurchaseOrder {
   id: string;
   vendor: string;
-  parts: { partId: string, qty: number, unitCost: number }[];
+  parts: PurchaseOrderPart[];
+  totalAmount?: number;
   status: 'draft' | 'ordered' | 'received' | 'delivered';
   destination: 'Warehouse' | string; // Warehouse or technicianId
   expectedDeliveryDate?: Timestamp | Date;
   orderDate: Timestamp | Date;
   createdAt: Timestamp | Date;
   updatedAt: Timestamp | Date;
+  requestedBy?: string; // For UI enrichment
 }
 
 // Pricebook model from /pricebook/{itemId}

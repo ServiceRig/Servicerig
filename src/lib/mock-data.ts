@@ -2,7 +2,8 @@
 
 
 
-import { Customer, Invoice, Job, Technician, UserRole, Equipment, Estimate, EstimateTemplate, PricebookItem, InventoryItem, Payment, ServiceAgreement, Refund, TaxLine, PaymentPlan, Deposit, ChangeOrder, AuditLogEntry, TaxZone, PartRequest, ShoppingListItem } from './types';
+
+import { Customer, Invoice, Job, Technician, UserRole, Equipment, Estimate, EstimateTemplate, PricebookItem, InventoryItem, Payment, ServiceAgreement, Refund, TaxLine, PaymentPlan, Deposit, ChangeOrder, AuditLogEntry, TaxZone, PartRequest, ShoppingListItem, PurchaseOrder, PurchaseOrderPart } from './types';
 
 const getDay = (day: number) => {
     const newDate = new Date();
@@ -15,6 +16,35 @@ const getDay = (day: number) => {
 // Wrapping our mock data in a single object makes it mutable across requests
 // in a Node.js development server environment. This simulates a persistent store.
 export const mockData: { [key: string]: any[] } = {
+  purchaseOrders: [
+    {
+        id: 'po1',
+        vendor: 'Johnstone Supply',
+        parts: [{ partId: 'inv_part_001', qty: 20, unitCost: 12.50 }],
+        status: 'ordered',
+        destination: 'Warehouse',
+        orderDate: new Date(new Date().setDate(new Date().getDate() - 5)),
+        expectedDeliveryDate: new Date(new Date().setDate(new Date().getDate() + 2)),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        requestedBy: 'Admin User'
+    },
+    {
+        id: 'po2',
+        vendor: 'Ferguson',
+        parts: [
+            { partId: 'inv_part_002', qty: 10, unitCost: 45.00 },
+            { partId: 'inv_part_004', qty: 5, unitCost: 95.00 },
+        ],
+        status: 'received',
+        destination: 'Warehouse',
+        orderDate: new Date(new Date().setDate(new Date().getDate() - 10)),
+        expectedDeliveryDate: new Date(new Date().setDate(new Date().getDate() - 3)),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        requestedBy: 'Admin User'
+    },
+  ] as PurchaseOrder[],
   shoppingList: [] as ShoppingListItem[],
   partRequests: [
     { id: 'req1', technicianId: 'tech1', technicianName: 'John Doe', itemName: 'Something for the job', quantity: 1, status: 'pending', createdAt: new Date(new Date().setDate(new Date().getDate() - 1)) },
