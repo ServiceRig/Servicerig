@@ -11,6 +11,7 @@ import type { Equipment } from '@/lib/types';
 import { Wrench } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { LogEquipmentServiceDialog } from './LogEquipmentServiceDialog';
+import { ChangeEquipmentConditionDialog } from './ChangeEquipmentConditionDialog';
 
 const LOGGED_IN_TECHNICIAN_ID = 'tech1';
 
@@ -45,6 +46,10 @@ export function MyEquipment({ searchTerm }: { searchTerm: string }) {
         );
     }, [equipment, searchTerm]);
 
+    const handleConditionUpdate = (updatedEquipment: Equipment) => {
+        setEquipment(prev => prev.map(eq => eq.id === updatedEquipment.id ? updatedEquipment : eq));
+    }
+
     return (
         <Card>
             <CardHeader>
@@ -72,6 +77,7 @@ export function MyEquipment({ searchTerm }: { searchTerm: string }) {
                                     </Badge>
                                 </TableCell>
                                 <TableCell className="text-right space-x-2">
+                                     <ChangeEquipmentConditionDialog equipment={item} technicianId={LOGGED_IN_TECHNICIAN_ID} onUpdate={handleConditionUpdate} />
                                      <LogEquipmentServiceDialog equipment={item} technicianId={LOGGED_IN_TECHNICIAN_ID} />
                                 </TableCell>
                             </TableRow>

@@ -7,7 +7,7 @@ import { addEstimate as addEstimateToDb, getEstimateById, updateEstimate as upda
 import { addJob as addJobToDb, getJobById, updateJob } from "@/lib/firestore/jobs";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import type { Estimate, GbbTier, LineItem, PricebookItem, Job, Invoice, EquipmentLog } from "@/lib/types";
+import type { Estimate, GbbTier, LineItem, PricebookItem, Job, Invoice, EquipmentLog, Equipment } from "@/lib/types";
 import { addEstimateTemplate } from "@/lib/firestore/templates";
 import { mockData } from "@/lib/mock-data";
 import { addPricebookItem } from "@/lib/firestore/pricebook";
@@ -761,5 +761,60 @@ export async function addEquipmentLog(prevState: AddEquipmentLogState, formData:
         return { success: true, message: 'Service log added successfully.' };
     } catch(e) {
         return { success: false, message: 'Failed to add service log.' };
+    }
+}
+
+const updateEquipmentConditionSchema = z.object({
+  equipmentId: z.string(),
+  technicianId: z.string(),
+  newCondition: z.enum(['new', 'good', 'fair', 'poor', 'decommissioned']),
+  notes: z.string().min(1, 'Notes are required.'),
+});
+
+type UpdateEquipmentConditionState = {
+    success: boolean;
+    message: string;
+}
+
+export async function updateEquipmentCondition(prevState: UpdateEquipmentConditionState, formData: FormData): Promise<UpdateEquipmentConditionState> {
+    const validatedFields = updateEquipmentConditionSchema.safeParse({
+        equipmentId: formData.get('equipmentId'),
+        technicianId: formData.get('technicianId'),
+        newCondition: formData.get('newCondition'),
+        notes: formData.get('notes'),
+    });
+    
+    if (!validatedFields.success) {
+        return { success: false, message: 'Invalid data provided.' };
+    }
+    
+    const { equipmentId, technicianId, newCondition, notes } = validatedFields.data;
+
+    try {
+        // In a real app, you would fetch and update the document in Firestore
+        const equipmentIndex = mockData.equipment.findIndex((eq: Equipment) => eq.id === equipmentId);
+        if (equipmentIndex === -1) {
+            return { success: false, message: 'Equipment not found.' };
+        }
+        
+        const oldCondition = mockData.equipment[equipmentIndex].condition;
+        mockData.equipment[equipmentIndex].condition = newCondition;
+        mockData.equipment[equipmentIndex].lastInspectionDate = new Date();
+
+        const newLog: EquipmentLog = {
+            id: `log_${Date.now()}`,
+            equipmentId,
+            technicianId,
+            type: 'note',
+            notes: `Condition changed from '${oldCondition}' to '${newCondition}'. Reason: ${notes}`,
+            timestamp: new Date(),
+        };
+        mockData.equipmentLogs.unshift(newLog);
+
+        revalidatePath('/dashboard/inventory');
+        return { success: true, message: 'Equipment condition updated successfully.' };
+
+    } catch (e) {
+        return { success: false, message: 'Failed to update equipment condition.' };
     }
 }
