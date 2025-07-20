@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -13,6 +14,7 @@ import { PendingRequests } from '@/components/dashboard/inventory/PendingRequest
 import { WarehouseStock } from '@/components/dashboard/inventory/WarehouseStock';
 import { ShoppingList } from '@/components/dashboard/inventory/ShoppingList';
 import { EquipmentLog } from '@/components/dashboard/inventory/EquipmentLog';
+import { AssetValue } from '@/components/dashboard/inventory/AssetValue';
 
 
 const allTabs = [
@@ -24,7 +26,7 @@ const allTabs = [
     { id: 'completed', label: 'Completed', roles: [UserRole.Dispatcher, UserRole.Admin] },
     { id: 'warehouse', label: 'Warehouse', roles: [UserRole.Admin], component: WarehouseStock },
     { id: 'equipment-log', label: 'Equipment Log', roles: [UserRole.Admin], component: EquipmentLog },
-    { id: 'asset-value', label: 'Asset Value', roles: [UserRole.Admin] },
+    { id: 'asset-value', label: 'Asset Value', roles: [UserRole.Admin], component: AssetValue },
 ];
 
 export default function InventoryPage() {

@@ -283,6 +283,7 @@ export type Equipment = {
   serial: string;
   notes: string;
   purchaseDate?: Timestamp | Date;
+  purchasePrice?: number;
   warrantyEndDate?: Timestamp | Date;
   condition: 'new' | 'good' | 'fair' | 'poor' | 'decommissioned';
   lastInspectionDate?: Timestamp | Date;

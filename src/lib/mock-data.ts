@@ -1,4 +1,5 @@
 
+
 import { Customer, Invoice, Job, Technician, UserRole, Equipment, Estimate, EstimateTemplate, PricebookItem, InventoryItem, Payment, ServiceAgreement, Refund, TaxLine, PaymentPlan, Deposit, ChangeOrder, AuditLogEntry, TaxZone, PartRequest, ShoppingListItem, PurchaseOrder, PurchaseOrderPart, EquipmentLog, PartUsageLog } from './types';
 
 const getDay = (day: number) => {
@@ -442,6 +443,7 @@ export const mockData: { [key: string]: any[] } = {
           serial: 'SN12345ABC',
           notes: 'Primary diagnostic tool for John Doe.',
           purchaseDate: new Date('2022-01-15'),
+          purchasePrice: 450,
           warrantyEndDate: new Date('2025-01-14'),
           condition: 'good',
           lastInspectionDate: new Date('2024-01-10'),
@@ -457,6 +459,7 @@ export const mockData: { [key: string]: any[] } = {
           serial: 'SN67890DEF',
           notes: 'Heavy-duty drill.',
           purchaseDate: new Date('2023-05-20'),
+          purchasePrice: 179,
           warrantyEndDate: new Date('2028-05-19'),
           condition: 'good',
           installedDate: new Date('2021-06-15'),
@@ -471,6 +474,7 @@ export const mockData: { [key: string]: any[] } = {
           serial: 'SN55511GHI',
           notes: 'Digital manifold for HVAC refrigerant work.',
           purchaseDate: new Date('2023-03-10'),
+          purchasePrice: 750,
           warrantyEndDate: new Date('2025-03-09'),
           condition: 'new',
           installedDate: new Date('2022-01-20'),
