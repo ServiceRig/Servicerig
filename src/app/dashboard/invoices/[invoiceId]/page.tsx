@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
 import Link from 'next/link';
-import { format } from 'date-fns';
+import { format, isPast } from 'date-fns';
 import { User, Calendar, Tag, FileText, FileSignature, FileDiff, Printer, CreditCard, Send, Edit, Copy, RefreshCw, AlertCircle, CheckCircle, RotateCcw, ThumbsUp, MessageSquare, Clock } from 'lucide-react';
 import { cn, getInvoiceStatusStyles } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -22,6 +22,7 @@ import { AddPaymentDialog } from '@/components/dashboard/invoices/AddPaymentDial
 import { IssueRefundDialog } from '@/components/dashboard/invoices/IssueRefundDialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Progress } from '@/components/ui/progress';
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
@@ -191,6 +192,59 @@ function InvoiceActionsCard({ invoice, onInvoiceUpdate }: { invoice: Invoice, on
     );
 }
 
+function PaymentPlanCard({ invoice }: { invoice: Invoice }) {
+    if (!invoice.paymentPlan) return null;
+
+    const { schedule, totalAmount } = invoice.paymentPlan;
+    const amountPaid = schedule.filter(p => p.status === 'paid').reduce((sum, p) => sum + p.amount, 0);
+    const progress = totalAmount > 0 ? (amountPaid / totalAmount) * 100 : 0;
+    const now = new Date();
+
+    const getStatusBadge = (status: 'pending' | 'paid' | 'overdue', dueDate: Date) => {
+        if (status === 'paid') return <Badge variant="default" className="bg-green-500">Paid</Badge>;
+        if (status === 'overdue' || (status === 'pending' && isPast(dueDate))) return <Badge variant="destructive">Overdue</Badge>;
+        return <Badge variant="secondary">Due Soon</Badge>;
+    }
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Payment Plan</CardTitle>
+                <CardDescription>This invoice is being paid in installments.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <div className="space-y-4">
+                    <div>
+                        <div className="flex justify-between text-sm mb-1">
+                            <span>{formatCurrency(amountPaid)} paid of {formatCurrency(totalAmount)}</span>
+                            <span>{progress.toFixed(0)}%</span>
+                        </div>
+                        <Progress value={progress} />
+                    </div>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Amount</TableHead>
+                                <TableHead>Due Date</TableHead>
+                                <TableHead>Status</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {schedule.map((installment, index) => (
+                                <TableRow key={index}>
+                                    <TableCell className="font-medium">{formatCurrency(installment.amount)}</TableCell>
+                                    <TableCell>{format(new Date(installment.dueDate), 'PP')}</TableCell>
+                                    <TableCell>{getStatusBadge(installment.status, new Date(installment.dueDate))}</TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </div>
+            </CardContent>
+        </Card>
+    );
+}
+
 
 function InvoiceDetailsPageContent({ invoiceId }: { invoiceId: string }) {
   const { role } = useRole();
@@ -347,6 +401,9 @@ function InvoiceDetailsPageContent({ invoiceId }: { invoiceId: string }) {
                     </div>
                 </CardContent>
             </Card>
+            
+            {invoice.paymentPlan && <PaymentPlanCard invoice={invoice} />}
+
 
              <Card className="print:shadow-none print:border-none">
                 <CardHeader>

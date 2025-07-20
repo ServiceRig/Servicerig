@@ -184,6 +184,20 @@ export type Refund = {
     processedBy: string; // userId
 }
 
+export type PaymentPlanInstallment = {
+    amount: number;
+    dueDate: Timestamp | Date;
+    status: 'pending' | 'paid' | 'overdue';
+    paymentId?: string; // Link to the actual payment record when paid
+};
+
+export type PaymentPlan = {
+    type: 'manual' | 'auto'; // 'auto' for future auto-pay features
+    schedule: PaymentPlanInstallment[];
+    totalAmount: number;
+};
+
+
 // Invoice model from /invoices/{invoiceId}
 export type Invoice = {
   id: string;
@@ -206,6 +220,7 @@ export type Invoice = {
   issueDate: Timestamp | Date;
   createdAt: Timestamp | Date;
   commission?: Commission[];
+  paymentPlan?: PaymentPlan;
   quickbooksSync?: {
       status: 'pending' | 'synced' | 'error';
       lastSync?: Timestamp | Date;

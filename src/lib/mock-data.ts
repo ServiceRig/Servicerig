@@ -1,6 +1,6 @@
 
 
-import { Customer, Invoice, Job, Technician, UserRole, Equipment, Estimate, EstimateTemplate, PricebookItem, InventoryItem, Payment, ServiceAgreement, Refund, TaxLine } from './types';
+import { Customer, Invoice, Job, Technician, UserRole, Equipment, Estimate, EstimateTemplate, PricebookItem, InventoryItem, Payment, ServiceAgreement, Refund, TaxLine, PaymentPlan } from './types';
 
 const getDay = (day: number) => {
     const newDate = new Date();
@@ -61,6 +61,7 @@ export const mockData = {
   payments: [
     { id: 'pay1', invoiceId: 'inv1', customerId: 'cust1', amount: 324.00, date: new Date('2024-07-15'), method: 'Credit Card', transactionId: 'ch_12345', recordedBy: 'user_admin_01' },
     { id: 'pay2', invoiceId: 'inv2', customerId: 'cust2', amount: 400.00, date: new Date('2024-07-05'), method: 'Check', transactionId: 'check_1054', recordedBy: 'user_admin_01' },
+    { id: 'pay3', invoiceId: 'inv3', customerId: 'cust3', amount: 108.00, date: new Date('2024-07-20'), method: 'Credit Card', transactionId: 'ch_67890', recordedBy: 'user_admin_01' },
   ] as Payment[],
   inventoryItems: [
     { id: 'inv_part_001', name: 'Dual-run Capacitor 45/5 MFD', description: 'Oval run capacitor for HVAC condenser units.', sku: 'CAP-45-5', partNumber: 'PRCFD455A', warehouseLocation: 'Aisle 3, Bin 4', quantityOnHand: 50, reorderThreshold: 10, unitCost: 12.50, marketPrice: 45.00, ourPrice: 35.00, vendor: 'Johnstone Supply', trade: 'HVAC', createdAt: new Date() },
@@ -274,12 +275,21 @@ export const mockData = {
       subtotal: 300.00,
       taxes: [{ name: 'NY State Tax', amount: 24.00, rate: 0.08 }],
       total: 324.00,
-      amountPaid: 0.00,
-      balanceDue: 324.00,
+      amountPaid: 108.00,
+      balanceDue: 216.00,
       paymentTerms: 'Net 30',
       createdAt: new Date('2024-07-18'),
       quickbooksSync: {
         status: 'pending',
+      },
+      paymentPlan: {
+        type: 'manual',
+        totalAmount: 324.00,
+        schedule: [
+            { amount: 108.00, dueDate: new Date('2024-07-18'), status: 'paid', paymentId: 'pay3' },
+            { amount: 108.00, dueDate: new Date('2024-08-17'), status: 'pending' },
+            { amount: 108.00, dueDate: new Date('2024-09-16'), status: 'pending' },
+        ]
       },
        commission: [
         { technicianId: 'tech3', rate: 0.08, amount: 25.92, technicianName: 'Mike Johnson' }
