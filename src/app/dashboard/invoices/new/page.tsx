@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useMemo, Suspense, useActionState, ChangeEvent } from 'react';
+import { useState, useEffect, useMemo, Suspense, useActionState, ChangeEvent, use } from 'react';
 import { useFormStatus } from 'react-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -142,11 +142,11 @@ function NewInvoicePageContent() {
     
     const subtotal = useMemo(() => lineItems.reduce((acc, item) => acc + (item.quantity * item.unitPrice), 0), [lineItems]);
     const taxAmount = useMemo(() => subtotal * taxRate, [subtotal, taxRate]);
-    const grandTotal = useMemo(() => subtotal + taxAmount, [subtotal, taxAmount]);
+    const grandTotal = useMemo(() => subtotal + taxAmount, [subtotal, taxRate]);
 
     const isFormSubmittable = useMemo(() => {
-        return selectedCustomerId && invoiceTitle && selectedJobIds.size > 0;
-    }, [selectedCustomerId, invoiceTitle, selectedJobIds]);
+        return selectedCustomerId && invoiceTitle;
+    }, [selectedCustomerId, invoiceTitle]);
 
     return (
         <form action={formAction}>
@@ -278,3 +278,5 @@ export default function NewInvoicePage() {
         </Suspense>
     )
 }
+
+    
