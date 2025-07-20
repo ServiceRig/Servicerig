@@ -470,7 +470,11 @@ function InvoiceDetailsPageContent({ invoiceId }: { invoiceId: string }) {
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
-            <Button variant="outline"><Edit className="mr-2 h-4 w-4" /> Edit</Button>
+            <Button asChild variant="outline" disabled={invoice.status !== 'draft'}>
+                <Link href={`/dashboard/invoices/${invoice.id}/edit?role=${role}`}>
+                    <Edit className="mr-2 h-4 w-4" /> Edit
+                </Link>
+            </Button>
             <Button variant="outline"><Copy className="mr-2 h-4 w-4" /> Duplicate</Button>
             <Button variant="outline" onClick={handlePrint}><Printer className="mr-2 h-4 w-4" /> Print / PDF</Button>
             <Button><Send className="mr-2 h-4 w-4" /> Send Invoice</Button>

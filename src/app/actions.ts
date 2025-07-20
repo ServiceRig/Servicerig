@@ -3,7 +3,7 @@
 
 import { generateTieredEstimates, type GenerateTieredEstimatesInput, type GenerateTieredEstimatesOutput } from "@/ai/flows/generate-tiered-estimates";
 import { z } from "zod";
-import { addEstimate as addEstimateToDb, getEstimateById, updateEstimate } from "@/lib/firestore/estimates";
+import { addEstimate as addEstimateToDb, getEstimateById, updateEstimate as updateEstimateInDb } from "@/lib/firestore/estimates";
 import { addJob as addJobToDb, getJobById, updateJob } from "@/lib/firestore/jobs";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
@@ -13,7 +13,7 @@ import { mockData } from "@/lib/mock-data";
 import { addPricebookItem } from "@/lib/firestore/pricebook";
 import { getCustomerById } from "@/lib/firestore/customers";
 import { analyzeInvoice } from "@/ai/flows/analyze-invoice";
-import { addInvoice as addInvoiceToDb } from "@/lib/firestore/invoices";
+import { addInvoice as addInvoiceToDb, updateInvoice as updateInvoiceInDb } from "@/lib/firestore/invoices";
 
 const tieredEstimatesSchema = z.object({
   jobDetails: z.string().min(10, "Job details must be at least 10 characters long."),
@@ -488,7 +488,7 @@ export async function updateEstimateStatus(prevState: UpdateStatusState, formDat
 
     estimate.status = newStatus;
     estimate.updatedAt = new Date();
-    await updateEstimate(estimate);
+    await updateEstimateInDb(estimate);
     
     // Re-fetch to ensure we have the latest data, although updateEstimate modifies in place for mocks
     const updatedEstimate = await getEstimateById(estimateId);
@@ -530,7 +530,7 @@ export async function acceptEstimateWithSignature(formData: FormData) {
     estimate.status = 'accepted';
     estimate.updatedAt = new Date();
     
-    await updateEstimate(estimate);
+    await updateEstimateInDb(estimate);
 
     revalidatePath(`/dashboard/estimates/${estimateId}`);
     revalidatePath('/dashboard/estimates');
@@ -640,4 +640,85 @@ export async function analyzeInvoiceAction(prevState: AnalyzeInvoiceState, formD
     console.error('Error analyzing invoice:', error);
     return { error: 'An unexpected error occurred during analysis.' };
   }
+}
+
+const updateInvoiceSchema = z.object({
+    invoiceId: z.string(),
+    title: z.string().min(1, { message: 'Title is required.' }),
+    lineItems: z.string().transform((val, ctx) => {
+        try {
+            return z.array(lineItemSchema).parse(JSON.parse(val));
+        } catch {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Invalid line items."});
+            return z.NEVER;
+        }
+    }),
+});
+
+type UpdateInvoiceState = {
+    success: boolean;
+    message: string | null;
+    errors?: any;
+}
+
+export async function updateInvoice(prevState: UpdateInvoiceState, formData: FormData): Promise<UpdateInvoiceState> {
+    const validatedFields = updateInvoiceSchema.safeParse({
+        invoiceId: formData.get('invoiceId'),
+        title: formData.get('title'),
+        lineItems: formData.get('lineItems'),
+    });
+
+    if (!validatedFields.success) {
+        return {
+            success: false,
+            message: "Validation failed.",
+            errors: validatedFields.error.flatten().fieldErrors
+        };
+    }
+
+    try {
+        const { invoiceId, title, lineItems } = validatedFields.data;
+        const existingInvoice = mockData.invoices.find(inv => inv.id === invoiceId);
+
+        if (!existingInvoice) {
+            return { success: false, message: "Invoice not found." };
+        }
+        
+        if (existingInvoice.status !== 'draft') {
+            return { success: false, message: "Only draft invoices can be edited." };
+        }
+
+        const customer = await getCustomerById(existingInvoice.customerId);
+        if (!customer) {
+            return { success: false, message: "Associated customer not found." };
+        }
+
+        const subtotal = lineItems.reduce((acc, item) => acc + item.quantity * item.unitPrice, 0);
+        const taxZone = mockData.taxZones.find(zone => zone.id === customer.taxRegion);
+        const taxRate = taxZone ? taxZone.rate : 0;
+        const tax = subtotal * taxRate;
+        const total = subtotal + tax;
+
+        const updatedInvoice: Invoice = {
+            ...existingInvoice,
+            title,
+            lineItems,
+            subtotal,
+            taxes: [{ name: taxZone ? `${taxZone.name} Tax` : 'Tax', amount: tax, rate: taxRate }],
+            total,
+            balanceDue: total - existingInvoice.amountPaid,
+            updatedAt: new Date(),
+        };
+
+        await updateInvoiceInDb(updatedInvoice);
+        revalidatePath(`/dashboard/invoices/${invoiceId}`);
+        revalidatePath('/dashboard/invoices');
+
+    } catch (error) {
+        console.error("Error updating invoice:", error);
+        return { success: false, message: "An unexpected error occurred." };
+    }
+    
+    const role = formData.get('role') as string;
+    redirect(`/dashboard/invoices/${validatedFields.data.invoiceId}?role=${role}`);
 }
