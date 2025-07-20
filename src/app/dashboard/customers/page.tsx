@@ -1,9 +1,8 @@
-
 'use client';
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { mockCustomers } from '@/lib/mock-data';
+import { mockData } from '@/lib/mock-data';
 import { Button } from '@/components/ui/button';
 import { UserRole } from '@/lib/types';
 import { useRole } from '@/hooks/use-role';
@@ -31,7 +30,7 @@ export default function CustomersPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {(mockCustomers ?? []).map((customer) => (
+              {(mockData.customers ?? []).map((customer) => (
                 <TableRow key={customer.id}>
                   <TableCell className="font-medium">{customer.primaryContact.name}</TableCell>
                   <TableCell>{customer.companyInfo.name}</TableCell>

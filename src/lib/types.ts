@@ -1,6 +1,7 @@
 
 
 
+
 // This file contains the TypeScript types for your Firestore collections.
 
 // A generic type for Firestore Timestamps. In Firestore, these are objects,
@@ -391,6 +392,14 @@ export type PartRequest = {
   status: 'pending' | 'fulfilled' | 'rejected';
   createdAt: Timestamp | Date;
   fulfilledAt?: Timestamp | Date;
+}
+
+export type ShoppingListItem = {
+    itemId: string;
+    itemName: string;
+    quantityNeeded: number;
+    reason?: string;
+    requestId?: string;
 }
 
 

@@ -9,15 +9,19 @@ import { Search } from "lucide-react";
 import { useRole, UserRole } from '@/hooks/use-role';
 import { MyStock } from '@/components/dashboard/inventory/MyStock';
 import { MyRequests } from '@/components/dashboard/inventory/MyRequests';
+import { PendingRequests } from '@/components/dashboard/inventory/PendingRequests';
+import { WarehouseStock } from '@/components/dashboard/inventory/WarehouseStock';
+import { ShoppingList } from '@/components/dashboard/inventory/ShoppingList';
+
 
 const allTabs = [
     { id: 'my-stock', label: 'My Stock', roles: [UserRole.Technician], component: MyStock },
     { id: 'my-requests', label: 'My Requests', roles: [UserRole.Technician], component: MyRequests },
-    { id: 'pending-requests', label: 'Pending Requests', roles: [UserRole.Dispatcher, UserRole.Admin] },
-    { id: 'shopping-list', label: 'Shopping List', roles: [UserRole.Dispatcher, UserRole.Admin] },
+    { id: 'pending-requests', label: 'Pending Requests', roles: [UserRole.Dispatcher, UserRole.Admin], component: PendingRequests },
+    { id: 'shopping-list', label: 'Shopping List', roles: [UserRole.Dispatcher, UserRole.Admin], component: ShoppingList },
     { id: 'on-order', label: 'On-Order', roles: [UserRole.Dispatcher, UserRole.Admin] },
     { id: 'completed', label: 'Completed', roles: [UserRole.Dispatcher, UserRole.Admin] },
-    { id: 'warehouse', label: 'Warehouse', roles: [UserRole.Admin] },
+    { id: 'warehouse', label: 'Warehouse', roles: [UserRole.Admin], component: WarehouseStock },
     { id: 'equipment-log', label: 'Equipment Log', roles: [UserRole.Admin] },
     { id: 'asset-value', label: 'Asset Value', roles: [UserRole.Admin] },
 ];
@@ -73,7 +77,7 @@ export default function InventoryPage() {
                 {visibleTabs.map(tab => {
                     const TabComponent = tab.component;
                     return (
-                        <TabsContent key={tab.id} value={tab.id}>
+                        <TabsContent key={tab.id} value={tab.id} className="mt-4">
                             {TabComponent ? (
                                 <TabComponent searchTerm={searchTerm} />
                             ) : (

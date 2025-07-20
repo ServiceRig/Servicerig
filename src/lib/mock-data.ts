@@ -1,7 +1,8 @@
 
 
 
-import { Customer, Invoice, Job, Technician, UserRole, Equipment, Estimate, EstimateTemplate, PricebookItem, InventoryItem, Payment, ServiceAgreement, Refund, TaxLine, PaymentPlan, Deposit, ChangeOrder, AuditLogEntry, TaxZone, PartRequest } from './types';
+
+import { Customer, Invoice, Job, Technician, UserRole, Equipment, Estimate, EstimateTemplate, PricebookItem, InventoryItem, Payment, ServiceAgreement, Refund, TaxLine, PaymentPlan, Deposit, ChangeOrder, AuditLogEntry, TaxZone, PartRequest, ShoppingListItem } from './types';
 
 const getDay = (day: number) => {
     const newDate = new Date();
@@ -13,7 +14,8 @@ const getDay = (day: number) => {
 
 // Wrapping our mock data in a single object makes it mutable across requests
 // in a Node.js development server environment. This simulates a persistent store.
-export const mockData = {
+export const mockData: { [key: string]: any[] } = {
+  shoppingList: [] as ShoppingListItem[],
   partRequests: [
     { id: 'req1', technicianId: 'tech1', technicianName: 'John Doe', itemName: 'Something for the job', quantity: 1, status: 'pending', createdAt: new Date(new Date().setDate(new Date().getDate() - 1)) },
     { id: 'req2', technicianId: 'tech1', technicianName: 'John Doe', itemId: 'inv_part_004', itemName: 'Standard 1-Handle Faucet', quantity: 1, status: 'fulfilled', jobId: 'job2', createdAt: new Date(new Date().setDate(new Date().getDate() - 5)), fulfilledAt: new Date(new Date().setDate(new Date().getDate() - 4))},
@@ -112,7 +114,7 @@ export const mockData = {
   ] as Payment[],
   inventoryItems: [
     { id: 'inv_part_001', name: 'Dual-run Capacitor 45/5 MFD', description: 'Oval run capacitor for HVAC condenser units.', sku: 'CAP-45-5', partNumber: 'PRCFD455A', modelNumber: 'PRCFD455A', warehouseLocation: 'Aisle 3, Bin 4', quantityOnHand: 50, reorderThreshold: 10, unitCost: 12.50, ourPrice: 35.00, vendor: 'Johnstone Supply', trade: 'HVAC', createdAt: new Date(), category: 'Capacitors', reorderQtyDefault: 20, truckLocations: [{technicianId: 'tech1', quantity: 5}] },
-    { id: 'inv_part_002', name: '1/2" PEX-A Pipe (100ft)', description: 'Uponor PEX-A pipe for plumbing.', sku: 'PEX-A-050-100', partNumber: 'F1040500', modelNumber: 'F1040500', warehouseLocation: 'Aisle 1, Bay 2', quantityOnHand: 20, reorderThreshold: 5, unitCost: 45.00, ourPrice: 75.00, vendor: 'Ferguson', trade: 'Plumbing', createdAt: new Date(), category: 'Piping', reorderQtyDefault: 10, truckLocations: [] },
+    { id: 'inv_part_002', name: '1/2" PEX-A Pipe (100ft)', description: 'Uponor PEX-A pipe for plumbing.', sku: 'PEX-A-050-100', partNumber: 'F1040500', modelNumber: 'F1040500', warehouseLocation: 'Aisle 1, Bay 2', quantityOnHand: 2, reorderThreshold: 5, unitCost: 45.00, ourPrice: 75.00, vendor: 'Ferguson', trade: 'Plumbing', createdAt: new Date(), category: 'Piping', reorderQtyDefault: 10, truckLocations: [] },
     { id: 'inv_part_003', name: '15 Amp GFCI Outlet', description: 'Leviton GFCI duplex receptacle, white.', sku: 'ELEC-GFCI-15A', partNumber: 'GFTR1-W', modelNumber: 'GFTR1-W', warehouseLocation: 'Aisle 5, Bin 12', quantityOnHand: 150, reorderThreshold: 25, unitCost: 15.00, ourPrice: 28.00, vendor: 'Home Depot Pro', trade: 'Electrical', createdAt: new Date(), category: 'Outlets', reorderQtyDefault: 50, truckLocations: [{technicianId: 'tech1', quantity: 10}, {technicianId: 'tech2', quantity: 8}] },
     { id: 'inv_part_004', name: 'Standard 1-Handle Faucet', description: 'Moen chrome single handle kitchen faucet.', sku: 'FAUC-K-MOEN-1H', modelNumber: '7425', partNumber: '7425', warehouseLocation: 'Aisle 1, Bin 6', quantityOnHand: 15, reorderThreshold: 5, unitCost: 95.00, ourPrice: 165.00, vendor: 'Ferguson', trade: 'Plumbing', createdAt: new Date(), category: 'Faucets', reorderQtyDefault: 5, truckLocations: [] },
     { id: 'inv_part_005', name: 'Ignition Control Board', description: 'Universal ignition control board for furnaces.', sku: 'HVAC-ICB-UNIV', partNumber: 'ICM282A', modelNumber: 'ICM282A', warehouseLocation: 'Aisle 3, Bin 8', quantityOnHand: 8, reorderThreshold: 2, unitCost: 85.00, ourPrice: 210.00, vendor: 'RE Michel', trade: 'HVAC', createdAt: new Date(), category: 'Control Boards', reorderQtyDefault: 4, truckLocations: [{technicianId: 'tech1', quantity: 1}] },
@@ -511,6 +513,3 @@ export const mockData = {
     { id: 'pb_elec_002', title: 'Ceiling Fan Installation', description: 'Install customer-provided ceiling fan on existing brace.', trade: 'Electrical', price: 300, estimatedLaborHours: 2, createdAt: new Date() },
   ] as PricebookItem[],
 };
-
-// Re-exporting for easy access if needed, but primary interaction should be via mockData
-export const { mockTechnicians, mockCustomers, mockJobs, mockInvoices, mockEquipment, mockEstimates, mockEstimateTemplates, mockPricebookItems, mockInventoryItems, mockPayments, mockServiceAgreements, mockRefunds, mockDeposits, mockChangeOrders, mockTaxZones, mockPartRequests } = mockData;
