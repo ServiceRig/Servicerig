@@ -12,6 +12,7 @@ import { addEstimateTemplate } from "@/lib/firestore/templates";
 import { mockData } from "@/lib/mock-data";
 import { addPricebookItem } from "@/lib/firestore/pricebook";
 import { getCustomerById } from "@/lib/firestore/customers";
+import { analyzeInvoice, type AnalyzeInvoiceInput, type AnalyzeInvoiceOutput } from "@/ai/flows/analyze-invoice";
 
 const tieredEstimatesSchema = z.object({
   jobDetails: z.string().min(10, "Job details must be at least 10 characters long."),
@@ -197,7 +198,7 @@ export async function addEstimate(prevState: AddEstimateState, formData: FormDat
             lineItems,
             subtotal,
             discount,
-            tax,
+            taxes: [{ name: 'Tax', amount: tax, rate: 0.08 }],
             total,
             gbbTier,
             createdBy: 'admin_user', 
@@ -276,7 +277,7 @@ export async function acceptEstimateFromTiers(formData: FormData) {
             lineItems,
             subtotal,
             discount,
-            tax,
+            taxes: [{ name: 'Tax', amount: tax, rate: 0.08 }],
             total,
             createdBy: 'customer_acceptance',
             createdAt: new Date(),
@@ -481,4 +482,28 @@ export async function addPricebookItemAction(prevState: AddPricebookItemState, f
         console.error(e);
         return { success: false, message: 'Failed to add item to price book.' };
     }
+}
+
+
+type AnalyzeInvoiceState = {
+  data?: AnalyzeInvoiceOutput | null;
+  error?: string | null;
+}
+
+export async function analyzeInvoiceAction(prevState: AnalyzeInvoiceState, formData: FormData): Promise<AnalyzeInvoiceState> {
+  const jobDetails = formData.get('jobDetails') as string;
+  const estimateDetails = formData.get('estimateDetails') as string;
+  const invoiceDetails = formData.get('invoiceDetails') as string;
+
+  if (!jobDetails || !estimateDetails || !invoiceDetails) {
+    return { error: 'Missing required details for analysis.' };
+  }
+
+  try {
+    const result = await analyzeInvoice({ jobDetails, estimateDetails, invoiceDetails });
+    return { data: result };
+  } catch (error) {
+    console.error('Error analyzing invoice:', error);
+    return { error: 'An unexpected error occurred during analysis.' };
+  }
 }

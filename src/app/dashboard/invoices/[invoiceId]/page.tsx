@@ -10,12 +10,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Separator } from '@/components/ui/separator';
 import Link from 'next/link';
 import { format, isPast } from 'date-fns';
-import { User, Calendar, Tag, FileText, FileSignature, FileDiff, Printer, CreditCard, Send, Edit, Copy, RefreshCw, AlertCircle, CheckCircle, RotateCcw, ThumbsUp, MessageSquare, Clock } from 'lucide-react';
+import { User, Calendar, Tag, FileText, FileSignature, FileDiff, Printer, CreditCard, Send, Edit, Copy, RefreshCw, AlertCircle, CheckCircle, RotateCcw, ThumbsUp, MessageSquare, Clock, Wand2, Loader2, ListChecks } from 'lucide-react';
 import { cn, getInvoiceStatusStyles } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/logo';
 import { mockData } from '@/lib/mock-data';
-import type { Invoice, Customer, Job, Payment, Refund, TaxLine } from '@/lib/types';
+import type { Invoice, Customer, Job, Payment, Refund, TaxLine, Estimate } from '@/lib/types';
 import { useRole, UserRole } from '@/hooks/use-role';
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { AddPaymentDialog } from '@/components/dashboard/invoices/AddPaymentDialog';
@@ -23,6 +23,9 @@ import { IssueRefundDialog } from '@/components/dashboard/invoices/IssueRefundDi
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { useActionState } from 'react';
+import { analyzeInvoiceAction } from '@/app/actions';
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
@@ -245,14 +248,76 @@ function PaymentPlanCard({ invoice }: { invoice: Invoice }) {
     );
 }
 
+function AiAnalyzerCard({ invoice, job, estimates }: { invoice: Invoice, job?: Job, estimates?: Estimate[] }) {
+    const [state, formAction] = useActionState(analyzeInvoiceAction, { data: null, error: null });
+    const { isPending } = useActionState(analyzeInvoiceAction, { data: null, error: null })[2];
+
+    const jobDetails = job ? `Job Title: ${job.title}\nDescription: ${job.description}` : "N/A";
+    const estimateDetails = estimates && estimates.length > 0 ? estimates.map(e => `Estimate #${e.estimateNumber}: ${e.title}\nItems:\n${e.lineItems.map(li => `- ${li.description}: ${formatCurrency(li.unitPrice)}`).join('\n')}\nTotal: ${formatCurrency(e.total)}`).join('\n\n') : "N/A";
+    const invoiceDetails = `Invoice #${invoice.invoiceNumber}: ${invoice.title}\nItems:\n${invoice.lineItems.map(li => `- ${li.description}: ${formatCurrency(li.unitPrice)}`).join('\n')}\nTotal: ${formatCurrency(invoice.total)}`;
+    
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>AI Invoice Analyzer</CardTitle>
+                <CardDescription>Check for inconsistencies before sending.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <form action={formAction}>
+                    <input type="hidden" name="jobDetails" value={jobDetails} />
+                    <input type="hidden" name="estimateDetails" value={estimateDetails} />
+                    <input type="hidden" name="invoiceDetails" value={invoiceDetails} />
+                    <Button type="submit" disabled={isPending} className="w-full">
+                        {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
+                        Analyze Invoice
+                    </Button>
+                </form>
+                {state.error && <Alert variant="destructive" className="mt-4"><AlertTitle>Error</AlertTitle><AlertDescription>{state.error}</AlertDescription></Alert>}
+                {state.data && (
+                    <div className="mt-4 space-y-3">
+                         <Alert variant={state.data.isConsistent ? 'default' : 'destructive'}>
+                             <AlertTitle className="flex items-center gap-2">
+                                {state.data.isConsistent ? <CheckCircle className="h-4 w-4 text-green-500" /> : <AlertCircle className="h-4 w-4 text-destructive" />}
+                                Analysis Summary
+                            </AlertTitle>
+                            <AlertDescription>{state.data.analysisSummary}</AlertDescription>
+                        </Alert>
+                        {state.data.anomalies.length > 0 && (
+                             <Card className="bg-muted/50">
+                                <CardHeader className="p-4">
+                                    <CardTitle className="text-base">Potential Issues</CardTitle>
+                                </CardHeader>
+                                <CardContent className="p-4 pt-0">
+                                    <ul className="space-y-2 text-sm list-disc pl-5">
+                                        {state.data.anomalies.map((anomaly, index) => (
+                                            <li key={index}>{anomaly.description}</li>
+                                        ))}
+                                    </ul>
+                                </CardContent>
+                            </Card>
+                        )}
+                    </div>
+                )}
+            </CardContent>
+        </Card>
+    )
+}
 
 function InvoiceDetailsPageContent({ invoiceId }: { invoiceId: string }) {
   const { role } = useRole();
   const [invoice, setInvoice] = useState<Invoice | null>(null);
+  const [estimates, setEstimates] = useState<Estimate[]>([]);
 
   const fetchData = async () => {
       const data = await getInvoiceData(invoiceId);
       setInvoice(data);
+
+      if (data?.linkedEstimateIds) {
+        const fetchedEstimates = await Promise.all(
+          data.linkedEstimateIds.map(id => mockData.estimates.find(e => e.id === id)).filter(Boolean) as Estimate[]
+        );
+        setEstimates(fetchedEstimates);
+      }
   };
 
   useEffect(() => {
@@ -500,6 +565,7 @@ function InvoiceDetailsPageContent({ invoiceId }: { invoiceId: string }) {
 
         <div className="space-y-6 print:hidden">
           {isInternalUser && <InvoiceActionsCard invoice={invoice} onInvoiceUpdate={setInvoice} />}
+          {isInternalUser && <AiAnalyzerCard invoice={invoice} job={invoice.job} estimates={estimates} />}
           <Card>
             <CardHeader>
                 <CardTitle>Invoice Details</CardTitle>
