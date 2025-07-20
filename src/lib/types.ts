@@ -231,6 +231,10 @@ export type Invoice = {
   createdAt: Timestamp | Date;
   commission?: Commission[];
   paymentPlan?: PaymentPlan;
+  lateFeePolicy?: {
+    enabled: boolean;
+    lastApplied?: Timestamp | Date;
+  };
   quickbooksSync?: {
       status: 'pending' | 'synced' | 'error';
       lastSync?: Timestamp | Date;

@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { Separator } from '@/components/ui/separator';
 
 export default function BillingSettingsPage() {
     const { toast } = useToast();
@@ -69,27 +70,36 @@ export default function BillingSettingsPage() {
                     <CardDescription>Set default terms and messaging for new documents.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                            <Label htmlFor="defaultTerms">Default Payment Terms</Label>
-                             <Select value={defaultTerms} onValueChange={setDefaultTerms}>
-                                <SelectTrigger id="defaultTerms">
-                                    <SelectValue placeholder="Select terms" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="Due on receipt">Due on receipt</SelectItem>
-                                    <SelectItem value="Net 15">Net 15</SelectItem>
-                                    <SelectItem value="Net 30">Net 30</SelectItem>
-                                    <SelectItem value="Net 60">Net 60</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                         <div className="space-y-2">
-                            <Label>Late Fee Policy</Label>
-                            <div className="flex items-center gap-2">
-                                <Input type="number" value={lateFeeValue} onChange={e => setLateFeeValue(parseFloat(e.target.value) || 0)} className="w-24" />
+                     <div className="space-y-2">
+                        <Label htmlFor="defaultTerms">Default Payment Terms</Label>
+                         <Select value={defaultTerms} onValueChange={setDefaultTerms}>
+                            <SelectTrigger id="defaultTerms">
+                                <SelectValue placeholder="Select terms" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="Due on receipt">Due on receipt</SelectItem>
+                                <SelectItem value="Net 15">Net 15</SelectItem>
+                                <SelectItem value="Net 30">Net 30</SelectItem>
+                                <SelectItem value="Net 60">Net 60</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="footerMessage">Default Footer Message</Label>
+                        <Textarea id="footerMessage" value={footerMessage} onChange={e => setFooterMessage(e.target.value)} placeholder="e.g., Thank you for your business!" />
+                    </div>
+                    <Separator />
+                    <div className="space-y-4">
+                        <h4 className="font-medium">Late Fee Policy</h4>
+                        <div className="flex items-center gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="lateFeeValue">Fee</Label>
+                                <Input id="lateFeeValue" type="number" value={lateFeeValue} onChange={e => setLateFeeValue(parseFloat(e.target.value) || 0)} className="w-24" />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="lateFeeType">Type</Label>
                                 <Select value={lateFeeType} onValueChange={setLateFeeType}>
-                                    <SelectTrigger className="w-[150px]">
+                                    <SelectTrigger id="lateFeeType" className="w-[150px]">
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -99,10 +109,7 @@ export default function BillingSettingsPage() {
                                 </Select>
                             </div>
                         </div>
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="footerMessage">Default Footer Message</Label>
-                        <Textarea id="footerMessage" value={footerMessage} onChange={e => setFooterMessage(e.target.value)} placeholder="e.g., Thank you for your business!" />
+                        <p className="text-xs text-muted-foreground">This fee will be automatically applied to invoices that are more than 30 days overdue.</p>
                     </div>
                 </CardContent>
             </Card>

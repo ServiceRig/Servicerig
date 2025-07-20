@@ -4,13 +4,13 @@
 
 import React, { useState, useEffect, Suspense, use } from 'react';
 import { notFound } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
 import Link from 'next/link';
 import { format, isPast } from 'date-fns';
-import { User, Calendar, Tag, FileText, FileSignature, FileDiff, Printer, CreditCard, Send, Edit, Copy, RefreshCw, AlertCircle, CheckCircle, RotateCcw, ThumbsUp, MessageSquare, Clock, Wand2, Loader2, ListChecks } from 'lucide-react';
+import { User, Calendar, Tag, FileText, FileSignature, FileDiff, Printer, CreditCard, Send, Edit, Copy, RefreshCw, AlertCircle, CheckCircle, RotateCcw, ThumbsUp, MessageSquare, Clock, Wand2, Loader2, ListChecks, ShieldAlert } from 'lucide-react';
 import { cn, getInvoiceStatusStyles } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/logo';
@@ -26,6 +26,7 @@ import { Progress } from '@/components/ui/progress';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { useActionState } from 'react';
 import { analyzeInvoiceAction } from '@/app/actions';
+import { Switch } from '@/components/ui/switch';
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
@@ -137,10 +138,21 @@ function QuickBooksSyncCard({ syncStatus }: { syncStatus: Invoice['quickbooksSyn
 
 function InvoiceActionsCard({ invoice, onInvoiceUpdate }: { invoice: Invoice, onInvoiceUpdate: (invoice: Invoice) => void }) {
     const [internalNote, setInternalNote] = useState(invoice.internalNotes || '');
+    const [lateFeesEnabled, setLateFeesEnabled] = useState(invoice.lateFeePolicy?.enabled ?? true);
 
     const handleApprove = () => {
         // In a real app, this would be a server action
         const updatedInvoice = { ...invoice, status: 'draft', internalNotes: internalNote };
+        onInvoiceUpdate(updatedInvoice);
+        // show toast
+    }
+
+    const handleLateFeeToggle = (enabled: boolean) => {
+        setLateFeesEnabled(enabled);
+        const updatedInvoice = { 
+            ...invoice, 
+            lateFeePolicy: { ...invoice.lateFeePolicy, enabled }
+        };
         onInvoiceUpdate(updatedInvoice);
         // show toast
     }
@@ -173,6 +185,20 @@ function InvoiceActionsCard({ invoice, onInvoiceUpdate }: { invoice: Invoice, on
                         onChange={(e) => setInternalNote(e.target.value)}
                         placeholder="Add notes for your team..."
                         className="mt-1"
+                    />
+                </div>
+                 <div className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className='space-y-0.5'>
+                        <Label htmlFor="late-fees" className="flex items-center gap-2">
+                            <ShieldAlert className="h-4 w-4 text-muted-foreground" />
+                            <span>Late Fees</span>
+                        </Label>
+                         <p className="text-xs text-muted-foreground">Automatically apply late fees if invoice becomes overdue.</p>
+                    </div>
+                    <Switch
+                        id="late-fees"
+                        checked={lateFeesEnabled}
+                        onCheckedChange={handleLateFeeToggle}
                     />
                 </div>
                 {invoice.job && (
