@@ -1,4 +1,5 @@
 
+
 'use client';
 import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
@@ -7,14 +8,15 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import { Phone, MessageSquare, MapPin, MoreHorizontal, CheckCircle, Clock } from 'lucide-react';
-import { mockJobs, mockCustomers } from '@/lib/mock-data';
+import { Phone, MessageSquare, MapPin, MoreHorizontal, CheckCircle, Clock, ShoppingCart } from 'lucide-react';
+import { mockJobs, mockCustomers, mockData } from '@/lib/mock-data';
 import type { Job, Customer } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import Link from 'next/link';
 import Image from 'next/image';
+import { FieldPurchase } from '@/components/dashboard/field-purchase';
 
 type EnrichedJob = Job & {
   customer?: Customer;
@@ -140,10 +142,10 @@ export default function MySchedulePage() {
 
   useEffect(() => {
     // Simulate fetching and enriching data from Firestore
-    const techJobs = (mockJobs ?? []).filter(job => job.technicianId === LOGGED_IN_TECHNICIAN_ID);
+    const techJobs = (mockData.jobs ?? []).filter(job => job.technicianId === LOGGED_IN_TECHNICIAN_ID);
     const enriched = techJobs.map(job => ({
       ...job,
-      customer: (mockCustomers ?? []).find(c => c.id === job.customerId),
+      customer: (mockData.customers ?? []).find(c => c.id === job.customerId),
     }));
     setJobs(enriched);
   }, []);
@@ -166,6 +168,11 @@ export default function MySchedulePage() {
       <div>
         <h1 className="text-3xl font-bold">Technician View</h1>
       </div>
+      
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <FieldPurchase jobs={jobs} />
+      </div>
+
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>

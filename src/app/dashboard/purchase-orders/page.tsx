@@ -25,6 +25,8 @@ const getStatusStyles = (status: PurchaseOrder['status']) => {
     case 'ordered': return 'bg-blue-500 text-white';
     case 'received': return 'bg-green-500 text-white';
     case 'delivered': return 'bg-purple-500 text-white';
+    case 'completed': return 'bg-green-600 text-white';
+    case 'field-purchased': return 'bg-orange-500 text-white';
     case 'draft':
     default: return 'bg-gray-500 text-white';
   }
@@ -32,13 +34,7 @@ const getStatusStyles = (status: PurchaseOrder['status']) => {
 
 export default function PurchaseOrdersPage() {
     const { role } = useRole();
-    const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>(() => {
-        return mockData.purchaseOrders.map(po => ({
-            ...po,
-            totalAmount: po.parts.reduce((sum, part) => sum + (part.qty * part.unitCost), 0),
-        }));
-    });
-
+    const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>(mockData.purchaseOrders);
     const [searchTerm, setSearchTerm] = useState('');
 
     const filteredPOs = useMemo(() => {
@@ -99,10 +95,10 @@ export default function PurchaseOrdersPage() {
                                 <TableCell>{format(new Date(po.orderDate), 'MMM d, yyyy')}</TableCell>
                                 <TableCell>
                                     <Badge className={cn("capitalize", getStatusStyles(po.status))}>
-                                        {po.status}
+                                        {po.status.replace('-', ' ')}
                                     </Badge>
                                 </TableCell>
-                                <TableCell className="text-right font-semibold">{formatCurrency(po.totalAmount || 0)}</TableCell>
+                                <TableCell className="text-right font-semibold">{formatCurrency(po.total || 0)}</TableCell>
                                 <TableCell className="text-right">
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>

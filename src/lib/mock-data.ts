@@ -1,10 +1,4 @@
 
-
-
-
-
-
-
 import { Customer, Invoice, Job, Technician, UserRole, Equipment, Estimate, EstimateTemplate, PricebookItem, InventoryItem, Payment, ServiceAgreement, Refund, TaxLine, PaymentPlan, Deposit, ChangeOrder, AuditLogEntry, TaxZone, PartRequest, ShoppingListItem, PurchaseOrder, PurchaseOrderPart, EquipmentLog, PartUsageLog } from './types';
 
 const getDay = (day: number) => {
@@ -38,6 +32,7 @@ export const mockData: { [key: string]: any[] } = {
         id: 'po1',
         vendor: 'Johnstone Supply',
         parts: [{ partId: 'inv_part_001', qty: 20, unitCost: 12.50 }],
+        total: 250,
         status: 'ordered',
         destination: 'Warehouse',
         orderDate: new Date(new Date().setDate(new Date().getDate() - 5)),
@@ -53,6 +48,7 @@ export const mockData: { [key: string]: any[] } = {
             { partId: 'inv_part_002', qty: 10, unitCost: 45.00 },
             { partId: 'inv_part_004', qty: 5, unitCost: 95.00 },
         ],
+        total: 925,
         status: 'received',
         destination: 'Warehouse',
         orderDate: new Date(new Date().setDate(new Date().getDate() - 10)),
@@ -61,6 +57,21 @@ export const mockData: { [key: string]: any[] } = {
         updatedAt: new Date(),
         requestedBy: 'Admin User'
     },
+    {
+        id: 'po_field_1',
+        vendor: 'Home Depot',
+        parts: [{ partId: 'inv_part_003', qty: 5, unitCost: 18.50 }],
+        total: 92.50,
+        status: 'completed',
+        destination: 'tech1',
+        orderDate: new Date(new Date().setDate(new Date().getDate() - 1)),
+        isFieldPurchase: true,
+        jobId: 'job1',
+        receiptImage: '/receipt-placeholder.png',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        requestedBy: 'John Doe'
+    }
   ] as PurchaseOrder[],
   shoppingList: [] as ShoppingListItem[],
   partRequests: [
