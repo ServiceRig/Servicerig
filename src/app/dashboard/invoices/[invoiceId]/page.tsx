@@ -3,7 +3,7 @@
 'use client';
 
 import React, { useState, useEffect, Suspense, use } from 'react';
-import { notFound } from 'next/navigation';
+import { notFound, useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -25,7 +25,7 @@ import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { useActionState } from 'react';
-import { analyzeInvoice } from '@/ai/flows/analyze-invoice';
+import { analyzeInvoiceAction } from '@/app/actions';
 import { Switch } from '@/components/ui/switch';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -46,7 +46,7 @@ const InfoCard = ({ icon: Icon, label, children }: { icon: React.ElementType, la
 );
 
 // This function simulates fetching an invoice and enriching it with related data
-const getInvoiceData = async (invoiceId: string): Promise<Invoice | null> => {
+const getInvoiceData = async (invoiceId: string): Promise<(Invoice & {jobs: Job[]}) | null> => {
     // In a real app, this would be a Firestore query.
     // We are finding the invoice in our mock data.
     const invoice = mockData.invoices.find(inv => inv.id === invoiceId) || null;
@@ -54,7 +54,7 @@ const getInvoiceData = async (invoiceId: string): Promise<Invoice | null> => {
 
     // Enrich with customer and job data
     const customer = mockData.customers.find(c => c.id === invoice.customerId);
-    const job = invoice.jobId ? mockData.jobs.find(j => j.id === invoice.jobId) : undefined;
+    const jobs = (invoice.jobIds || []).map(jobId => mockData.jobs.find(j => j.id === jobId)).filter(Boolean) as Job[];
     
     // Enrich with payments and refunds
     const payments = mockData.payments.filter(p => p.invoiceId === invoiceId);
@@ -83,7 +83,7 @@ const getInvoiceData = async (invoiceId: string): Promise<Invoice | null> => {
     return {
         ...invoice,
         customer,
-        job,
+        jobs,
         payments,
         refunds,
         amountPaid: netPaid,
@@ -156,7 +156,7 @@ function InvoiceActionsCard({ invoice, onInvoiceUpdate }: { invoice: Invoice, on
             ...invoice, 
             lateFeePolicy: { ...(invoice.lateFeePolicy || {}), enabled }
         };
-        onInvoiceUpdate(updatedInvoice);
+        onInvoiceUpdate(updatedInvoice as Invoice);
         // show toast
     }
 
@@ -204,7 +204,7 @@ function InvoiceActionsCard({ invoice, onInvoiceUpdate }: { invoice: Invoice, on
                         onCheckedChange={handleLateFeeToggle}
                     />
                 </div>
-                {invoice.job && (
+                {(invoice as any).jobs && (invoice as any).jobs.length > 0 && (
                     <div>
                         <Label>Timeclock Summary</Label>
                         <div className="text-sm p-3 bg-muted rounded-md mt-1 flex items-center justify-between">
@@ -212,7 +212,7 @@ function InvoiceActionsCard({ invoice, onInvoiceUpdate }: { invoice: Invoice, on
                                 <Clock className="h-4 w-4 text-muted-foreground"/>
                                 <span>Total Job Time:</span>
                             </div>
-                            <span className="font-semibold">{(invoice.job.duration / 60).toFixed(2)} hours</span>
+                            <span className="font-semibold">{((invoice as any).jobs.reduce((acc: number, j: Job) => acc + j.duration, 0) / 60).toFixed(2)} hours</span>
                         </div>
                     </div>
                 )}
@@ -278,8 +278,9 @@ function PaymentPlanCard({ invoice }: { invoice: Invoice }) {
 }
 
 function AiAnalyzerCard({ invoice, job, estimates }: { invoice: Invoice, job?: Job, estimates?: Estimate[] }) {
-    const [state, formAction] = useActionState(analyzeInvoice, { data: null, error: null });
-    const { isPending } = useActionState(analyzeInvoice, { data: null, error: null })[2];
+    const [state, formAction] = useActionState(analyzeInvoiceAction, { data: null, error: null });
+    
+    const { pending } = useFormStatus();
 
     const jobDetails = job ? `Job Title: ${job.title}\nDescription: ${job.description}` : "N/A";
     const estimateDetails = estimates && estimates.length > 0 ? estimates.map(e => `Estimate #${e.estimateNumber}: ${e.title}\nItems:\n${e.lineItems.map(li => `- ${li.description}: ${formatCurrency(li.unitPrice)}`).join('\n')}\nTotal: ${formatCurrency(e.total)}`).join('\n\n') : "N/A";
@@ -296,8 +297,8 @@ function AiAnalyzerCard({ invoice, job, estimates }: { invoice: Invoice, job?: J
                     <input type="hidden" name="jobDetails" value={jobDetails} />
                     <input type="hidden" name="estimateDetails" value={estimateDetails} />
                     <input type="hidden" name="invoiceDetails" value={invoiceDetails} />
-                    <Button type="submit" disabled={isPending} className="w-full">
-                        {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
+                    <Button type="submit" disabled={pending} className="w-full">
+                        {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
                         Analyze Invoice
                     </Button>
                 </form>
@@ -318,7 +319,7 @@ function AiAnalyzerCard({ invoice, job, estimates }: { invoice: Invoice, job?: J
                                 </CardHeader>
                                 <CardContent className="p-4 pt-0">
                                     <ul className="space-y-2 text-sm list-disc pl-5">
-                                        {state.data.anomalies.map((anomaly, index) => (
+                                        {state.data.anomalies.map((anomaly: any, index: number) => (
                                             <li key={index}>{anomaly.description}</li>
                                         ))}
                                     </ul>
@@ -334,7 +335,7 @@ function AiAnalyzerCard({ invoice, job, estimates }: { invoice: Invoice, job?: J
 
 function InvoiceDetailsPageContent({ invoiceId }: { invoiceId: string }) {
   const { role } = useRole();
-  const [invoice, setInvoice] = useState<Invoice | null>(null);
+  const [invoice, setInvoice] = useState<(Invoice & {jobs: Job[]}) | null>(null);
   const [estimates, setEstimates] = useState<Estimate[]>([]);
 
   const fetchData = async () => {
@@ -611,8 +612,8 @@ function InvoiceDetailsPageContent({ invoiceId }: { invoiceId: string }) {
           </div>
 
           <div className="space-y-6 print:hidden">
-            {isInternalUser && <InvoiceActionsCard invoice={invoice} onInvoiceUpdate={setInvoice} />}
-            {isInternalUser && <AiAnalyzerCard invoice={invoice} job={invoice.job} estimates={estimates} />}
+            {isInternalUser && <InvoiceActionsCard invoice={invoice} onInvoiceUpdate={setInvoice as (invoice: Invoice) => void} />}
+            {isInternalUser && <AiAnalyzerCard invoice={invoice} job={(invoice as any).jobs?.[0]} estimates={estimates} />}
             <Card>
               <CardHeader>
                   <CardTitle>Invoice Details</CardTitle>
@@ -625,7 +626,7 @@ function InvoiceDetailsPageContent({ invoiceId }: { invoiceId: string }) {
                       {format(new Date(invoice.dueDate), 'MMMM d, yyyy')}
                   </InfoCard>
                    <InfoCard icon={User} label="Customer">
-                      <Link href={`/dashboard/customers/${invoice.customer.id}?role=${role}`} className="text-primary hover:underline">{invoice.customer.primaryContact.name}</Link>
+                      <Link href={`/dashboard/customers/${(invoice.customer as Customer).id}?role=${role}`} className="text-primary hover:underline">{(invoice.customer as Customer).primaryContact.name}</Link>
                   </InfoCard>
               </CardContent>
             </Card>
@@ -639,11 +640,11 @@ function InvoiceDetailsPageContent({ invoiceId }: { invoiceId: string }) {
                   <CardTitle>Linked Documents</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                  {invoice.job && (
-                       <InfoCard icon={Tag} label="Job">
-                          <Link href={`/dashboard/jobs/${invoice.job.id}?role=${role}`} className="text-primary hover:underline">{invoice.job.title}</Link>
+                  {invoice.jobs && invoice.jobs.map(job => (
+                       <InfoCard key={job.id} icon={Tag} label="Job">
+                          <Link href={`/dashboard/jobs/${job.id}?role=${role}`} className="text-primary hover:underline">{job.title}</Link>
                       </InfoCard>
-                  )}
+                  ))}
                   {invoice.linkedEstimateIds && invoice.linkedEstimateIds.map(estId => (
                        <InfoCard key={estId} icon={FileText} label="Estimate">
                           <Link href={`/dashboard/estimates/${estId}?role=${role}`} className="text-primary hover:underline">{estId}</Link>
@@ -669,7 +670,7 @@ function InvoiceDetailsPageContent({ invoiceId }: { invoiceId: string }) {
 }
 
 
-export default function InvoiceDetailsPage({ params }: { params: Promise<{ invoiceId: string }> }) {
+export default function InvoiceDetailsPage({ params }: { params: { invoiceId: string } }) {
     const resolvedParams = use(params);
     return (
         <TooltipProvider>

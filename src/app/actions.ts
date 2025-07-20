@@ -4,7 +4,7 @@
 import { generateTieredEstimates, type GenerateTieredEstimatesInput, type GenerateTieredEstimatesOutput } from "@/ai/flows/generate-tiered-estimates";
 import { z } from "zod";
 import { addEstimate as addEstimateToDb, getEstimateById, updateEstimate } from "@/lib/firestore/estimates";
-import { addJob as addJobToDb } from "@/lib/firestore/jobs";
+import { addJob as addJobToDb, getJobById, updateJob } from "@/lib/firestore/jobs";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import type { Estimate, GbbTier, LineItem, PricebookItem, Job, Invoice } from "@/lib/types";
@@ -12,7 +12,8 @@ import { addEstimateTemplate } from "@/lib/firestore/templates";
 import { mockData } from "@/lib/mock-data";
 import { addPricebookItem } from "@/lib/firestore/pricebook";
 import { getCustomerById } from "@/lib/firestore/customers";
-import { analyzeInvoice, type AnalyzeInvoiceInput, type AnalyzeInvoiceOutput } from "@/ai/flows/analyze-invoice";
+import { analyzeInvoice } from "@/ai/flows/analyze-invoice";
+import { addInvoice as addInvoiceToDb } from "@/lib/firestore/invoices";
 
 const tieredEstimatesSchema = z.object({
   jobDetails: z.string().min(10, "Job details must be at least 10 characters long."),
@@ -223,6 +224,108 @@ export async function addEstimate(prevState: AddEstimateState, formData: FormDat
     redirect(`/dashboard/estimates/${newEstimate.id}?role=${role}&newEstimateData=${newEstimateData}`);
 }
 
+const addInvoiceSchema = z.object({
+    customerId: z.string().min(1, { message: 'Customer is required.' }),
+    title: z.string().min(1, { message: 'Title is required.' }),
+    jobIds: z.string().transform((val, ctx) => {
+        try {
+            const parsed = JSON.parse(val);
+            return z.array(z.string()).parse(parsed);
+        } catch {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Invalid Job IDs."});
+            return z.NEVER;
+        }
+    }),
+    lineItems: z.string().transform((val, ctx) => {
+        try {
+            const parsed = JSON.parse(val);
+            return z.array(lineItemSchema).parse(parsed);
+        } catch {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Invalid line items."});
+            return z.NEVER;
+        }
+    }),
+    role: z.string().optional(),
+});
+
+type AddInvoiceState = {
+    success: boolean;
+    message: string | null;
+}
+
+export async function addInvoice(prevState: AddInvoiceState, formData: FormData): Promise<AddInvoiceState> {
+    let newInvoice: Invoice;
+    let role = '';
+
+    try {
+        const validatedFields = addInvoiceSchema.safeParse({
+            customerId: formData.get('customerId'),
+            title: formData.get('title'),
+            jobIds: formData.get('jobIds'),
+            lineItems: formData.get('lineItems'),
+            role: formData.get('role'),
+        });
+        
+        if (!validatedFields.success) {
+            console.error("Validation failed:", validatedFields.error.flatten().fieldErrors);
+            return { success: false, message: 'Invalid invoice data provided.' };
+        }
+        
+        const { customerId, title, jobIds, lineItems } = validatedFields.data;
+        role = validatedFields.data.role || '';
+        
+        const customer = await getCustomerById(customerId);
+        if (!customer) {
+            return { success: false, message: 'Customer not found.' };
+        }
+
+        const subtotal = lineItems.reduce((acc, item) => acc + item.quantity * item.unitPrice, 0);
+        const taxZone = mockData.taxZones.find(zone => zone.id === customer.taxRegion);
+        const taxRate = taxZone ? taxZone.rate : 0;
+        const tax = subtotal * taxRate;
+        const total = subtotal + tax;
+        
+        const newInvoiceId = `inv_${Math.random().toString(36).substring(2, 9)}`;
+        newInvoice = {
+            id: newInvoiceId,
+            invoiceNumber: `INV-${Date.now().toString().slice(-6)}`,
+            customerId,
+            title,
+            jobIds,
+            status: 'draft',
+            issueDate: new Date(),
+            dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // Due in 30 days
+            lineItems,
+            subtotal,
+            taxes: [{ name: taxZone ? `${taxZone.name} Tax` : 'Tax', amount: tax, rate: taxRate }],
+            total,
+            amountPaid: 0,
+            balanceDue: total,
+            paymentTerms: 'Net 30',
+            createdAt: new Date(),
+        };
+
+        await addInvoiceToDb(newInvoice);
+
+        // Update the jobs with the new invoice ID
+        for (const jobId of jobIds) {
+            const job = await getJobById(jobId);
+            if (job) {
+                job.invoiceId = newInvoiceId;
+                await updateJob(job);
+            }
+        }
+
+    } catch (error) {
+        console.error("Error in addInvoice action:", error);
+        return { success: false, message: 'Failed to create invoice.' };
+    }
+    
+    revalidatePath('/dashboard/invoices');
+    redirect(`/dashboard/invoices/${newInvoice.id}?role=${role}`);
+}
+
+
 const acceptEstimateSchema = z.object({
   customerId: z.string().min(1),
   jobId: z.string().optional(),
@@ -326,7 +429,7 @@ export async function convertEstimateToInvoice(estimateId: string) {
         id: newInvoiceId,
         invoiceNumber: `INV-${Date.now().toString().slice(-6)}`,
         customerId: estimate.customerId,
-        jobId: estimate.jobId,
+        jobIds: estimate.jobId ? [estimate.jobId] : [],
         title: estimate.title,
         status: 'draft',
         issueDate: new Date(),
@@ -518,7 +621,7 @@ export async function addPricebookItemAction(prevState: AddPricebookItemState, f
 
 
 type AnalyzeInvoiceState = {
-  data?: AnalyzeInvoiceOutput | null;
+  data?: any | null;
   error?: string | null;
 }
 

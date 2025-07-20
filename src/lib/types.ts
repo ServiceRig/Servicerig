@@ -102,7 +102,7 @@ export type LineItem = {
     taxCode?: string; // For item-specific tax rules
     inventoryParts?: EstimateLineItemPart[];
     origin?: {
-      type: 'estimate' | 'change_order' | 'agreement';
+      type: 'estimate' | 'change_order' | 'agreement' | 'job';
       id: string; // The ID of the source estimate/change order
       lineItemId?: string; // Optional: The specific ID of the line item in the source
     };
@@ -228,7 +228,7 @@ export type Invoice = {
   id: string;
   invoiceNumber: string;
   title: string;
-  jobId?: string;
+  jobIds?: string[];
   customerId: string;
   status: 'draft' | 'pending_review' | 'sent' | 'paid' | 'overdue' | 'partially_paid' | 'refunded' | 'credited';
   lineItems: LineItem[];
@@ -266,7 +266,6 @@ export type Invoice = {
   auditLog?: AuditLogEntry[];
   // For UI enrichment
   customerName?: string;
-  job?: Job;
   customer?: Customer;
   payments?: Payment[];
   refunds?: Refund[];

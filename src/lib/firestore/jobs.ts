@@ -1,3 +1,4 @@
+
 // In a real app, you would import the firestore instance:
 // import { db } from './firebase';
 // import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
@@ -15,7 +16,7 @@ export async function getJobById(id: string): Promise<Job | null> {
     const job = mockData.jobs.find(j => j.id === id) || null;
 
     // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 200));
+    await new Promise(resolve => setTimeout(resolve, 50));
 
     if (!job) {
         // This can happen in dev with hot-reloading, so we don't want to spam the console.
@@ -50,5 +51,21 @@ export async function getJobsByCustomerId(customerId: string): Promise<Job[]> {
 export async function addJob(job: Job) {
     console.log("Adding job to DB:", job.id);
     mockData.jobs.unshift(job);
+    await new Promise(resolve => setTimeout(resolve, 100));
+}
+
+/**
+ * Updates an existing job in the mock data.
+ * @param updatedJob The job object with updated fields.
+ */
+export async function updateJob(updatedJob: Job): Promise<void> {
+    console.log("Updating job in DB:", updatedJob.id);
+    const index = mockData.jobs.findIndex(j => j.id === updatedJob.id);
+    if (index !== -1) {
+        mockData.jobs[index] = updatedJob;
+    } else {
+        console.warn(`Job with id ${updatedJob.id} not found for update, adding it instead.`);
+        mockData.jobs.unshift(updatedJob);
+    }
     await new Promise(resolve => setTimeout(resolve, 100));
 }
