@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useMemo, Suspense, useActionState, ChangeEvent } from 'react';
+import { useState, useEffect, useMemo, Suspense, useActionState, ChangeEvent, use } from 'react';
 import { useFormStatus } from 'react-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -221,10 +221,11 @@ function EditInvoicePageContent({ params }: { params: { invoiceId: string }}) {
     );
 }
 
-export default function EditInvoicePage({ params }: { params: { invoiceId: string } }) {
+export default function EditInvoicePage({ params }: { params: Promise<{ invoiceId: string }> }) {
+    const resolvedParams = use(params);
     return (
         <Suspense fallback={<div>Loading...</div>}>
-            <EditInvoicePageContent params={params} />
+            <EditInvoicePageContent params={resolvedParams} />
         </Suspense>
     )
 }
