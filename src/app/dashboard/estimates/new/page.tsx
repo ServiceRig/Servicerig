@@ -9,16 +9,17 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Trash2, PlusCircle, Loader2 } from 'lucide-react';
+import { Trash2, PlusCircle, BookOpen } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { mockData } from '@/lib/mock-data';
-import type { Customer, Job, EstimateTemplate, LineItem } from '@/lib/types';
+import type { Customer, Job, EstimateTemplate, LineItem, PricebookItem } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { AITierGenerator, TierData } from '@/components/dashboard/ai-tier-generator';
 import { CustomerPresentationView } from '@/components/dashboard/customer-presentation-view';
 import { addEstimate } from '@/app/actions';
 import { SubmitButton } from './SubmitButton';
 import { useRole } from '@/hooks/use-role';
+import { PricebookSelector } from '@/components/dashboard/pricebook-selector';
 
 
 const formatCurrency = (amount: number) => {
@@ -49,6 +50,7 @@ function NewEstimatePageContent() {
   const [gbbTiers, setGbbTiers] = useState<TierData[] | null>(null);
   const [showPresentation, setShowPresentation] = useState(false);
   const [isFormSubmittable, setIsFormSubmittable] = useState(false);
+  const [isPricebookOpen, setIsPricebookOpen] = useState(false);
 
   useEffect(() => {
     setCustomers(mockData.customers);
@@ -90,6 +92,33 @@ function NewEstimatePageContent() {
   const handleAddLineItem = () => {
     setLineItems([...lineItems, { description: '', quantity: 1, unitPrice: 0, inventoryParts: [] }]);
   };
+  
+  const handleAddFromPricebook = (item: PricebookItem) => {
+    const newLineItem: LineItem = {
+      description: item.title,
+      quantity: 1,
+      unitPrice: item.price,
+      inventoryParts: [{
+        partId: item.id,
+        quantity: 1, // Default to 1, can be adjusted by quantity of line item
+        snapshot: {
+          name: item.title,
+          unitCost: (item as any).unitCost || 0, // Assuming unitCost is on some items
+          ourPrice: item.price,
+        }
+      }]
+    };
+    
+    // If the first line item is empty, replace it. Otherwise, add a new one.
+    if (lineItems.length === 1 && lineItems[0].description === '' && lineItems[0].unitPrice === 0) {
+      setLineItems([newLineItem]);
+    } else {
+      setLineItems([...lineItems, newLineItem]);
+    }
+
+    toast({ title: 'Item Added', description: `"${item.title}" was added to the estimate.` });
+  };
+
 
   const handleRemoveLineItem = (index: number) => {
     const newItems = lineItems.filter((_, i) => i !== index);
@@ -179,6 +208,7 @@ function NewEstimatePageContent() {
 
   return (
     <>
+    <PricebookSelector open={isPricebookOpen} onOpenChange={setIsPricebookOpen} onItemSelected={handleAddFromPricebook} />
     <CustomerPresentationView 
         isOpen={showPresentation}
         onOpenChange={setShowPresentation}
@@ -273,9 +303,14 @@ function NewEstimatePageContent() {
                 </Card>
 
                 <Card>
-                    <CardHeader>
-                    <CardTitle>Line Items</CardTitle>
-                    <CardDescription>Add services and parts to this estimate.</CardDescription>
+                    <CardHeader className="flex flex-row justify-between items-center">
+                        <div>
+                            <CardTitle>Line Items</CardTitle>
+                            <CardDescription>Add services and parts to this estimate.</CardDescription>
+                        </div>
+                         <Button variant="outline" type="button" onClick={() => setIsPricebookOpen(true)}>
+                            <BookOpen className="mr-2 h-4 w-4" /> Add from Price Book
+                        </Button>
                     </CardHeader>
                     <CardContent>
                     <Table>
