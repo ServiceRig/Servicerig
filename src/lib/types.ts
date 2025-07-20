@@ -327,19 +327,15 @@ export interface ChangeOrder {
 
 // PurchaseOrder model from /purchaseOrders/{poId}
 export interface PurchaseOrder {
-  requestedBy: string;
-  approvedBy?: string;
+  id: string;
   vendor: string;
-  items: {
-    name: string;
-    quantity: number;
-    unitCost: number;
-  }[];
-  totalAmount: number;
-  jobId?: string;
-  status: 'requested' | 'approved' | 'ordered' | 'received';
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
+  parts: { partId: string, qty: number, unitCost: number }[];
+  status: 'draft' | 'ordered' | 'received' | 'delivered';
+  destination: 'Warehouse' | string; // Warehouse or technicianId
+  expectedDeliveryDate?: Timestamp | Date;
+  orderDate: Timestamp | Date;
+  createdAt: Timestamp | Date;
+  updatedAt: Timestamp | Date;
 }
 
 // Pricebook model from /pricebook/{itemId}
@@ -364,14 +360,22 @@ export type InventoryItem = {
   sku: string;
   modelNumber?: string;
   partNumber?: string;
-  warehouseLocation: string;
+  vendor?: string;
+  category: string;
+  trade: 'Plumbing' | 'HVAC' | 'Electrical' | 'General';
   quantityOnHand: number;
   reorderThreshold: number;
+  reorderQtyDefault: number;
+  warehouseLocation: string; // ex: "Warehouse 1 - Bin B12"
+  truckLocations: {
+    technicianId: string;
+    quantity: number;
+  }[];
   unitCost: number;
-  marketPrice: number;
   ourPrice: number;
-  vendor?: string;
-  trade: 'Plumbing' | 'Electrical' | 'HVAC' | 'General';
+  marketPrice?: number;
+  images?: string[];
+  linkedEstimateItems?: string[]; // References to estimate items using this part
   createdAt: Timestamp | Date;
 }
 

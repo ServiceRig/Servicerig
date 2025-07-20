@@ -13,7 +13,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { mockJobs, mockData } from '@/lib/mock-data';
 import type { Job, Invoice } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { PlusCircle, Trash2, Camera, UploadCloud, FileText } from 'lucide-react';
+import { PlusCircle, Trash2, Camera, UploadCloud, FileText, Wrench } from 'lucide-react';
 import Image from 'next/image';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
@@ -199,6 +199,18 @@ export default function TechnicianInvoicingPage() {
                                 </TableBody>
                             </Table>
                             <Button variant="link" onClick={handleAddLineItem} className="mt-4"><PlusCircle className="mr-2 h-4 w-4" /> Add Item</Button>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Parts Used</CardTitle>
+                            <CardDescription>Log parts from your truck stock that were used on this job.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                           <Button variant="outline" className="w-full">
+                                <Wrench className="mr-2 h-4 w-4" /> Log Used Parts
+                           </Button>
                         </CardContent>
                     </Card>
 
