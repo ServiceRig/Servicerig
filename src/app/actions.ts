@@ -322,7 +322,8 @@ export async function addInvoice(prevState: AddInvoiceState, formData: FormData)
     }
     
     revalidatePath('/dashboard/invoices');
-    redirect(`/dashboard/invoices/${newInvoice.id}?role=${role}`);
+    const newInvoiceData = encodeURIComponent(JSON.stringify(newInvoice));
+    redirect(`/dashboard/invoices/${newInvoice.id}?role=${role}&newInvoiceData=${newInvoiceData}`);
 }
 
 

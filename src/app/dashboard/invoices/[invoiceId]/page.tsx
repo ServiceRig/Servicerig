@@ -24,7 +24,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { useActionState } from 'react';
+import { useActionState, useFormStatus } from 'react';
 import { analyzeInvoiceAction } from '@/app/actions';
 import { Switch } from '@/components/ui/switch';
 import jsPDF from 'jspdf';
@@ -335,24 +335,62 @@ function AiAnalyzerCard({ invoice, job, estimates }: { invoice: Invoice, job?: J
 
 function InvoiceDetailsPageContent({ invoiceId }: { invoiceId: string }) {
   const { role } = useRole();
+  const searchParams = useSearchParams();
+  const newInvoiceDataParam = searchParams.get('newInvoiceData');
+
   const [invoice, setInvoice] = useState<(Invoice & {jobs: Job[]}) | null>(null);
   const [estimates, setEstimates] = useState<Estimate[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  const fetchData = React.useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+        let fetchedInvoice = await getInvoiceData(invoiceId);
+        
+        // Optimistic UI fallback
+        if (!fetchedInvoice && newInvoiceDataParam) {
+            console.log("Invoice not found in DB, using fallback from URL params.");
+            try {
+                fetchedInvoice = JSON.parse(decodeURIComponent(newInvoiceDataParam));
+                 // Enrich with customer and job data since it won't be in the param
+                if (fetchedInvoice) {
+                  const customer = mockData.customers.find(c => c.id === fetchedInvoice!.customerId);
+                  const jobs = (fetchedInvoice!.jobIds || []).map(jobId => mockData.jobs.find(j => j.id === jobId)).filter(Boolean) as Job[];
+                  fetchedInvoice = { ...fetchedInvoice, customer: customer as Customer, jobs, payments: [], refunds: [] };
+                }
+            } catch(e) {
+                console.error("Failed to parse invoice data from URL", e);
+            }
+        }
+        
+        if (!fetchedInvoice) {
+            setError(`Invoice with ID "${invoiceId}" not found.`);
+            setIsLoading(false);
+            return;
+        }
 
-  const fetchData = async () => {
-      const data = await getInvoiceData(invoiceId);
-      setInvoice(data);
+        setInvoice(fetchedInvoice as Invoice & { jobs: Job[] });
 
-      if (data?.linkedEstimateIds) {
-        const fetchedEstimates = await Promise.all(
-          data.linkedEstimateIds.map(id => mockData.estimates.find(e => e.id === id)).filter(Boolean) as Estimate[]
-        );
-        setEstimates(fetchedEstimates);
-      }
-  };
+        if (fetchedInvoice.linkedEstimateIds) {
+            const fetchedEstimates = await Promise.all(
+              fetchedInvoice.linkedEstimateIds.map(id => mockData.estimates.find(e => e.id === id)).filter(Boolean) as Estimate[]
+            );
+            setEstimates(fetchedEstimates);
+        }
+
+    } catch (e: any) {
+        console.error("Failed to fetch invoice data:", e);
+        setError("An unexpected error occurred while fetching invoice details.");
+    } finally {
+        setIsLoading(false);
+    }
+  }, [invoiceId, newInvoiceDataParam]);
 
   useEffect(() => {
     fetchData();
-  }, [invoiceId]);
+  }, [fetchData]);
 
   const handleDataChange = () => {
       // Re-fetch all data to update the invoice details after a change
@@ -378,13 +416,36 @@ function InvoiceDetailsPageContent({ invoiceId }: { invoiceId: string }) {
         }
     };
 
-  if (!invoice) {
-    // In a real app, you might show a loading skeleton here
-    return <div>Loading...</div>;
-  }
-  
-  if (!invoice.customer) {
-      return <div>Customer data not found for this invoice.</div>
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center h-64">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="flex items-center justify-center h-full p-4">
+                <Card className="w-full max-w-lg text-center">
+                    <CardHeader>
+                        <CardTitle>Error Loading Invoice</CardTitle>
+                        <CardDescription>We couldn't find the invoice you were looking for.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <p className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">{error}</p>
+                        <p className="text-sm text-muted-foreground">This can sometimes happen in the development environment due to fast page reloads. The invoice may have been created successfully.</p>
+                         <Button asChild className="mt-4 w-full">
+                              <Link href="/dashboard/invoices">Go back to Invoices</Link>
+                          </Button>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
+
+  if (!invoice || !invoice.customer) {
+    return notFound();
   }
   
   const isInternalUser = role === UserRole.Admin || role === UserRole.Dispatcher;
@@ -670,7 +731,7 @@ function InvoiceDetailsPageContent({ invoiceId }: { invoiceId: string }) {
 }
 
 
-export default function InvoiceDetailsPage({ params }: { params: { invoiceId: string } }) {
+export default function InvoiceDetailsPage({ params }: { params: Promise<{ invoiceId: string }> }) {
     const resolvedParams = use(params);
     return (
         <TooltipProvider>
