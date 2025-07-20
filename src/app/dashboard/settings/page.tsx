@@ -1,7 +1,7 @@
 
 
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { FilePlus, Palette, Users, Link as LinkIcon, Bot } from "lucide-react";
+import { FilePlus, Palette, Users, Link as LinkIcon, Bot, FileText } from "lucide-react";
 import Link from "next/link";
 
 const settingsLinks = [
@@ -22,6 +22,12 @@ const settingsLinks = [
         icon: Bot,
         title: 'Automations',
         description: 'Set up rules to automate your workflow and invoicing.'
+    },
+    {
+        href: '/dashboard/settings/billing',
+        icon: FileText,
+        title: 'Billing Settings',
+        description: 'Configure default payment terms, company info, and late fees.'
     },
     {
         href: '#',
