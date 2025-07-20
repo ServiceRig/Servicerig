@@ -7,9 +7,10 @@ import { StatusUpdateButtons } from "./StatusUpdateButtons";
 import { convertEstimateToInvoice } from "@/app/actions";
 import { SubmitButton } from "./SubmitButton";
 import type { Estimate } from "@/lib/types";
+import { useRole } from "@/hooks/use-role";
 
 export function EstimateActions({ estimate, onEstimateUpdate }: { estimate: Estimate, onEstimateUpdate: (estimate: Estimate) => void }) {
-    const convertAction = convertEstimateToInvoice.bind(null, estimate.id);
+    const { role } = useRole();
     
     return (
         <div className="flex flex-wrap gap-2">
@@ -20,7 +21,9 @@ export function EstimateActions({ estimate, onEstimateUpdate }: { estimate: Esti
             </Button>
             <StatusUpdateButtons estimate={estimate} onEstimateUpdate={onEstimateUpdate} />
              {estimate.status === 'accepted' && (
-                <form action={convertAction}>
+                <form action={convertEstimateToInvoice}>
+                    <input type="hidden" name="estimateId" value={estimate.id} />
+                    <input type="hidden" name="role" value={role || ''} />
                     <SubmitButton
                         label="Convert to Invoice"
                         loadingLabel="Converting..."

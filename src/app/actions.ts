@@ -408,7 +408,10 @@ export async function acceptEstimateFromTiers(formData: FormData) {
     redirect(`/dashboard/estimates?role=${role}&newEstimateData=${newEstimateData}`);
 }
 
-export async function convertEstimateToInvoice(estimateId: string) {
+export async function convertEstimateToInvoice(formData: FormData) {
+    const estimateId = formData.get('estimateId') as string;
+    const role = formData.get('role') as string;
+
     if (!estimateId) {
         throw new Error("Estimate ID is required.");
     }
@@ -420,11 +423,9 @@ export async function convertEstimateToInvoice(estimateId: string) {
     }
     
     if (estimate.status !== 'accepted') {
-        // This is a server-side check. The UI should prevent this.
         throw new Error("Cannot convert an estimate that is not accepted.");
     }
     
-    // Create a new invoice from the estimate data
     const newInvoiceId = `inv_${Math.random().toString(36).substring(2, 9)}`;
     const newInvoice: Invoice = {
         id: newInvoiceId,
@@ -446,16 +447,13 @@ export async function convertEstimateToInvoice(estimateId: string) {
         linkedEstimateIds: [estimateId],
     };
 
-    // In a real app, you would add this to your Firestore 'invoices' collection
-    mockData.invoices.unshift(newInvoice);
-    console.log(`Created new invoice ${newInvoice.id} from estimate ${estimateId}`);
+    await addInvoiceToDb(newInvoice);
 
-    // Revalidate paths to update caches
     revalidatePath('/dashboard/invoices');
     revalidatePath(`/dashboard/estimates/${estimateId}`);
 
-    // Redirect to the newly created invoice page
-    redirect(`/dashboard/invoices/${newInvoiceId}`);
+    const newInvoiceData = encodeURIComponent(JSON.stringify(newInvoice));
+    redirect(`/dashboard/invoices/${newInvoice.id}?role=${role}&newInvoiceData=${newInvoiceData}`);
 }
 
 
