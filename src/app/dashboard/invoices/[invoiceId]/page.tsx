@@ -661,7 +661,6 @@ function InvoiceDetailsPageContent({ invoiceId }: { invoiceId: string }) {
           </Card>
         </div>
       </div>
-    </div>
     </>
   );
 }
