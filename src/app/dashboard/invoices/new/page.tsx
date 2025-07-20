@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useMemo, Suspense, useActionState } from 'react';
+import { useState, useEffect, useMemo, Suspense, useActionState, ChangeEvent } from 'react';
 import { useFormStatus } from 'react-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,6 +18,7 @@ import { addInvoice } from '@/app/actions';
 import { useRole } from '@/hooks/use-role';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useSearchParams } from 'next/navigation';
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
@@ -40,6 +41,7 @@ function NewInvoicePageContent() {
     const { toast } = useToast();
     const [addInvoiceState, formAction] = useActionState(addInvoice, { success: false, message: null });
     const { role } = useRole();
+    const searchParams = useSearchParams();
     
     const [customers, setCustomers] = useState<Customer[]>([]);
     const [jobs, setJobs] = useState<Job[]>([]);
@@ -55,7 +57,15 @@ function NewInvoicePageContent() {
     useEffect(() => {
         setCustomers(mockData.customers);
         setJobs(mockData.jobs);
-    }, []);
+        const customerIdFromParams = searchParams.get('customerId');
+        const jobIdFromParams = searchParams.get('jobId');
+        if (customerIdFromParams) {
+          setSelectedCustomerId(customerIdFromParams);
+        }
+        if (jobIdFromParams) {
+          setSelectedJobIds(new Set([jobIdFromParams]));
+        }
+    }, [searchParams]);
   
     useEffect(() => {
         if (addInvoiceState?.message && !addInvoiceState.success) {
@@ -185,7 +195,7 @@ function NewInvoicePageContent() {
                                             <div className="p-4">
                                                 {availableJobs.length > 0 ? availableJobs.map(job => (
                                                     <div key={job.id} className="flex items-center space-x-2 mb-2">
-                                                        <Checkbox id={`job-${job.id}`} onCheckedChange={(checked) => handleJobSelection(job.id, !!checked)} />
+                                                        <Checkbox id={`job-${job.id}`} checked={selectedJobIds.has(job.id)} onCheckedChange={(checked) => handleJobSelection(job.id, !!checked)} />
                                                         <label htmlFor={`job-${job.id}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                                                             {job.title}
                                                         </label>
@@ -225,12 +235,12 @@ function NewInvoicePageContent() {
                                                 <TableCell><Input type="number" value={item.quantity} onChange={e => handleLineItemChange(index, 'quantity', e.target.value)} className="text-center" /></TableCell>
                                                 <TableCell><Input type="number" value={item.unitPrice} onChange={e => handleLineItemChange(index, 'unitPrice', e.target.value)} className="text-right" /></TableCell>
                                                 <TableCell className="text-right font-medium">{formatCurrency(item.quantity * item.unitPrice)}</TableCell>
-                                                <TableCell><Button variant="ghost" size="icon" onClick={() => handleRemoveLineItem(index)}><Trash2 className="h-4 w-4" /></Button></TableCell>
+                                                <TableCell><Button type="button" variant="ghost" size="icon" onClick={() => handleRemoveLineItem(index)}><Trash2 className="h-4 w-4" /></Button></TableCell>
                                             </TableRow>
                                         ))}
                                     </TableBody>
                                 </Table>
-                                <Button variant="link" onClick={handleAddLineItem} className="mt-4"><PlusCircle className="mr-2 h-4 w-4" /> Add Custom Line Item</Button>
+                                <Button type="button" variant="link" onClick={handleAddLineItem} className="mt-4"><PlusCircle className="mr-2 h-4 w-4" /> Add Custom Line Item</Button>
                             </CardContent>
                         </Card>
                     </div>
@@ -245,7 +255,7 @@ function NewInvoicePageContent() {
                                 </div>
                                  <div className="flex justify-between items-center">
                                     <Label htmlFor="tax" className="text-muted-foreground">Tax Rate (%)</Label>
-                                    <Input id="tax" type="number" value={taxRate * 100} onChange={e => setTaxRate(parseFloat(e.target.value) / 100 || 0)} className="w-24 h-8 text-right" />
+                                    <Input id="tax" type="number" value={taxRate * 100} onChange={(e: ChangeEvent<HTMLInputElement>) => setTaxRate(parseFloat(e.target.value) / 100 || 0)} className="w-24 h-8 text-right" />
                                 </div>
                                 <Separator />
                                 <div className="flex justify-between text-xl font-bold">
