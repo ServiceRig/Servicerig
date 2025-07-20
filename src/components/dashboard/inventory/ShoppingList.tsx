@@ -151,7 +151,7 @@ export function ShoppingList() {
                     </TableHeader>
                     <TableBody>
                         {shoppingList.length > 0 ? shoppingList.map(item => (
-                            <TableRow key={item.itemId}>
+                            <TableRow key={`${item.itemId}-${item.reason}`}>
                                 <TableCell>
                                     <Checkbox
                                         checked={selectedItems.has(item.itemId)}
