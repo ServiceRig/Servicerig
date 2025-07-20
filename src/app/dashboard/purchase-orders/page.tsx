@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, Fragment } from 'react';
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -36,6 +36,7 @@ export default function PurchaseOrdersPage() {
     const { role } = useRole();
     const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>(mockData.purchaseOrders);
     const [searchTerm, setSearchTerm] = useState('');
+    const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
 
     const filteredPOs = useMemo(() => {
         return purchaseOrders.filter(po =>
@@ -43,6 +44,10 @@ export default function PurchaseOrdersPage() {
             po.vendor.toLowerCase().includes(searchTerm.toLowerCase())
         );
     }, [purchaseOrders, searchTerm]);
+
+    const handleRowClick = (poId: string) => {
+        setExpandedRowId(prevId => prevId === poId ? null : poId);
+    };
 
     const getHref = (path: string) => {
         let roleParam = role ? `role=${role}` : '';
@@ -89,30 +94,64 @@ export default function PurchaseOrdersPage() {
                     </TableHeader>
                     <TableBody>
                         {filteredPOs.length > 0 ? filteredPOs.map((po) => (
-                            <TableRow key={po.id}>
-                                <TableCell className="font-medium">{po.id.toUpperCase()}</TableCell>
-                                <TableCell>{po.vendor}</TableCell>
-                                <TableCell>{format(new Date(po.orderDate), 'MMM d, yyyy')}</TableCell>
-                                <TableCell>
-                                    <Badge className={cn("capitalize", getStatusStyles(po.status))}>
-                                        {po.status.replace('-', ' ')}
-                                    </Badge>
-                                </TableCell>
-                                <TableCell className="text-right font-semibold">{formatCurrency(po.total || 0)}</TableCell>
-                                <TableCell className="text-right">
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button variant="ghost" size="icon">
-                                                <MoreHorizontal className="h-4 w-4" />
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent>
-                                            <DropdownMenuItem>View Details</DropdownMenuItem>
-                                            <DropdownMenuItem>Mark as Received</DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-                                </TableCell>
-                            </TableRow>
+                            <Fragment key={po.id}>
+                                <TableRow onClick={() => handleRowClick(po.id)} className="cursor-pointer">
+                                    <TableCell className="font-medium">{po.id.toUpperCase()}</TableCell>
+                                    <TableCell>{po.vendor}</TableCell>
+                                    <TableCell>{format(new Date(po.orderDate), 'MMM d, yyyy')}</TableCell>
+                                    <TableCell>
+                                        <Badge className={cn("capitalize", getStatusStyles(po.status))}>
+                                            {po.status.replace('-', ' ')}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell className="text-right font-semibold">{formatCurrency(po.total || 0)}</TableCell>
+                                    <TableCell className="text-right">
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button variant="ghost" size="icon" onClick={(e) => e.stopPropagation()}>
+                                                    <MoreHorizontal className="h-4 w-4" />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent>
+                                                <DropdownMenuItem onSelect={() => alert(`Viewing details for ${po.id}`)}>View Full Details</DropdownMenuItem>
+                                                <DropdownMenuItem>Mark as Received</DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </TableCell>
+                                </TableRow>
+                                {expandedRowId === po.id && (
+                                    <TableRow>
+                                        <TableCell colSpan={6} className="p-0">
+                                            <div className="p-4 bg-muted">
+                                                <h4 className="font-bold mb-2">Order Details</h4>
+                                                <Table>
+                                                    <TableHeader>
+                                                        <TableRow>
+                                                            <TableHead>Part Name</TableHead>
+                                                            <TableHead>Quantity</TableHead>
+                                                            <TableHead className="text-right">Unit Cost</TableHead>
+                                                            <TableHead className="text-right">Line Total</TableHead>
+                                                        </TableRow>
+                                                    </TableHeader>
+                                                    <TableBody>
+                                                        {po.parts.map(part => {
+                                                            const partDetails = mockData.inventoryItems.find(item => item.id === part.partId);
+                                                            return (
+                                                                <TableRow key={part.partId}>
+                                                                    <TableCell>{partDetails?.name || 'Unknown Part'}</TableCell>
+                                                                    <TableCell>{part.qty}</TableCell>
+                                                                    <TableCell className="text-right">{formatCurrency(part.unitCost)}</TableCell>
+                                                                    <TableCell className="text-right">{formatCurrency(part.qty * part.unitCost)}</TableCell>
+                                                                </TableRow>
+                                                            )
+                                                        })}
+                                                    </TableBody>
+                                                </Table>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                            </Fragment>
                         )) : (
                              <TableRow>
                                 <TableCell colSpan={6} className="h-24 text-center">
