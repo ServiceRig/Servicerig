@@ -25,7 +25,7 @@ import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { useActionState } from 'react';
-import { analyzeInvoiceAction } from '@/app/actions';
+import { analyzeInvoice } from '@/ai/flows/analyze-invoice';
 import { Switch } from '@/components/ui/switch';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -278,8 +278,8 @@ function PaymentPlanCard({ invoice }: { invoice: Invoice }) {
 }
 
 function AiAnalyzerCard({ invoice, job, estimates }: { invoice: Invoice, job?: Job, estimates?: Estimate[] }) {
-    const [state, formAction] = useActionState(analyzeInvoiceAction, { data: null, error: null });
-    const { isPending } = useActionState(analyzeInvoiceAction, { data: null, error: null })[2];
+    const [state, formAction] = useActionState(analyzeInvoice, { data: null, error: null });
+    const { isPending } = useActionState(analyzeInvoice, { data: null, error: null })[2];
 
     const jobDetails = job ? `Job Title: ${job.title}\nDescription: ${job.description}` : "N/A";
     const estimateDetails = estimates && estimates.length > 0 ? estimates.map(e => `Estimate #${e.estimateNumber}: ${e.title}\nItems:\n${e.lineItems.map(li => `- ${li.description}: ${formatCurrency(li.unitPrice)}`).join('\n')}\nTotal: ${formatCurrency(e.total)}`).join('\n\n') : "N/A";
@@ -669,11 +669,12 @@ function InvoiceDetailsPageContent({ invoiceId }: { invoiceId: string }) {
 }
 
 
-export default function InvoiceDetailsPage({ params }: { params: { invoiceId: string } }) {
+export default function InvoiceDetailsPage({ params }: { params: Promise<{ invoiceId: string }> }) {
+    const resolvedParams = use(params);
     return (
         <TooltipProvider>
             <Suspense fallback={<div>Loading invoice details...</div>}>
-                <InvoiceDetailsPageContent invoiceId={params.invoiceId} />
+                <InvoiceDetailsPageContent invoiceId={resolvedParams.invoiceId} />
             </Suspense>
         </TooltipProvider>
     )
