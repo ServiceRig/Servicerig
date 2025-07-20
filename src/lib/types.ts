@@ -357,15 +357,15 @@ export type InventoryItem = {
   name: string;
   description: string;
   sku: string;
-  modelNumber?: string;
-  partNumber?: string;
+  modelNumber: string;
+  partNumber: string;
   vendor?: string;
   category: string;
   trade: 'Plumbing' | 'HVAC' | 'Electrical' | 'General';
   quantityOnHand: number;
   reorderThreshold: number;
   reorderQtyDefault: number;
-  warehouseLocation: string; // ex: "Warehouse 1 - Bin B12"
+  warehouseLocation: string;
   truckLocations: {
     technicianId: string;
     quantity: number;
@@ -374,9 +374,9 @@ export type InventoryItem = {
   ourPrice: number;
   marketPrice?: number;
   images?: string[];
-  linkedEstimateItems?: string[]; // References to estimate items using this part
+  linkedEstimateItems?: string[];
   createdAt: Timestamp | Date;
-}
+};
 
 
 // Form model from /forms/{formId}
