@@ -183,7 +183,12 @@ export async function addEstimate(prevState: AddEstimateState, formData: FormDat
         
         const subtotal = lineItems.reduce((acc, item) => acc + item.quantity * item.unitPrice, 0);
         const discount = 0;
-        const tax = subtotal * 0.08;
+
+        // Find the tax rate for the customer's region
+        const taxZone = mockData.taxZones.find(zone => zone.id === customer.taxRegion);
+        const taxRate = taxZone ? taxZone.rate : 0; // Default to 0 if no zone found
+        const tax = subtotal * taxRate;
+        
         const total = subtotal - discount + tax;
         
         const newEstimateId = `est_${Math.random().toString(36).substring(2, 9)}`;
@@ -198,7 +203,7 @@ export async function addEstimate(prevState: AddEstimateState, formData: FormDat
             lineItems,
             subtotal,
             discount,
-            taxes: [{ name: 'Tax', amount: tax, rate: 0.08 }],
+            taxes: [{ name: taxZone ? `${taxZone.name} Tax` : 'Tax', amount: tax, rate: taxRate }],
             total,
             gbbTier,
             createdBy: 'admin_user', 
@@ -262,7 +267,10 @@ export async function acceptEstimateFromTiers(formData: FormData) {
 
         const subtotal = lineItems.reduce((acc, item) => acc + item.quantity * item.unitPrice, 0);
         const discount = 0;
-        const tax = subtotal * 0.08; // Example 8% tax
+        
+        const taxZone = mockData.taxZones.find(zone => zone.id === customer.taxRegion);
+        const taxRate = taxZone ? taxZone.rate : 0;
+        const tax = subtotal * taxRate;
         const total = subtotal - discount + tax;
         
         const newEstimateId = `est_${Math.random().toString(36).substring(2, 9)}`;
@@ -277,7 +285,7 @@ export async function acceptEstimateFromTiers(formData: FormData) {
             lineItems,
             subtotal,
             discount,
-            taxes: [{ name: 'Tax', amount: tax, rate: 0.08 }],
+            taxes: [{ name: taxZone ? `${taxZone.name} Tax` : 'Tax', amount: tax, rate: taxRate }],
             total,
             createdBy: 'customer_acceptance',
             createdAt: new Date(),

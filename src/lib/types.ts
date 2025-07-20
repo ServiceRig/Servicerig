@@ -33,6 +33,12 @@ export type Technician = {
   role: UserRole.Technician;
 }
 
+export type TaxZone = {
+    id: string;
+    name: string;
+    rate: number;
+}
+
 // Customer model from /customers/{customerId}
 export type Customer = {
   id:string;

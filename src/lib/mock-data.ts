@@ -1,6 +1,6 @@
 
 
-import { Customer, Invoice, Job, Technician, UserRole, Equipment, Estimate, EstimateTemplate, PricebookItem, InventoryItem, Payment, ServiceAgreement, Refund, TaxLine, PaymentPlan, Deposit, ChangeOrder, AuditLogEntry } from './types';
+import { Customer, Invoice, Job, Technician, UserRole, Equipment, Estimate, EstimateTemplate, PricebookItem, InventoryItem, Payment, ServiceAgreement, Refund, TaxLine, PaymentPlan, Deposit, ChangeOrder, AuditLogEntry, TaxZone } from './types';
 
 const getDay = (day: number) => {
     const newDate = new Date();
@@ -13,6 +13,12 @@ const getDay = (day: number) => {
 // Wrapping our mock data in a single object makes it mutable across requests
 // in a Node.js development server environment. This simulates a persistent store.
 export const mockData = {
+  taxZones: [
+    { id: 'ca-sv', name: 'California (Silicon Valley)', rate: 0.0925 },
+    { id: 'il-metro', name: 'Illinois (Metropolis)', rate: 0.08 },
+    { id: 'ny-gotham', name: 'New York (Gotham)', rate: 0.08875 },
+    { id: 'no-tax', name: 'No Tax', rate: 0 },
+  ] as TaxZone[],
   changeOrders: [
     {
       id: 'co1',
@@ -116,7 +122,7 @@ export const mockData = {
       id: 'cust1',
       primaryContact: { name: 'Alice Williams', email: 'alice@example.com', phone: '123-456-7890' },
       companyInfo: { name: 'Innovate Inc.', address: '123 Tech Park, Silicon Valley, CA 94000' },
-      taxRegion: 'CA-SV',
+      taxRegion: 'ca-sv',
       createdAt: new Date(),
       updatedAt: new Date(),
     },
@@ -124,7 +130,7 @@ export const mockData = {
       id: 'cust2',
       primaryContact: { name: 'Bob Davis', email: 'bob@example.com', phone: '234-567-8901' },
       companyInfo: { name: 'Solutions Corp.', address: '456 Business Blvd, Metropolis, IL 62960' },
-      taxRegion: 'IL-METRO',
+      taxRegion: 'il-metro',
       createdAt: new Date(),
       updatedAt: new Date(),
     },
@@ -132,7 +138,7 @@ export const mockData = {
       id: 'cust3',
       primaryContact: { name: 'Charlie Miller', email: 'charlie@example.com', phone: '345-678-9012' },
       companyInfo: { name: 'Gadgets & More', address: '789 Market St, Gotham, NY 10001' },
-      taxRegion: 'NY-GOTHAM',
+      taxRegion: 'ny-gotham',
       createdAt: new Date(),
       updatedAt: new Date(),
     },
@@ -501,4 +507,4 @@ export const mockData = {
 };
 
 // Re-exporting for easy access if needed, but primary interaction should be via mockData
-export const { mockTechnicians, mockCustomers, mockJobs, mockInvoices, mockEquipment, mockEstimates, mockEstimateTemplates, mockPricebookItems, mockInventoryItems, mockPayments, mockServiceAgreements, mockRefunds, mockDeposits, mockChangeOrders } = mockData;
+export const { mockTechnicians, mockCustomers, mockJobs, mockInvoices, mockEquipment, mockEstimates, mockEstimateTemplates, mockPricebookItems, mockInventoryItems, mockPayments, mockServiceAgreements, mockRefunds, mockDeposits, mockChangeOrders, mockTaxZones } = mockData;

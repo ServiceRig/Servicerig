@@ -1,7 +1,7 @@
 
 
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { FilePlus, Palette, Users, Link as LinkIcon, Bot, FileText } from "lucide-react";
+import { FilePlus, Palette, Users, Link as LinkIcon, Bot, FileText, LandPlot } from "lucide-react";
 import Link from "next/link";
 
 const settingsLinks = [
@@ -30,6 +30,12 @@ const settingsLinks = [
         description: 'Configure default payment terms, company info, and late fees.'
     },
     {
+        href: '/dashboard/settings/tax',
+        icon: LandPlot,
+        title: 'Tax Settings',
+        description: 'Manage tax zones, rates, and rules for different regions.'
+    },
+    {
         href: '#',
         icon: Users,
         title: 'User Management',
@@ -48,7 +54,7 @@ export default function SettingsPage() {
     <div className="space-y-6">
         <div>
             <h1 className="text-3xl font-bold">Settings</h1>
-            <p className="text-muted-foreground">Manage your organization&apos;s settings.</p>
+            <p className="text-muted-foreground">Manage your organization's settings.</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {settingsLinks.map(link => (
