@@ -3,7 +3,8 @@
 
 
 
-import { Customer, Invoice, Job, Technician, UserRole, Equipment, Estimate, EstimateTemplate, PricebookItem, InventoryItem, Payment, ServiceAgreement, Refund, TaxLine, PaymentPlan, Deposit, ChangeOrder, AuditLogEntry, TaxZone, PartRequest, ShoppingListItem, PurchaseOrder, PurchaseOrderPart } from './types';
+
+import { Customer, Invoice, Job, Technician, UserRole, Equipment, Estimate, EstimateTemplate, PricebookItem, InventoryItem, Payment, ServiceAgreement, Refund, TaxLine, PaymentPlan, Deposit, ChangeOrder, AuditLogEntry, TaxZone, PartRequest, ShoppingListItem, PurchaseOrder, PurchaseOrderPart, EquipmentLog } from './types';
 
 const getDay = (day: number) => {
     const newDate = new Date();
@@ -16,6 +17,12 @@ const getDay = (day: number) => {
 // Wrapping our mock data in a single object makes it mutable across requests
 // in a Node.js development server environment. This simulates a persistent store.
 export const mockData: { [key: string]: any[] } = {
+  equipmentLogs: [
+    { id: 'log_equip1_1', equipmentId: 'equip1', timestamp: new Date(new Date().setDate(new Date().getDate() - 10)), type: 'inspection', technicianId: 'tech1', notes: 'Passed annual inspection. All functions normal.' },
+    { id: 'log_equip1_2', equipmentId: 'equip1', timestamp: new Date(new Date().setDate(new Date().getDate() - 5)), type: 'usage', technicianId: 'tech1', notes: 'Used on job1 for diagnostics.' },
+    { id: 'log_equip2_1', equipmentId: 'equip2', timestamp: new Date(new Date().setDate(new Date().getDate() - 3)), type: 'repair', technicianId: 'tech2', notes: 'Replaced faulty pressure gauge. Tested OK.' },
+    { id: 'log_equip3_1', equipmentId: 'equip3', timestamp: new Date(new Date().setDate(new Date().getDate() - 1)), type: 'note', technicianId: 'admin1', notes: 'Assigned to Jane Smith.' },
+  ] as EquipmentLog[],
   purchaseOrders: [
     {
         id: 'po1',
@@ -406,29 +413,45 @@ export const mockData: { [key: string]: any[] } = {
   equipment: [
       {
           id: 'equip1',
+          name: 'Fluke 87V Multimeter',
+          technicianId: 'tech1',
           customerId: 'cust1',
-          make: 'Carrier',
-          model: '59MN7A',
+          make: 'Fluke',
+          model: '87V',
           serial: 'SN12345ABC',
-          notes: 'Main HVAC unit for the primary building. Installed 2021.',
+          notes: 'Primary diagnostic tool for John Doe.',
+          purchaseDate: new Date('2022-01-15'),
+          warrantyEndDate: new Date('2025-01-14'),
+          condition: 'good',
+          lastInspectionDate: new Date('2024-01-10'),
           installedDate: new Date('2021-06-15'),
       },
       {
           id: 'equip2',
+          name: 'Milwaukee M18 Hammer Drill',
+          technicianId: 'tech2',
           customerId: 'cust1',
-          make: 'Rheem',
-          model: 'XE50M12',
+          make: 'Milwaukee',
+          model: '2804-20',
           serial: 'SN67890DEF',
-          notes: 'Water heater, 50-gallon capacity.',
+          notes: 'Heavy-duty drill.',
+          purchaseDate: new Date('2023-05-20'),
+          warrantyEndDate: new Date('2028-05-19'),
+          condition: 'good',
           installedDate: new Date('2021-06-15'),
       },
        {
           id: 'equip3',
+          name: 'Fieldpiece Manifold Gauge',
+          technicianId: 'tech1',
           customerId: 'cust2',
-          make: 'Generac',
-          model: 'Guardian 22kW',
+          make: 'Fieldpiece',
+          model: 'SM480V',
           serial: 'SN55511GHI',
-          notes: 'Backup generator for server room.',
+          notes: 'Digital manifold for HVAC refrigerant work.',
+          purchaseDate: new Date('2023-03-10'),
+          warrantyEndDate: new Date('2025-03-09'),
+          condition: 'new',
           installedDate: new Date('2022-01-20'),
       }
   ] as Equipment[],

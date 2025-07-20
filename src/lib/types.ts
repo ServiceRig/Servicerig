@@ -3,6 +3,7 @@
 
 
 
+
 // This file contains the TypeScript types for your Firestore collections.
 
 // A generic type for Firestore Timestamps. In Firestore, these are objects,
@@ -278,13 +279,32 @@ export type Invoice = {
 // Equipment model from /equipment/{equipmentId}
 export type Equipment = {
   id: string;
-  customerId: string;
+  name: string;
+  customerId?: string; // Can be unassigned
+  technicianId?: string; // Can be in warehouse or assigned
   make: string;
   model: string;
   serial: string;
   notes: string;
-  installedDate?: Timestamp | Date;
+  purchaseDate?: Timestamp | Date;
+  warrantyEndDate?: Timestamp | Date;
+  condition: 'new' | 'good' | 'fair' | 'poor' | 'decommissioned';
+  lastInspectionDate?: Timestamp | Date;
+  installedDate?: Timestamp | Date; // Kept for customer equipment
 }
+
+export type EquipmentLog = {
+    id: string;
+    equipmentId: string;
+    timestamp: Timestamp | Date;
+    technicianId: string;
+    notes: string;
+    type: 'usage' | 'repair' | 'inspection' | 'note';
+    // For UI Enrichment
+    equipmentName?: string;
+    technicianName?: string;
+}
+
 
 // Timecard model from /timecards/{userId}_{weekId}
 export interface Timecard {

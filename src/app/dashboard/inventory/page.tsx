@@ -12,6 +12,7 @@ import { MyRequests } from '@/components/dashboard/inventory/MyRequests';
 import { PendingRequests } from '@/components/dashboard/inventory/PendingRequests';
 import { WarehouseStock } from '@/components/dashboard/inventory/WarehouseStock';
 import { ShoppingList } from '@/components/dashboard/inventory/ShoppingList';
+import { EquipmentLog } from '@/components/dashboard/inventory/EquipmentLog';
 
 
 const allTabs = [
@@ -22,7 +23,7 @@ const allTabs = [
     { id: 'on-order', label: 'On-Order', roles: [UserRole.Dispatcher, UserRole.Admin] },
     { id: 'completed', label: 'Completed', roles: [UserRole.Dispatcher, UserRole.Admin] },
     { id: 'warehouse', label: 'Warehouse', roles: [UserRole.Admin], component: WarehouseStock },
-    { id: 'equipment-log', label: 'Equipment Log', roles: [UserRole.Admin] },
+    { id: 'equipment-log', label: 'Equipment Log', roles: [UserRole.Admin], component: EquipmentLog },
     { id: 'asset-value', label: 'Asset Value', roles: [UserRole.Admin] },
 ];
 
