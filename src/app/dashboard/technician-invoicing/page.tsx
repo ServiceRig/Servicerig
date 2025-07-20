@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { mockJobs, mockData } from '@/lib/mock-data';
+import { mockData } from '@/lib/mock-data';
 import type { Job, Invoice } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { PlusCircle, Trash2, Camera, UploadCloud, FileText, Wrench } from 'lucide-react';
@@ -34,7 +34,7 @@ export default function TechnicianInvoicingPage() {
     const videoRef = useRef<HTMLVideoElement>(null);
 
     useEffect(() => {
-        const jobs = mockJobs.filter(job => job.technicianId === LOGGED_IN_TECHNICIAN_ID && job.status === 'complete' && !job.invoiceId);
+        const jobs = mockData.jobs.filter(job => job.technicianId === LOGGED_IN_TECHNICIAN_ID && job.status === 'complete' && !job.invoiceId);
         setCompletedJobs(jobs);
     }, []);
 
@@ -106,7 +106,7 @@ export default function TechnicianInvoicingPage() {
             id: `inv_${Math.random().toString(36).substring(2, 9)}`,
             invoiceNumber: `INV-${Date.now()}`,
             title: `Invoice for ${selectedJob.title}`,
-            jobId: selectedJob.id,
+            jobIds: [selectedJob.id],
             customerId: selectedJob.customerId,
             status: 'pending_review',
             issueDate: new Date(),
@@ -198,7 +198,7 @@ export default function TechnicianInvoicingPage() {
                                     ))}
                                 </TableBody>
                             </Table>
-                            <Button variant="link" onClick={handleAddLineItem} className="mt-4"><PlusCircle className="mr-2 h-4 w-4" /> Add Item</Button>
+                            <Button type="button" variant="link" onClick={handleAddLineItem} className="mt-4"><PlusCircle className="mr-2 h-4 w-4" /> Add Item</Button>
                         </CardContent>
                     </Card>
 
