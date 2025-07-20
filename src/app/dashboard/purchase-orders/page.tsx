@@ -14,7 +14,10 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import type { PurchaseOrder } from '@/lib/types';
 import { useRole } from '@/hooks/use-role';
-import { Plus, MoreHorizontal } from 'lucide-react';
+import { Plus, MoreHorizontal, ArrowUp, ArrowDown } from 'lucide-react';
+
+type SortableColumn = 'vendor' | 'orderDate' | 'status' | 'total';
+type SortDirection = 'asc' | 'desc';
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
@@ -32,18 +35,85 @@ const getStatusStyles = (status: PurchaseOrder['status']) => {
   }
 };
 
+const SortableHeader = ({
+  column,
+  children,
+  sortColumn,
+  sortDirection,
+  onSort,
+}: {
+  column: SortableColumn;
+  children: React.ReactNode;
+  sortColumn: SortableColumn;
+  sortDirection: SortDirection;
+  onSort: (column: SortableColumn) => void;
+}) => {
+  const isSorted = sortColumn === column;
+  return (
+    <TableHead onClick={() => onSort(column)} className="cursor-pointer hover:bg-muted/50">
+      <div className="flex items-center gap-2">
+        {children}
+        {isSorted && (sortDirection === 'asc' ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />)}
+      </div>
+    </TableHead>
+  );
+};
+
+
 export default function PurchaseOrdersPage() {
     const { role } = useRole();
     const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>(mockData.purchaseOrders);
     const [searchTerm, setSearchTerm] = useState('');
     const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
+    const [sortColumn, setSortColumn] = useState<SortableColumn>('orderDate');
+    const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+
+    const handleSort = (column: SortableColumn) => {
+        if (sortColumn === column) {
+            setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+        } else {
+            setSortColumn(column);
+            setSortDirection('asc');
+        }
+    };
 
     const filteredPOs = useMemo(() => {
-        return purchaseOrders.filter(po =>
-            po.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            po.vendor.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-    }, [purchaseOrders, searchTerm]);
+        let sortableItems = [...purchaseOrders];
+
+        if (searchTerm) {
+             sortableItems = sortableItems.filter(po =>
+                po.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                po.vendor.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+        }
+
+        sortableItems.sort((a, b) => {
+            let aValue: any;
+            let bValue: any;
+
+            if (sortColumn === 'total') {
+                aValue = a.total || 0;
+                bValue = b.total || 0;
+            } else if (sortColumn === 'orderDate') {
+                aValue = new Date(a.orderDate);
+                bValue = new Date(b.orderDate);
+            } else {
+                aValue = a[sortColumn];
+                bValue = b[sortColumn];
+            }
+
+            if (aValue < bValue) {
+                return sortDirection === 'asc' ? -1 : 1;
+            }
+            if (aValue > bValue) {
+                return sortDirection === 'asc' ? 1 : -1;
+            }
+            return 0;
+        });
+        
+        return sortableItems;
+
+    }, [purchaseOrders, searchTerm, sortColumn, sortDirection]);
 
     const handleRowClick = (poId: string) => {
         setExpandedRowId(prevId => prevId === poId ? null : poId);
@@ -85,10 +155,18 @@ export default function PurchaseOrdersPage() {
                     <TableHeader>
                         <TableRow>
                             <TableHead>PO #</TableHead>
-                            <TableHead>Vendor</TableHead>
-                            <TableHead>Order Date</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead className="text-right">Total</TableHead>
+                             <SortableHeader column="vendor" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort}>
+                                Vendor
+                            </SortableHeader>
+                            <SortableHeader column="orderDate" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort}>
+                                Order Date
+                            </SortableHeader>
+                            <SortableHeader column="status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort}>
+                                Status
+                            </SortableHeader>
+                            <SortableHeader column="total" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort}>
+                                <div className="text-right w-full">Total</div>
+                            </SortableHeader>
                             <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
