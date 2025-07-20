@@ -15,10 +15,12 @@ import { WarehouseStock } from '@/components/dashboard/inventory/WarehouseStock'
 import { ShoppingList } from '@/components/dashboard/inventory/ShoppingList';
 import { EquipmentLog } from '@/components/dashboard/inventory/EquipmentLog';
 import { AssetValue } from '@/components/dashboard/inventory/AssetValue';
+import { MyEquipment } from '@/components/dashboard/inventory/MyEquipment';
 
 
 const allTabs = [
     { id: 'my-stock', label: 'My Stock', roles: [UserRole.Technician], component: MyStock },
+    { id: 'my-equipment', label: 'My Equipment', roles: [UserRole.Technician], component: MyEquipment },
     { id: 'my-requests', label: 'My Requests', roles: [UserRole.Technician], component: MyRequests },
     { id: 'pending-requests', label: 'Pending Requests', roles: [UserRole.Dispatcher, UserRole.Admin], component: PendingRequests },
     { id: 'shopping-list', label: 'Shopping List', roles: [UserRole.Dispatcher, UserRole.Admin], component: ShoppingList },
