@@ -24,7 +24,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { useActionState, useFormStatus } from 'react';
+import { useActionState } from 'react';
 import { analyzeInvoiceAction } from '@/app/actions';
 import { Switch } from '@/components/ui/switch';
 import jsPDF from 'jspdf';
@@ -277,11 +277,20 @@ function PaymentPlanCard({ invoice }: { invoice: Invoice }) {
     );
 }
 
+// Internal component to use useFormStatus hook correctly
+function AnalyzeButton() {
+    const { pending } = React.useFormStatus();
+    return (
+        <Button type="submit" disabled={pending} className="w-full">
+            {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
+            Analyze Invoice
+        </Button>
+    )
+}
+
 function AiAnalyzerCard({ invoice, job, estimates }: { invoice: Invoice, job?: Job, estimates?: Estimate[] }) {
     const [state, formAction] = useActionState(analyzeInvoiceAction, { data: null, error: null });
     
-    const { pending } = useFormStatus();
-
     const jobDetails = job ? `Job Title: ${job.title}\nDescription: ${job.description}` : "N/A";
     const estimateDetails = estimates && estimates.length > 0 ? estimates.map(e => `Estimate #${e.estimateNumber}: ${e.title}\nItems:\n${e.lineItems.map(li => `- ${li.description}: ${formatCurrency(li.unitPrice)}`).join('\n')}\nTotal: ${formatCurrency(e.total)}`).join('\n\n') : "N/A";
     const invoiceDetails = `Invoice #${invoice.invoiceNumber}: ${invoice.title}\nItems:\n${invoice.lineItems.map(li => `- ${li.description}: ${formatCurrency(li.unitPrice)}`).join('\n')}\nTotal: ${formatCurrency(invoice.total)}`;
@@ -297,10 +306,7 @@ function AiAnalyzerCard({ invoice, job, estimates }: { invoice: Invoice, job?: J
                     <input type="hidden" name="jobDetails" value={jobDetails} />
                     <input type="hidden" name="estimateDetails" value={estimateDetails} />
                     <input type="hidden" name="invoiceDetails" value={invoiceDetails} />
-                    <Button type="submit" disabled={pending} className="w-full">
-                        {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
-                        Analyze Invoice
-                    </Button>
+                    <AnalyzeButton />
                 </form>
                 {state.error && <Alert variant="destructive" className="mt-4"><AlertTitle>Error</AlertTitle><AlertDescription>{state.error}</AlertDescription></Alert>}
                 {state.data && (
@@ -731,7 +737,7 @@ function InvoiceDetailsPageContent({ invoiceId }: { invoiceId: string }) {
 }
 
 
-export default function InvoiceDetailsPage({ params }: { params: Promise<{ invoiceId: string }> }) {
+export default function InvoiceDetailsPage({ params }: { params: { invoiceId: string } }) {
     const resolvedParams = use(params);
     return (
         <TooltipProvider>
@@ -741,3 +747,4 @@ export default function InvoiceDetailsPage({ params }: { params: Promise<{ invoi
         </TooltipProvider>
     )
 }
+
