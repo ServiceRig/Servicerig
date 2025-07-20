@@ -97,13 +97,13 @@ export function ShoppingList() {
     
     const handleCreatePO = () => {
         if(selectedItems.size === 0) {
-            toast({ variant: 'destructive', title: 'No items selected' });
+            toast({ variant: 'destructive', title: 'No items selected', description: 'Please select items from the list to create a purchase order.' });
             return;
         }
         
         const itemsToOrder = shoppingList.filter(item => selectedItems.has(item.itemId));
         const queryParams = new URLSearchParams({
-            items: JSON.stringify(itemsToOrder)
+            items: JSON.stringify(itemsToOrder.map(item => ({ partId: item.itemId, qty: item.quantityNeeded, unitCost: mockData.inventoryItems.find(i => i.id === item.itemId)?.unitCost || 0 })))
         }).toString();
         
         // In a real app this would route to a /new page
