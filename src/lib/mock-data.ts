@@ -56,14 +56,18 @@ export const mockData: { [key: string]: any[] } = {
         expectedDeliveryDate: new Date(new Date().setDate(new Date().getDate() - 3)),
         createdAt: new Date(),
         updatedAt: new Date(),
-        requestedBy: 'Admin User'
+        requestedBy: 'Admin User',
+        receivedBy: 'admin1',
+        receivedAt: new Date(new Date().setDate(new Date().getDate() - 3)),
+        deliveryLocation: 'Warehouse',
+        deliveryNotes: 'All items received in good condition.'
     },
     {
         id: 'po_field_1',
         vendor: 'Home Depot',
         parts: [{ partId: 'inv_part_003', qty: 5, unitCost: 18.50 }],
         total: 92.50,
-        status: 'completed',
+        status: 'field-purchased',
         destination: 'tech1',
         orderDate: new Date(new Date().setDate(new Date().getDate() - 1)),
         isFieldPurchase: true,
@@ -71,8 +75,24 @@ export const mockData: { [key: string]: any[] } = {
         receiptImage: '/receipt-placeholder.png',
         createdAt: new Date(),
         updatedAt: new Date(),
-        requestedBy: 'John Doe'
-    }
+        requestedBy: 'John Doe',
+        receivedBy: 'tech1',
+        receivedAt: new Date(new Date().setDate(new Date().getDate() - 1)),
+        deliveryLocation: 'Truck - John Doe',
+    },
+    {
+        id: 'po3',
+        vendor: 'RE Michel',
+        parts: [{ partId: 'inv_part_005', qty: 4, unitCost: 85.00 }],
+        total: 340,
+        status: 'pending',
+        destination: 'tech2',
+        orderDate: new Date(new Date().setDate(new Date().getDate() - 2)),
+        expectedDeliveryDate: new Date(new Date().setDate(new Date().getDate() + 5)),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        requestedBy: 'Jane Smith'
+    },
   ] as PurchaseOrder[],
   shoppingList: [] as ShoppingListItem[],
   partRequests: [

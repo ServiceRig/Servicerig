@@ -356,7 +356,7 @@ export interface PurchaseOrder {
   vendor: string;
   parts: PurchaseOrderPart[];
   total: number;
-  status: 'draft' | 'ordered' | 'received' | 'delivered' | 'field-purchased' | 'completed';
+  status: 'draft' | 'pending' | 'approved' | 'ordered' | 'received' | 'delivered' | 'field-purchased' | 'completed';
   destination: 'Warehouse' | string; // Warehouse or technicianId
   expectedDeliveryDate?: Timestamp | Date;
   orderDate: Timestamp | Date;
@@ -366,6 +366,11 @@ export interface PurchaseOrder {
   isFieldPurchase?: boolean;
   jobId?: string;
   receiptImage?: string;
+  // New optional fields
+  receivedBy?: string; // userId or techId
+  receivedAt?: Timestamp | Date;
+  deliveryLocation?: string;
+  deliveryNotes?: string;
 }
 
 // Pricebook model from /pricebook/{itemId}
