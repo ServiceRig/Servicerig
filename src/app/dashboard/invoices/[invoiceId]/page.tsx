@@ -10,16 +10,18 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Separator } from '@/components/ui/separator';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { User, Calendar, Tag, FileText, FileSignature, FileDiff, Printer, CreditCard, Send, Edit, Copy, RefreshCw, AlertCircle, CheckCircle, RotateCcw } from 'lucide-react';
+import { User, Calendar, Tag, FileText, FileSignature, FileDiff, Printer, CreditCard, Send, Edit, Copy, RefreshCw, AlertCircle, CheckCircle, RotateCcw, ThumbsUp, MessageSquare, Clock } from 'lucide-react';
 import { cn, getInvoiceStatusStyles } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/logo';
 import { mockData } from '@/lib/mock-data';
 import type { Invoice, Customer, Job, Payment, Refund, TaxLine } from '@/lib/types';
-import { useRole } from '@/hooks/use-role';
+import { useRole, UserRole } from '@/hooks/use-role';
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { AddPaymentDialog } from '@/components/dashboard/invoices/AddPaymentDialog';
 import { IssueRefundDialog } from '@/components/dashboard/invoices/IssueRefundDialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
@@ -60,7 +62,7 @@ const getInvoiceData = async (invoiceId: string): Promise<Invoice | null> => {
     const balanceDue = total - netPaid;
     
     let status = invoice.status;
-    if (status !== 'draft' && status !== 'refunded' && status !== 'credited') {
+    if (status !== 'draft' && status !== 'refunded' && status !== 'credited' && status !== 'pending_review') {
       if (balanceDue <= 0 && netPaid > 0) {
         status = 'paid';
       } else if (netPaid > 0) {
@@ -129,6 +131,67 @@ function QuickBooksSyncCard({ syncStatus }: { syncStatus: Invoice['quickbooksSyn
   );
 }
 
+function InvoiceActionsCard({ invoice, onInvoiceUpdate }: { invoice: Invoice, onInvoiceUpdate: (invoice: Invoice) => void }) {
+    const [internalNote, setInternalNote] = useState(invoice.internalNotes || '');
+
+    const handleApprove = () => {
+        // In a real app, this would be a server action
+        const updatedInvoice = { ...invoice, status: 'draft', internalNotes: internalNote };
+        onInvoiceUpdate(updatedInvoice);
+        // show toast
+    }
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Invoice Actions</CardTitle>
+                <CardDescription>Internal actions for this invoice.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                {invoice.status === 'pending_review' && (
+                    <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg space-y-3">
+                        <div className="flex items-center gap-2">
+                            <AlertCircle className="h-5 w-5 text-yellow-600" />
+                            <h4 className="font-semibold text-yellow-800">Pending Approval</h4>
+                        </div>
+                        <p className="text-sm text-yellow-700">This invoice was submitted by a technician and needs to be reviewed.</p>
+                        <div className="flex gap-2">
+                             <Button size="sm" onClick={handleApprove}><ThumbsUp className="mr-2 h-4 w-4" /> Approve</Button>
+                             <Button size="sm" variant="outline"><MessageSquare className="mr-2 h-4 w-4" /> Request Changes</Button>
+                        </div>
+                    </div>
+                )}
+                <div>
+                    <Label htmlFor="internalNotes">Internal Notes</Label>
+                    <Textarea
+                        id="internalNotes"
+                        value={internalNote}
+                        onChange={(e) => setInternalNote(e.target.value)}
+                        placeholder="Add notes for your team..."
+                        className="mt-1"
+                    />
+                </div>
+                {invoice.job && (
+                    <div>
+                        <Label>Timeclock Summary</Label>
+                        <div className="text-sm p-3 bg-muted rounded-md mt-1 flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <Clock className="h-4 w-4 text-muted-foreground"/>
+                                <span>Total Job Time:</span>
+                            </div>
+                            <span className="font-semibold">{(invoice.job.duration / 60).toFixed(2)} hours</span>
+                        </div>
+                    </div>
+                )}
+            </CardContent>
+             <CardFooter>
+                <Button className="w-full" variant="ghost">Save Notes</Button>
+            </CardFooter>
+        </Card>
+    );
+}
+
+
 function InvoiceDetailsPageContent({ invoiceId }: { invoiceId: string }) {
   const { role } = useRole();
   const [invoice, setInvoice] = useState<Invoice | null>(null);
@@ -155,6 +218,8 @@ function InvoiceDetailsPageContent({ invoiceId }: { invoiceId: string }) {
   if (!invoice.customer) {
       return <div>Customer data not found for this invoice.</div>
   }
+  
+  const isInternalUser = role === UserRole.Admin || role === UserRole.Dispatcher;
 
   return (
     <div className="space-y-6" id="printable-area">
@@ -377,6 +442,7 @@ function InvoiceDetailsPageContent({ invoiceId }: { invoiceId: string }) {
         </div>
 
         <div className="space-y-6 print:hidden">
+          {isInternalUser && <InvoiceActionsCard invoice={invoice} onInvoiceUpdate={setInvoice} />}
           <Card>
             <CardHeader>
                 <CardTitle>Invoice Details</CardTitle>

@@ -20,3 +20,5 @@ export function useRole() {
 
   return { role, isLoading };
 }
+
+export { UserRole };

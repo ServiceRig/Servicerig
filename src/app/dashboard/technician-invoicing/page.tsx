@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -9,8 +10,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { mockJobs } from '@/lib/mock-data';
-import type { Job } from '@/lib/types';
+import { mockJobs, mockData } from '@/lib/mock-data';
+import type { Job, Invoice } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { PlusCircle, Trash2, Camera, UploadCloud, FileText } from 'lucide-react';
 import Image from 'next/image';
@@ -27,6 +28,7 @@ export default function TechnicianInvoicingPage() {
     
     const [beforePhotos, setBeforePhotos] = useState<string[]>([]);
     const [afterPhotos, setAfterPhotos] = useState<string[]>([]);
+    const [internalNotes, setInternalNotes] = useState('');
     
     const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -91,6 +93,54 @@ export default function TechnicianInvoicingPage() {
             (newItems[index] as any)[field] = value;
         }
         setLineItems(newItems);
+    };
+
+    const handleSubmitForReview = () => {
+        if (!selectedJob) return;
+
+        const subtotal = lineItems.reduce((acc, item) => acc + item.quantity * item.unitPrice, 0);
+        const tax = subtotal * 0.08;
+        const total = subtotal + tax;
+
+        const newInvoice: Invoice = {
+            id: `inv_${Math.random().toString(36).substring(2, 9)}`,
+            invoiceNumber: `INV-${Date.now()}`,
+            title: `Invoice for ${selectedJob.title}`,
+            jobId: selectedJob.id,
+            customerId: selectedJob.customerId,
+            status: 'pending_review',
+            issueDate: new Date(),
+            dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // Due in 30 days
+            lineItems: lineItems,
+            subtotal: subtotal,
+            taxes: [{ name: 'Sales Tax', amount: tax, rate: 0.08 }],
+            total: total,
+            amountPaid: 0,
+            balanceDue: total,
+            internalNotes: internalNotes,
+            notes: `Work completed by technician ${LOGGED_IN_TECHNICIAN_ID}. Before Photos: ${beforePhotos.length}, After Photos: ${afterPhotos.length}`,
+            createdAt: new Date(),
+        };
+        
+        // In a real app, this would be a server action
+        mockData.invoices.unshift(newInvoice);
+        const jobIndex = mockData.jobs.findIndex(j => j.id === selectedJob.id);
+        if(jobIndex !== -1) {
+            mockData.jobs[jobIndex].invoiceId = newInvoice.id;
+        }
+
+        toast({
+            title: 'Invoice Submitted',
+            description: 'Your invoice has been sent to the office for review.',
+        });
+
+        // Reset state
+        setSelectedJobId('');
+        setLineItems([]);
+        setBeforePhotos([]);
+        setAfterPhotos([]);
+        setInternalNotes('');
+        setCompletedJobs(jobs => jobs.filter(j => j.id !== selectedJob.id));
     };
     
     const selectedJob = completedJobs.find(job => job.id === selectedJobId);
@@ -195,12 +245,15 @@ export default function TechnicianInvoicingPage() {
                      <Card>
                         <CardHeader><CardTitle>Notes for Office</CardTitle></CardHeader>
                         <CardContent>
-                            <Textarea placeholder="Add any internal notes about the job, materials used, or customer interactions..." />
+                            <Textarea 
+                                value={internalNotes} 
+                                onChange={(e) => setInternalNotes(e.target.value)}
+                                placeholder="Add any internal notes about the job, materials used, or customer interactions..." />
                         </CardContent>
                      </Card>
                      <div className="flex justify-end gap-2">
                         <Button variant="secondary">Save as Draft</Button>
-                        <Button className="bg-accent hover:bg-accent/90">
+                        <Button className="bg-accent hover:bg-accent/90" onClick={handleSubmitForReview}>
                            <FileText className="mr-2 h-4 w-4" /> Submit for Review
                         </Button>
                      </div>

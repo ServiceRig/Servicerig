@@ -191,7 +191,7 @@ export type Invoice = {
   title: string;
   jobId?: string;
   customerId: string;
-  status: 'draft' | 'sent' | 'paid' | 'overdue' | 'partially_paid' | 'refunded' | 'credited';
+  status: 'draft' | 'pending_review' | 'sent' | 'paid' | 'overdue' | 'partially_paid' | 'refunded' | 'credited';
   lineItems: LineItem[];
   subtotal: number;
   taxes: TaxLine[];
@@ -200,6 +200,7 @@ export type Invoice = {
   balanceDue: number;
   paymentTerms?: string;
   notes?: string;
+  internalNotes?: string;
   stripePaymentLink?: string;
   dueDate: Timestamp | Date;
   issueDate: Timestamp | Date;
