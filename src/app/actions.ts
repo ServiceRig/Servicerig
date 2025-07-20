@@ -7,7 +7,7 @@ import { addEstimate as addEstimateToDb, getEstimateById, updateEstimate } from 
 import { addJob as addJobToDb } from "@/lib/firestore/jobs";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import type { Estimate, GbbTier, LineItem, PricebookItem, Job } from "@/lib/types";
+import type { Estimate, GbbTier, LineItem, PricebookItem, Job, Invoice } from "@/lib/types";
 import { addEstimateTemplate } from "@/lib/firestore/templates";
 import { mockData } from "@/lib/mock-data";
 import { addPricebookItem } from "@/lib/firestore/pricebook";
@@ -308,17 +308,41 @@ export async function convertEstimateToInvoice(estimateId: string) {
     }
     
     if (estimate.status !== 'accepted') {
+        // This is a server-side check. The UI should prevent this.
         throw new Error("Cannot convert an estimate that is not accepted.");
     }
     
+    // Create a new invoice from the estimate data
     const newInvoiceId = `inv_${Math.random().toString(36).substring(2, 9)}`;
-    
-    // In a real app, you would create an invoice record here.
-    console.log(`Created new invoice ${newInvoiceId} from estimate ${estimateId}`);
+    const newInvoice: Invoice = {
+        id: newInvoiceId,
+        invoiceNumber: `INV-${Date.now().toString().slice(-6)}`,
+        customerId: estimate.customerId,
+        jobId: estimate.jobId,
+        title: estimate.title,
+        status: 'draft',
+        issueDate: new Date(),
+        dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // Due in 30 days
+        lineItems: estimate.lineItems.map(item => ({ ...item, origin: { type: 'estimate', id: estimateId } })),
+        subtotal: estimate.subtotal,
+        taxes: estimate.taxes,
+        total: estimate.total,
+        amountPaid: 0,
+        balanceDue: estimate.total,
+        paymentTerms: 'Net 30',
+        createdAt: new Date(),
+        linkedEstimateIds: [estimateId],
+    };
 
+    // In a real app, you would add this to your Firestore 'invoices' collection
+    mockData.invoices.unshift(newInvoice);
+    console.log(`Created new invoice ${newInvoice.id} from estimate ${estimateId}`);
+
+    // Revalidate paths to update caches
     revalidatePath('/dashboard/invoices');
     revalidatePath(`/dashboard/estimates/${estimateId}`);
 
+    // Redirect to the newly created invoice page
     redirect(`/dashboard/invoices/${newInvoiceId}`);
 }
 
