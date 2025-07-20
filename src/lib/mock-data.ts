@@ -4,7 +4,8 @@
 
 
 
-import { Customer, Invoice, Job, Technician, UserRole, Equipment, Estimate, EstimateTemplate, PricebookItem, InventoryItem, Payment, ServiceAgreement, Refund, TaxLine, PaymentPlan, Deposit, ChangeOrder, AuditLogEntry, TaxZone, PartRequest, ShoppingListItem, PurchaseOrder, PurchaseOrderPart, EquipmentLog } from './types';
+
+import { Customer, Invoice, Job, Technician, UserRole, Equipment, Estimate, EstimateTemplate, PricebookItem, InventoryItem, Payment, ServiceAgreement, Refund, TaxLine, PaymentPlan, Deposit, ChangeOrder, AuditLogEntry, TaxZone, PartRequest, ShoppingListItem, PurchaseOrder, PurchaseOrderPart, EquipmentLog, PartUsageLog } from './types';
 
 const getDay = (day: number) => {
     const newDate = new Date();
@@ -17,6 +18,15 @@ const getDay = (day: number) => {
 // Wrapping our mock data in a single object makes it mutable across requests
 // in a Node.js development server environment. This simulates a persistent store.
 export const mockData: { [key: string]: any[] } = {
+  partUsageLogs: [
+      { id: 'pulog1', partId: 'inv_part_001', quantity: 1, timestamp: new Date(new Date().setDate(new Date().getDate() - 1)), technicianId: 'tech1', jobId: 'job1' },
+      { id: 'pulog2', partId: 'inv_part_003', quantity: 2, timestamp: new Date(new Date().setDate(new Date().getDate() - 1)), technicianId: 'tech1', jobId: 'job1' },
+      { id: 'pulog3', partId: 'inv_part_002', quantity: 1, timestamp: new Date(new Date().setDate(new Date().getDate() - 2)), technicianId: 'tech2', jobId: 'job2' },
+      { id: 'pulog4', partId: 'inv_part_001', quantity: 1, timestamp: new Date(new Date().setDate(new Date().getDate() - 3)), technicianId: 'tech1', jobId: 'job3' },
+      { id: 'pulog5', partId: 'inv_part_005', quantity: 1, timestamp: new Date(new Date().setDate(new Date().getDate() - 3)), technicianId: 'tech1', jobId: 'job3' },
+      { id: 'pulog6', partId: 'inv_part_001', quantity: 1, timestamp: new Date(new Date().setDate(new Date().getDate() - 4)), technicianId: 'tech2', jobId: 'job4' },
+      { id: 'pulog7', partId: 'inv_part_004', quantity: 1, timestamp: new Date(new Date().setDate(new Date().getDate() - 10)), technicianId: 'tech2', jobId: 'job2' },
+  ] as PartUsageLog[],
   equipmentLogs: [
     { id: 'log_equip1_1', equipmentId: 'equip1', timestamp: new Date(new Date().setDate(new Date().getDate() - 10)), type: 'inspection', technicianId: 'tech1', notes: 'Passed annual inspection. All functions normal.' },
     { id: 'log_equip1_2', equipmentId: 'equip1', timestamp: new Date(new Date().setDate(new Date().getDate() - 5)), type: 'usage', technicianId: 'tech1', notes: 'Used on job1 for diagnostics.' },

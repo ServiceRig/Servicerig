@@ -404,6 +404,15 @@ export type InventoryItem = {
   createdAt: Timestamp | Date;
 };
 
+export type PartUsageLog = {
+    id: string;
+    partId: string;
+    timestamp: Timestamp | Date;
+    technicianId: string;
+    jobId: string;
+    quantity: number;
+};
+
 export type PartRequest = {
   id: string;
   technicianId: string;

@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { mockData } from '@/lib/mock-data';
-import type { InventoryItem } from '@/lib/types';
+import type { InventoryItem, PartUsageLog } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Truck, Package, Wrench } from 'lucide-react';
 
@@ -27,20 +27,35 @@ export function MyStock({ searchTerm }: { searchTerm: string }) {
             .filter((item): item is TruckStockItem => item !== null);
     });
     
-    const handleUsePart = (itemId: string) => {
+    const handleUsePart = (itemId: string, quantity: number = 1) => {
+        let usedItemName = '';
         setTruckStock(prevStock => {
             return prevStock.map(item => {
                 if (item.id === itemId && item.truckQuantity > 0) {
-                     toast({
-                        title: 'Part Used',
-                        description: `1 x ${item.name} has been marked as used.`,
-                    });
-                    return { ...item, truckQuantity: item.truckQuantity - 1 };
+                    usedItemName = item.name;
+                    return { ...item, truckQuantity: item.truckQuantity - quantity };
                 }
                 return item;
             });
         });
-        // In a real app, you would also update the master inventory record in Firestore.
+
+        if (usedItemName) {
+            // In a real app, this would be a server action.
+             const usageLog: PartUsageLog = {
+                id: `pulog_${Date.now()}`,
+                partId: itemId,
+                quantity,
+                timestamp: new Date(),
+                technicianId: LOGGED_IN_TECHNICIAN_ID,
+                jobId: 'job_unknown', // In a real scenario, this would be selected from the current job
+            };
+            mockData.partUsageLogs.push(usageLog);
+
+            toast({
+                title: 'Part Used',
+                description: `${quantity} x ${usedItemName} has been logged.`,
+            });
+        }
     }
     
     const handleRequestRestock = (item: TruckStockItem) => {

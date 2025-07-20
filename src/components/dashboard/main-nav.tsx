@@ -23,6 +23,7 @@ const navItems = [
       subItems: [
         { href: "/dashboard/reports/technician-earnings", icon: UserCog, label: "Tech Earnings" },
         { href: "/dashboard/reports/aging-report", icon: History, label: "Aging Report" },
+        { href: "/dashboard/reports/inventory", icon: Warehouse, label: "Inventory Reports" },
       ]
     },
     { href: "/dashboard/price-book", icon: Book, label: "Price Book" },
@@ -67,7 +68,7 @@ export function MainNav({ role }: { role: UserRole }) {
         <SidebarMenu className="flex-1">
             {navItems.map((item) => (
                 <SidebarMenuItem key={item.href}>
-                    <SidebarMenuButton asChild isActive={pathname.startsWith(item.href) && !item.subItems} tooltip={item.label}>
+                    <SidebarMenuButton asChild isActive={pathname.startsWith(item.href) && !item.subItems?.some(si => pathname.includes(si.href))} tooltip={item.label}>
                         <Link href={getHref(item.href)}>
                             <item.icon/>
                             <span>{item.label}</span>
