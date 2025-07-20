@@ -12,12 +12,10 @@ import { Edit, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { updateEquipmentCondition } from '@/app/actions';
 import type { Equipment } from '@/lib/types';
-import { mockData } from '@/lib/mock-data';
 
 interface ChangeEquipmentConditionDialogProps {
   equipment: Equipment;
   technicianId: string;
-  onUpdate: (updatedEquipment: Equipment) => void;
 }
 
 function SubmitButton() {
@@ -32,7 +30,7 @@ function SubmitButton() {
 
 const conditions: Equipment['condition'][] = ['new', 'good', 'fair', 'poor', 'decommissioned'];
 
-export function ChangeEquipmentConditionDialog({ equipment, technicianId, onUpdate }: ChangeEquipmentConditionDialogProps) {
+export function ChangeEquipmentConditionDialog({ equipment, technicianId }: ChangeEquipmentConditionDialogProps) {
     const [isOpen, setIsOpen] = useState(false);
     const { toast } = useToast();
     const [state, formAction] = useActionState(updateEquipmentCondition, { success: false, message: '' });
@@ -45,14 +43,10 @@ export function ChangeEquipmentConditionDialog({ equipment, technicianId, onUpda
                 variant: state.success ? 'default' : 'destructive',
             });
             if (state.success) {
-                const updatedItem = mockData.equipment.find(e => e.id === equipment.id);
-                if (updatedItem) {
-                    onUpdate(updatedItem as Equipment);
-                }
                 setIsOpen(false);
             }
         }
-    }, [state, toast, equipment.id, onUpdate]);
+    }, [state, toast]);
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>

@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -31,9 +31,11 @@ const getConditionStyles = (condition: Equipment['condition']) => {
 };
 
 export function MyEquipment({ searchTerm }: { searchTerm: string }) {
-    const [equipment, setEquipment] = useState<Equipment[]>(() => {
-        return mockData.equipment.filter(eq => eq.technicianId === LOGGED_IN_TECHNICIAN_ID);
-    });
+    const [equipment, setEquipment] = useState<Equipment[]>([]);
+
+    useEffect(() => {
+       setEquipment(mockData.equipment.filter(eq => eq.technicianId === LOGGED_IN_TECHNICIAN_ID));
+    }, []);
 
     const filteredEquipment = useMemo(() => {
         if (!searchTerm) return equipment;
@@ -45,10 +47,6 @@ export function MyEquipment({ searchTerm }: { searchTerm: string }) {
             item.serial.toLowerCase().includes(lowercasedTerm)
         );
     }, [equipment, searchTerm]);
-
-    const handleConditionUpdate = (updatedEquipment: Equipment) => {
-        setEquipment(prev => prev.map(eq => eq.id === updatedEquipment.id ? updatedEquipment : eq));
-    }
 
     return (
         <Card>
@@ -77,7 +75,7 @@ export function MyEquipment({ searchTerm }: { searchTerm: string }) {
                                     </Badge>
                                 </TableCell>
                                 <TableCell className="text-right space-x-2">
-                                     <ChangeEquipmentConditionDialog equipment={item} technicianId={LOGGED_IN_TECHNICIAN_ID} onUpdate={handleConditionUpdate} />
+                                     <ChangeEquipmentConditionDialog equipment={item} technicianId={LOGGED_IN_TECHNICIAN_ID} />
                                      <LogEquipmentServiceDialog equipment={item} technicianId={LOGGED_IN_TECHNICIAN_ID} />
                                 </TableCell>
                             </TableRow>
