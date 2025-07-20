@@ -5,14 +5,14 @@ import { useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
 import { useRole, UserRole } from '@/hooks/use-role';
+import { MyStock } from '@/components/dashboard/inventory/MyStock';
+import { MyRequests } from '@/components/dashboard/inventory/MyRequests';
 
 const allTabs = [
-    { id: 'my-stock', label: 'My Stock', roles: [UserRole.Technician] },
-    { id: 'my-equipment', label: 'My Equipment', roles: [UserRole.Technician] },
-    { id: 'my-requests', label: 'My Requests', roles: [UserRole.Technician] },
+    { id: 'my-stock', label: 'My Stock', roles: [UserRole.Technician], component: MyStock },
+    { id: 'my-requests', label: 'My Requests', roles: [UserRole.Technician], component: MyRequests },
     { id: 'pending-requests', label: 'Pending Requests', roles: [UserRole.Dispatcher, UserRole.Admin] },
     { id: 'shopping-list', label: 'Shopping List', roles: [UserRole.Dispatcher, UserRole.Admin] },
     { id: 'on-order', label: 'On-Order', roles: [UserRole.Dispatcher, UserRole.Admin] },
@@ -55,7 +55,7 @@ export default function InventoryPage() {
                  <div className="relative w-full max-w-sm">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input 
-                        placeholder="Search by Part #, SKU, Name, Category..." 
+                        placeholder="Search by Part #, SKU, Name..." 
                         className="pl-10"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -70,23 +70,30 @@ export default function InventoryPage() {
                     ))}
                 </TabsList>
                 
-                {visibleTabs.map(tab => (
-                    <TabsContent key={tab.id} value={tab.id}>
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>{tab.label}</CardTitle>
-                                <CardDescription>Content for {tab.label.toLowerCase()} will be displayed here.</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="flex items-center justify-center h-64 border-2 border-dashed rounded-lg">
-                                    <p className="text-muted-foreground">
-                                        Feature under construction.
-                                    </p>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
-                ))}
+                {visibleTabs.map(tab => {
+                    const TabComponent = tab.component;
+                    return (
+                        <TabsContent key={tab.id} value={tab.id}>
+                            {TabComponent ? (
+                                <TabComponent searchTerm={searchTerm} />
+                            ) : (
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle>{tab.label}</CardTitle>
+                                        <CardDescription>Content for {tab.label.toLowerCase()} will be displayed here.</CardDescription>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="flex items-center justify-center h-64 border-2 border-dashed rounded-lg">
+                                            <p className="text-muted-foreground">
+                                                Feature under construction.
+                                            </p>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            )}
+                        </TabsContent>
+                    )
+                })}
             </Tabs>
         </div>
     );

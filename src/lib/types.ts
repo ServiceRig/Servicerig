@@ -1,5 +1,6 @@
 
 
+
 // This file contains the TypeScript types for your Firestore collections.
 
 // A generic type for Firestore Timestamps. In Firestore, these are objects,
@@ -366,7 +367,7 @@ export type InventoryItem = {
   reorderThreshold: number;
   reorderQtyDefault: number;
   warehouseLocation: string;
-  truckLocations: {
+  truckLocations?: {
     technicianId: string;
     quantity: number;
   }[];
@@ -377,6 +378,20 @@ export type InventoryItem = {
   linkedEstimateItems?: string[];
   createdAt: Timestamp | Date;
 };
+
+export type PartRequest = {
+  id: string;
+  technicianId: string;
+  technicianName?: string;
+  itemId?: string; // Link to a specific inventory item if known
+  itemName: string; // Free text for quick requests
+  quantity: number;
+  jobId?: string; // Optional job reference
+  notes?: string;
+  status: 'pending' | 'fulfilled' | 'rejected';
+  createdAt: Timestamp | Date;
+  fulfilledAt?: Timestamp | Date;
+}
 
 
 // Form model from /forms/{formId}

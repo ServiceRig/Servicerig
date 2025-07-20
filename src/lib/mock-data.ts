@@ -1,6 +1,7 @@
 
 
-import { Customer, Invoice, Job, Technician, UserRole, Equipment, Estimate, EstimateTemplate, PricebookItem, InventoryItem, Payment, ServiceAgreement, Refund, TaxLine, PaymentPlan, Deposit, ChangeOrder, AuditLogEntry, TaxZone } from './types';
+
+import { Customer, Invoice, Job, Technician, UserRole, Equipment, Estimate, EstimateTemplate, PricebookItem, InventoryItem, Payment, ServiceAgreement, Refund, TaxLine, PaymentPlan, Deposit, ChangeOrder, AuditLogEntry, TaxZone, PartRequest } from './types';
 
 const getDay = (day: number) => {
     const newDate = new Date();
@@ -13,6 +14,11 @@ const getDay = (day: number) => {
 // Wrapping our mock data in a single object makes it mutable across requests
 // in a Node.js development server environment. This simulates a persistent store.
 export const mockData = {
+  partRequests: [
+    { id: 'req1', technicianId: 'tech1', technicianName: 'John Doe', itemName: 'Something for the job', quantity: 1, status: 'pending', createdAt: new Date(new Date().setDate(new Date().getDate() - 1)) },
+    { id: 'req2', technicianId: 'tech1', technicianName: 'John Doe', itemId: 'inv_part_004', itemName: 'Standard 1-Handle Faucet', quantity: 1, status: 'fulfilled', jobId: 'job2', createdAt: new Date(new Date().setDate(new Date().getDate() - 5)), fulfilledAt: new Date(new Date().setDate(new Date().getDate() - 4))},
+    { id: 'req3', technicianId: 'tech2', technicianName: 'Jane Smith', itemName: 'Universal Ignitor', quantity: 2, status: 'pending', createdAt: new Date() },
+  ] as PartRequest[],
   taxZones: [
     { id: 'ca-sv', name: 'California (Silicon Valley)', rate: 0.0925 },
     { id: 'il-metro', name: 'Illinois (Metropolis)', rate: 0.08 },
@@ -507,4 +513,4 @@ export const mockData = {
 };
 
 // Re-exporting for easy access if needed, but primary interaction should be via mockData
-export const { mockTechnicians, mockCustomers, mockJobs, mockInvoices, mockEquipment, mockEstimates, mockEstimateTemplates, mockPricebookItems, mockInventoryItems, mockPayments, mockServiceAgreements, mockRefunds, mockDeposits, mockChangeOrders, mockTaxZones } = mockData;
+export const { mockTechnicians, mockCustomers, mockJobs, mockInvoices, mockEquipment, mockEstimates, mockEstimateTemplates, mockPricebookItems, mockInventoryItems, mockPayments, mockServiceAgreements, mockRefunds, mockDeposits, mockChangeOrders, mockTaxZones, mockPartRequests } = mockData;
