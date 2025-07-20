@@ -1,12 +1,13 @@
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { CustomerLinkedRecords as RecordsType } from "@/lib/types";
-import { FileText, Calculator, FileDiff, ClipboardCheck } from "lucide-react";
+import { FileText, Calculator, FileDiff, ClipboardCheck, PiggyBank } from "lucide-react";
 import Link from "next/link";
 
 const recordItems = [
     { key: 'invoices', label: 'Invoices', icon: FileText, href: '#' },
     { key: 'estimates', label: 'Estimates', icon: Calculator, href: '#' },
+    { key: 'deposits', label: 'Deposits', icon: PiggyBank, href: '#' },
     { key: 'purchaseOrders', label: 'Purchase Orders', icon: FileDiff, href: '#' },
     { key: 'completedForms', label: 'Completed Forms', icon: ClipboardCheck, href: '#' },
 ]

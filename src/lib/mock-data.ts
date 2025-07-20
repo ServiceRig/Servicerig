@@ -1,6 +1,6 @@
 
 
-import { Customer, Invoice, Job, Technician, UserRole, Equipment, Estimate, EstimateTemplate, PricebookItem, InventoryItem, Payment, ServiceAgreement, Refund, TaxLine, PaymentPlan } from './types';
+import { Customer, Invoice, Job, Technician, UserRole, Equipment, Estimate, EstimateTemplate, PricebookItem, InventoryItem, Payment, ServiceAgreement, Refund, TaxLine, PaymentPlan, Deposit } from './types';
 
 const getDay = (day: number) => {
     const newDate = new Date();
@@ -13,6 +13,9 @@ const getDay = (day: number) => {
 // Wrapping our mock data in a single object makes it mutable across requests
 // in a Node.js development server environment. This simulates a persistent store.
 export const mockData = {
+  deposits: [
+    { id: 'dep1', customerId: 'cust2', amount: 500.00, status: 'available', createdAt: new Date('2024-07-01'), originalInvoiceId: 'inv_dep_123' },
+  ] as Deposit[],
   refunds: [
     { id: 'ref1', invoiceId: 'inv1', amount: 50.00, date: new Date('2024-07-16'), method: 'original_payment', reason: 'Goodwill gesture for delay', processedBy: 'user_admin_01' }
   ] as Refund[],
@@ -458,4 +461,4 @@ export const mockData = {
 };
 
 // Re-exporting for easy access if needed, but primary interaction should be via mockData
-export const { mockTechnicians, mockCustomers, mockJobs, mockInvoices, mockEquipment, mockEstimates, mockEstimateTemplates, mockPricebookItems, mockInventoryItems, mockPayments, mockServiceAgreements, mockRefunds } = mockData;
+export const { mockTechnicians, mockCustomers, mockJobs, mockInvoices, mockEquipment, mockEstimates, mockEstimateTemplates, mockPricebookItems, mockInventoryItems, mockPayments, mockServiceAgreements, mockRefunds, mockDeposits } = mockData;

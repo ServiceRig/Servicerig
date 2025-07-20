@@ -19,6 +19,7 @@ export async function getCustomerData(customerId: string): Promise<CustomerData 
   const equipmentForCustomer = mockData.equipment.filter(e => e.customerId === customerId);
   const invoicesForCustomer = mockData.invoices.filter(i => i.customerId === customerId);
   const estimatesForCustomer = await getEstimatesByCustomerId(customerId);
+  const depositsForCustomer = mockData.deposits.filter(d => d.customerId === customerId);
   
   // Enrich job data with technician names
   const enrichedJobs = jobsForCustomer.map(job => {
@@ -41,6 +42,7 @@ export async function getCustomerData(customerId: string): Promise<CustomerData 
     equipment: equipmentForCustomer,
     jobs: enrichedJobs,
     estimates: estimatesForCustomer,
+    deposits: depositsForCustomer,
     totals: {
       totalBilled,
       totalPaid,
@@ -51,6 +53,7 @@ export async function getCustomerData(customerId: string): Promise<CustomerData 
       estimates: estimatesForCustomer.length,
       invoices: invoicesForCustomer.length,
       completedForms: 3, // Placeholder
+      deposits: depositsForCustomer.filter(d => d.status === 'available').length,
     },
   };
 

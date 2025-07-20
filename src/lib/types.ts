@@ -197,6 +197,16 @@ export type PaymentPlan = {
     totalAmount: number;
 };
 
+export type Deposit = {
+    id: string;
+    customerId: string;
+    amount: number;
+    status: 'available' | 'applied';
+    createdAt: Timestamp | Date;
+    appliedToInvoiceId?: string;
+    originalInvoiceId?: string; // The invoice used to pay for the deposit
+}
+
 
 // Invoice model from /invoices/{invoiceId}
 export type Invoice = {
@@ -386,6 +396,7 @@ export interface CustomerLinkedRecords {
   estimates: number;
   invoices: number;
   completedForms: number;
+  deposits: number;
 }
 
 export interface CustomerData {
@@ -393,6 +404,7 @@ export interface CustomerData {
   equipment: Equipment[];
   jobs: (Job & { technicianName: string })[];
   estimates: Estimate[];
+  deposits: Deposit[];
   totals: CustomerTotals;
   linkedRecords: CustomerLinkedRecords;
 }
