@@ -15,8 +15,9 @@ import type { Customer, Job, LineItem, Invoice } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { updateInvoice } from '@/app/actions';
 import { useRole } from '@/hooks/use-role';
-import { notFound } from 'next/navigation';
+import { notFound, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { getCustomerById } from '@/lib/firestore/customers';
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
@@ -35,10 +36,12 @@ function SubmitButton({ disabled }: { disabled?: boolean }) {
 function EditInvoicePageContent({ params }: { params: { invoiceId: string }}) {
     const { invoiceId } = params;
     const { toast } = useToast();
+    const router = useRouter();
     const [updateInvoiceState, formAction] = useActionState(updateInvoice, { success: false, message: null, errors: null });
     const { role } = useRole();
     
     const [invoice, setInvoice] = useState<Invoice | null>(null);
+    const [customer, setCustomer] = useState<Customer | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     
     const [invoiceTitle, setInvoiceTitle] = useState('');
@@ -48,27 +51,41 @@ function EditInvoicePageContent({ params }: { params: { invoiceId: string }}) {
 
     useEffect(() => {
         const fetchInvoice = async () => {
+            setIsLoading(true);
             const fetchedInvoice = mockData.invoices.find(inv => inv.id === invoiceId);
-            if (fetchedInvoice) {
-                if (fetchedInvoice.status !== 'draft') {
-                    toast({
-                        variant: 'destructive',
-                        title: 'Cannot Edit',
-                        description: 'Only draft invoices can be edited.',
-                    });
-                    return notFound();
-                }
-                setInvoice(fetchedInvoice);
-                setInvoiceTitle(fetchedInvoice.title);
-                setLineItems(fetchedInvoice.lineItems);
-                setTaxRate(fetchedInvoice.taxes?.[0]?.rate || 0);
-            } else {
+
+            if (!fetchedInvoice) {
                 notFound();
+                return;
             }
+
+            if (fetchedInvoice.status !== 'draft') {
+                toast({
+                    variant: 'destructive',
+                    title: 'Cannot Edit',
+                    description: 'Only draft invoices can be edited. Redirecting...',
+                });
+                router.replace(`/dashboard/invoices/${invoiceId}?role=${role || 'admin'}`);
+                return;
+            }
+
+            const fetchedCustomer = await getCustomerById(fetchedInvoice.customerId);
+
+            if (fetchedCustomer) {
+                setCustomer(fetchedCustomer);
+                setTaxRate(mockData.taxZones.find(tz => tz.id === fetchedCustomer.taxRegion)?.rate || 0);
+            }
+
+            setInvoice(fetchedInvoice);
+            setInvoiceTitle(fetchedInvoice.title);
+            setLineItems(fetchedInvoice.lineItems);
             setIsLoading(false);
         };
-        fetchInvoice();
-    }, [invoiceId, toast]);
+        
+        if (role) { // only fetch when role is determined
+             fetchInvoice();
+        }
+    }, [invoiceId, toast, router, role]);
   
     useEffect(() => {
         if (updateInvoiceState?.message && !updateInvoiceState.success) {
@@ -118,7 +135,7 @@ function EditInvoicePageContent({ params }: { params: { invoiceId: string }}) {
         );
     }
 
-    if (!invoice) {
+    if (!invoice || !customer) {
         return notFound();
     }
 
@@ -153,7 +170,7 @@ function EditInvoicePageContent({ params }: { params: { invoiceId: string }}) {
                                 <CardDescription>This information cannot be changed after invoice creation.</CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <p><strong>Customer:</strong> {invoice.customerName}</p>
+                                <p><strong>Customer:</strong> {customer.primaryContact.name}</p>
                                 <p><strong>Jobs:</strong> {invoice.jobIds?.join(', ')}</p>
                             </CardContent>
                         </Card>
@@ -204,8 +221,8 @@ function EditInvoicePageContent({ params }: { params: { invoiceId: string }}) {
                                     <span>{formatCurrency(subtotal)}</span>
                                 </div>
                                  <div className="flex justify-between items-center">
-                                    <Label htmlFor="tax" className="text-muted-foreground">Tax Rate (%)</Label>
-                                    <Input id="tax" type="number" value={taxRate * 100} onChange={(e: ChangeEvent<HTMLInputElement>) => setTaxRate(parseFloat(e.target.value) / 100 || 0)} className="w-24 h-8 text-right" />
+                                    <Label htmlFor="tax" className="text-muted-foreground">Tax Rate</Label>
+                                    <p className="font-medium">{taxRate * 100}%</p>
                                 </div>
                                 <Separator />
                                 <div className="flex justify-between text-xl font-bold">
