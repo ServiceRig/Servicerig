@@ -1,6 +1,6 @@
 
 'use client';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState, useFormStatus } from 'react-dom';
 import { getTieredEstimates } from '@/app/actions';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -24,7 +24,7 @@ function SubmitButton() {
 
 export function AiEstimator() {
   const initialState = { message: null, errors: null, data: null };
-  const [state, dispatch] = useFormState(getTieredEstimates, initialState);
+  const [state, dispatch] = useActionState(getTieredEstimates, initialState);
   const { toast } = useToast();
 
   useEffect(() => {
