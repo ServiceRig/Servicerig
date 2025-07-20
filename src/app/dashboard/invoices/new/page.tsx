@@ -29,7 +29,6 @@ function SubmitButton({ disabled }: { disabled?: boolean }) {
         <Button 
             type="submit" 
             disabled={pending || disabled} 
-            form="invoice-form"
         >
             {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
             {pending ? 'Saving...' : 'Save as Draft'}
@@ -140,8 +139,8 @@ function NewInvoicePageContent() {
     }, [selectedCustomerId, invoiceTitle, selectedJobIds]);
 
     return (
-        <div className="space-y-6">
-            <form id="invoice-form" action={formAction}>
+        <form action={formAction}>
+            <div className="space-y-6">
                 <input type="hidden" name="customerId" value={selectedCustomerId} />
                 <input type="hidden" name="jobIds" value={JSON.stringify(Array.from(selectedJobIds))} />
                 <input type="hidden" name="title" value={invoiceTitle} />
@@ -156,7 +155,7 @@ function NewInvoicePageContent() {
                     <SubmitButton disabled={!isFormSubmittable} />
                 </div>
 
-                <Separator className="my-6" />
+                <Separator />
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div className="lg:col-span-2 space-y-6">
@@ -206,8 +205,8 @@ function NewInvoicePageContent() {
                             </CardHeader>
                             <CardContent>
                                 <div className="grid gap-2 mb-4">
-                                    <Label htmlFor="title">Invoice Title</Label>
-                                    <Input id="title" placeholder="e.g., HVAC Repair" value={invoiceTitle} onChange={e => setInvoiceTitle(e.target.value)} required />
+                                    <Label htmlFor="title-input">Invoice Title</Label>
+                                    <Input id="title-input" placeholder="e.g., HVAC Repair" value={invoiceTitle} onChange={e => setInvoiceTitle(e.target.value)} required />
                                 </div>
                                 <Table>
                                     <TableHeader>
@@ -257,8 +256,8 @@ function NewInvoicePageContent() {
                         </Card>
                     </div>
                 </div>
-            </form>
-        </div>
+            </div>
+        </form>
     );
 }
 
