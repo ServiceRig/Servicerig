@@ -1,8 +1,9 @@
 
+
 import { mockData } from './mock-data';
 import { getJobsByCustomerId } from './firestore/jobs';
 import { getEstimatesByCustomerId, getEstimatesByJobId, getEstimateById } from './firestore/estimates';
-import type { CustomerData, JobData, EstimateData } from './types';
+import type { CustomerData, JobData, EstimateData, PurchaseOrderData } from './types';
 
 // In a real app, these would be Firestore SDK calls (getDoc, getDocs, query, where).
 // For now, we simulate the data fetching and shaping.
@@ -111,4 +112,34 @@ export async function getEstimateData(estimateId: string): Promise<EstimateData 
     };
 
     return estimateData;
+}
+
+export async function getPurchaseOrderData(poId: string): Promise<PurchaseOrderData | null> {
+  const po = mockData.purchaseOrders.find(p => p.id === poId);
+  if (!po) {
+    return null;
+  }
+
+  // Enrich parts data with names
+  po.parts = po.parts.map(part => {
+    const itemDetails = mockData.inventoryItems.find(i => i.id === part.partId);
+    return { ...part, itemName: itemDetails?.name || 'Unknown Part' };
+  });
+
+  const requestedBy = mockData.technicians.find(t => t.id === po.requestedBy)?.name || null;
+  
+  let destinationName = 'Warehouse';
+  if (po.destination !== 'Warehouse') {
+    destinationName = mockData.technicians.find(t => t.id === po.destination)?.name || 'Unknown Technician';
+  }
+
+  const poData: PurchaseOrderData = {
+    po,
+    requestedBy,
+    destinationName,
+  };
+  
+  await new Promise(resolve => setTimeout(resolve, 300));
+
+  return poData;
 }

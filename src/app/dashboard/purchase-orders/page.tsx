@@ -191,7 +191,9 @@ export default function PurchaseOrdersPage() {
                                                 </Button>
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent>
-                                                <DropdownMenuItem onSelect={() => alert(`Viewing details for ${po.id}`)}>View Full Details</DropdownMenuItem>
+                                                <DropdownMenuItem asChild>
+                                                    <Link href={getHref(`/dashboard/purchase-orders/${po.id}`)}>View Full Details</Link>
+                                                </DropdownMenuItem>
                                                 <DropdownMenuItem>Mark as Received</DropdownMenuItem>
                                             </DropdownMenuContent>
                                         </DropdownMenu>

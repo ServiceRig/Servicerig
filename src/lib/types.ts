@@ -348,6 +348,7 @@ export type PurchaseOrderPart = {
     partId: string;
     qty: number;
     unitCost: number;
+    itemName?: string; // For UI enrichment
 }
 
 // PurchaseOrder model from /purchaseOrders/{poId}
@@ -515,6 +516,12 @@ export interface EstimateData {
     estimate: Estimate;
     customer: Customer;
     job: Job | null;
+}
+
+export interface PurchaseOrderData {
+    po: PurchaseOrder;
+    requestedBy: string | null;
+    destinationName: string;
 }
 
 
