@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useRef } from 'react';
@@ -69,42 +70,77 @@ export function FieldPurchase({ jobs }: { jobs: Job[] }) {
     };
     
     const handleSubmit = () => {
-        if (!selectedJobId || parts.length === 0 || !receiptImage || totalCost <= 0 || !vendorName) {
+        if (parts.length === 0 || !receiptImage || totalCost <= 0 || !vendorName) {
             toast({
                 variant: 'destructive',
                 title: 'Missing Information',
-                description: 'Please select a job and fill all required fields, including receipt photo.',
+                description: 'Please provide vendor, parts, total cost, and a receipt photo.',
             });
             return;
         }
 
         setIsLoading(true);
+        const loggedInTechId = 'tech1'; // This should come from auth context
 
         const newPO: PurchaseOrder = {
             id: `po_field_${Date.now()}`,
             vendor: vendorName,
             parts: parts.map(p => ({ partId: p.id, qty: p.qty, unitCost: p.unitCost })),
             total: totalCost,
-            status: 'completed',
-            destination: 'tech1', // This should be dynamic based on logged in user
+            status: 'field-purchased',
+            destination: loggedInTechId,
             orderDate: new Date(),
             isFieldPurchase: true,
-            jobId: selectedJobId,
+            jobId: selectedJobId || undefined,
             receiptImage: receiptImage,
             createdAt: new Date(),
             updatedAt: new Date(),
+            requestedBy: loggedInTechId,
         };
 
         // Simulate server action
         setTimeout(() => {
+            // 1. Add PO to the system
             mockData.purchaseOrders.unshift(newPO);
             
-            // Here you would also update truck stock quantities in a real DB
-            // For now, we'll just log it
-            console.log('New Field PO created:', newPO);
-            console.log('Parts to add to truck stock:', parts);
+            // 2. Add purchased items to tech's truck stock
+            parts.forEach(part => {
+                const existingItem = mockData.inventoryItems.find((i: any) => i.name.toLowerCase() === part.name.toLowerCase());
+                if (existingItem) {
+                    // Update existing item
+                    const truckStock = existingItem.truckLocations?.find(loc => loc.technicianId === loggedInTechId);
+                    if (truckStock) {
+                        truckStock.quantity += part.qty;
+                    } else {
+                        if (!existingItem.truckLocations) existingItem.truckLocations = [];
+                        existingItem.truckLocations.push({ technicianId: loggedInTechId, quantity: part.qty });
+                    }
+                } else {
+                    // Create new inventory item if it doesn't exist
+                    const newItem = {
+                        id: part.id,
+                        name: part.name,
+                        description: 'Field purchased item',
+                        sku: `FIELD-${part.id}`,
+                        partNumber: `FIELD-${part.id}`,
+                        modelNumber: `FIELD-${part.id}`,
+                        warehouseLocation: '',
+                        quantityOnHand: 0,
+                        reorderThreshold: 0,
+                        unitCost: part.unitCost,
+                        ourPrice: part.unitCost * 1.5, // Simple markup
+                        vendor: vendorName,
+                        trade: 'General',
+                        category: 'Field Purchase',
+                        reorderQtyDefault: 1,
+                        truckLocations: [{ technicianId: loggedInTechId, quantity: part.qty }],
+                        createdAt: new Date()
+                    }
+                    mockData.inventoryItems.push(newItem);
+                }
+            })
 
-            toast({ title: 'Field Purchase Logged', description: `PO ${newPO.id} has been created and marked as complete.` });
+            toast({ title: 'Field Purchase Logged', description: `PO ${newPO.id} created and parts added to your truck stock.` });
 
             // Reset form
             setSelectedJobId('');
@@ -116,20 +152,20 @@ export function FieldPurchase({ jobs }: { jobs: Job[] }) {
         }, 1000);
     };
     
-    const canSubmit = selectedJobId && parts.length > 0 && receiptImage && totalCost > 0 && vendorName;
+    const canSubmit = parts.length > 0 && receiptImage && totalCost > 0 && vendorName;
 
     return (
         <Card className="w-full">
             <CardHeader>
                 <CardTitle className="flex items-center gap-2"><ShoppingCart className="h-6 w-6"/>Log a Field Purchase</CardTitle>
-                <CardDescription>Track parts bought on the go and assign them to a job.</CardDescription>
+                <CardDescription>Track parts bought on the go and assign them to a job or your truck stock.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                        <Label htmlFor="job-select">Select Job</Label>
+                        <Label htmlFor="job-select">Link to Job (Optional)</Label>
                         <Select value={selectedJobId} onValueChange={setSelectedJobId}>
-                            <SelectTrigger id="job-select"><SelectValue placeholder="Link to a job..." /></SelectTrigger>
+                            <SelectTrigger id="job-select"><SelectValue placeholder="Select a job..." /></SelectTrigger>
                             <SelectContent>
                                 {jobs.map(job => <SelectItem key={job.id} value={job.id}>{job.title}</SelectItem>)}
                             </SelectContent>
