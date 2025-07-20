@@ -648,7 +648,7 @@ function InvoiceDetailsPageContent({ invoiceId }: { invoiceId: string }) {
                     </InfoCard>
                 ))}
                 {invoice.linkedChangeOrderIds && invoice.linkedChangeOrderIds.map(coId => (
-                     <InfoCard icon={FileDiff} label="Change Order">
+                     <InfoCard key={coId} icon={FileDiff} label="Change Order">
                         <Link href={`/dashboard/change-orders/${coId}?role=${role}`} className="text-primary hover:underline">{coId}</Link>
                     </InfoCard>
                 ))}

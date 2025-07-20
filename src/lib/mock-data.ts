@@ -1,6 +1,6 @@
 
 
-import { Customer, Invoice, Job, Technician, UserRole, Equipment, Estimate, EstimateTemplate, PricebookItem, InventoryItem, Payment, ServiceAgreement, Refund, TaxLine, PaymentPlan, Deposit } from './types';
+import { Customer, Invoice, Job, Technician, UserRole, Equipment, Estimate, EstimateTemplate, PricebookItem, InventoryItem, Payment, ServiceAgreement, Refund, TaxLine, PaymentPlan, Deposit, ChangeOrder } from './types';
 
 const getDay = (day: number) => {
     const newDate = new Date();
@@ -13,6 +13,38 @@ const getDay = (day: number) => {
 // Wrapping our mock data in a single object makes it mutable across requests
 // in a Node.js development server environment. This simulates a persistent store.
 export const mockData = {
+  changeOrders: [
+    {
+      id: 'co1',
+      jobId: 'job1',
+      customerId: 'cust1',
+      title: 'Upgrade to Smart Thermostat',
+      description: 'Customer requested an upgrade from the standard thermostat to a Nest Smart Thermostat.',
+      lineItems: [
+        { description: 'Nest Learning Thermostat', quantity: 1, unitPrice: 249.00 },
+        { description: 'Additional Labor for Setup', quantity: 1, unitPrice: 75.00 },
+      ],
+      total: 324.00,
+      status: 'approved',
+      createdAt: new Date('2024-07-10T11:00:00Z'),
+      updatedAt: new Date('2024-07-10T11:30:00Z'),
+    },
+    {
+      id: 'co2',
+      jobId: 'job2',
+      customerId: 'cust2',
+      title: 'Additional Outlet Installation',
+      description: 'While on site, customer requested an additional GFCI outlet to be installed by the sink.',
+       lineItems: [
+        { description: '15 Amp GFCI Outlet', quantity: 1, unitPrice: 28.00 },
+        { description: 'Labor for new outlet', quantity: 1, unitPrice: 120.00 },
+      ],
+      total: 148.00,
+      status: 'invoiced',
+      createdAt: new Date('2024-06-01T11:00:00Z'),
+      updatedAt: new Date('2024-06-01T11:30:00Z'),
+    }
+  ] as ChangeOrder[],
   deposits: [
     { id: 'dep1', customerId: 'cust2', amount: 500.00, status: 'available', createdAt: new Date('2024-07-01'), originalInvoiceId: 'inv_dep_123' },
   ] as Deposit[],
@@ -253,6 +285,7 @@ export const mockData = {
       paymentTerms: 'Due on receipt',
       createdAt: new Date('2024-06-01'),
       linkedEstimateIds: ['est2'],
+      linkedChangeOrderIds: ['co2'],
       quickbooksSync: {
         status: 'error',
         lastSync: new Date(new Date().getTime() - 24 * 60 * 60 * 1000), // 1 day ago
@@ -461,4 +494,4 @@ export const mockData = {
 };
 
 // Re-exporting for easy access if needed, but primary interaction should be via mockData
-export const { mockTechnicians, mockCustomers, mockJobs, mockInvoices, mockEquipment, mockEstimates, mockEstimateTemplates, mockPricebookItems, mockInventoryItems, mockPayments, mockServiceAgreements, mockRefunds, mockDeposits } = mockData;
+export const { mockTechnicians, mockCustomers, mockJobs, mockInvoices, mockEquipment, mockEstimates, mockEstimateTemplates, mockPricebookItems, mockInventoryItems, mockPayments, mockServiceAgreements, mockRefunds, mockDeposits, mockChangeOrders } = mockData;

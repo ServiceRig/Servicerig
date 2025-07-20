@@ -3,7 +3,7 @@
 // This file contains the TypeScript types for your Firestore collections.
 
 // A generic type for Firestore Timestamps. In Firestore, these are objects,
-// but in the client, we'll often work with JS Date objects. For simplicity,
+// but in the client, we'll often work with with JS Date objects. For simplicity,
 // we'll use the Date type directly in our mock data and client-side logic.
 export type Timestamp = {
   seconds: number;
@@ -295,13 +295,18 @@ export interface GbbEstimate {
 
 // ChangeOrder model from /changeOrders/{changeOrderId}
 export interface ChangeOrder {
+  id: string;
   jobId: string;
   customerId: string;
+  title: string;
   description: string;
-  amountDelta: number;
-  approved: boolean;
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
+  lineItems: LineItem[];
+  total: number;
+  status: 'draft' | 'approved' | 'rejected' | 'invoiced';
+  createdAt: Timestamp | Date;
+  updatedAt: Timestamp | Date;
+  customerName?: string; // For UI enrichment
+  jobTitle?: string; // For UI enrichment
 }
 
 // PurchaseOrder model from /purchaseOrders/{poId}
