@@ -7,7 +7,7 @@ import { addEstimate as addEstimateToDb, getEstimateById, updateEstimate as upda
 import { addJob as addJobToDb, getJobById, updateJob } from "@/lib/firestore/jobs";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import type { Estimate, GbbTier, LineItem, PricebookItem, Job, Invoice } from "@/lib/types";
+import type { Estimate, GbbTier, LineItem, PricebookItem, Job, Invoice, EquipmentLog } from "@/lib/types";
 import { addEstimateTemplate } from "@/lib/firestore/templates";
 import { mockData } from "@/lib/mock-data";
 import { addPricebookItem } from "@/lib/firestore/pricebook";
@@ -721,4 +721,45 @@ export async function updateInvoice(prevState: UpdateInvoiceState, formData: For
     
     const role = formData.get('role') as string;
     redirect(`/dashboard/invoices/${validatedFields.data.invoiceId}?role=${role}`);
+}
+
+const addEquipmentLogSchema = z.object({
+  equipmentId: z.string(),
+  technicianId: z.string(),
+  logType: z.enum(['usage', 'repair', 'inspection', 'note']),
+  notes: z.string().min(1, 'Notes are required.'),
+});
+
+type AddEquipmentLogState = {
+    success: boolean;
+    message: string;
+}
+
+export async function addEquipmentLog(prevState: AddEquipmentLogState, formData: FormData): Promise<AddEquipmentLogState> {
+    const validatedFields = addEquipmentLogSchema.safeParse({
+        equipmentId: formData.get('equipmentId'),
+        technicianId: formData.get('technicianId'),
+        logType: formData.get('logType'),
+        notes: formData.get('notes'),
+    });
+
+    if (!validatedFields.success) {
+        return { success: false, message: 'Invalid data provided.' };
+    }
+
+    try {
+        const newLog: EquipmentLog = {
+            id: `log_${Date.now()}`,
+            equipmentId: validatedFields.data.equipmentId,
+            technicianId: validatedFields.data.technicianId,
+            type: validatedFields.data.logType,
+            notes: validatedFields.data.notes,
+            timestamp: new Date(),
+        };
+        mockData.equipmentLogs.unshift(newLog);
+        revalidatePath('/dashboard/inventory'); // Revalidate to update the log view
+        return { success: true, message: 'Service log added successfully.' };
+    } catch(e) {
+        return { success: false, message: 'Failed to add service log.' };
+    }
 }

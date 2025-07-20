@@ -10,6 +10,7 @@ import { mockData } from '@/lib/mock-data';
 import type { Equipment } from '@/lib/types';
 import { Wrench } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { LogEquipmentServiceDialog } from './LogEquipmentServiceDialog';
 
 const LOGGED_IN_TECHNICIAN_ID = 'tech1';
 
@@ -71,9 +72,7 @@ export function MyEquipment({ searchTerm }: { searchTerm: string }) {
                                     </Badge>
                                 </TableCell>
                                 <TableCell className="text-right space-x-2">
-                                     <Button variant="outline" size="sm">
-                                        <Wrench className="mr-2 h-4 w-4" /> Log Service
-                                    </Button>
+                                     <LogEquipmentServiceDialog equipment={item} technicianId={LOGGED_IN_TECHNICIAN_ID} />
                                 </TableCell>
                             </TableRow>
                         )) : (
