@@ -39,7 +39,7 @@ const settingsLinks = [
         href: '/dashboard/settings/appearance',
         icon: Palette,
         title: 'Appearance',
-        description: 'Customize the look and feel of the application.'
+        description: 'Customize the look and feel of your customer-facing documents.'
     }
 ]
 
