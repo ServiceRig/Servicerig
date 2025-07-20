@@ -16,7 +16,6 @@ export async function getEstimateById(id: string): Promise<Estimate | null> {
     await new Promise(resolve => setTimeout(resolve, 50));
 
     if (!estimate) {
-        console.error(`Estimate with id ${id} not found.`);
         return null;
     }
     return estimate;
