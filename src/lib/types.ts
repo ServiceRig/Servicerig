@@ -49,6 +49,9 @@ export type Customer = {
   equipmentIds?: string[];
   createdAt: Timestamp | Date;
   updatedAt: Timestamp | Date;
+  hasOpenInvoices?: boolean; // For UI badge
+  smartTags?: ('High Churn Risk' | 'Frequent No-Show' | 'Recent Issue')[];
+  recentTechnicians?: { id: string; name: string; avatarUrl?: string }[];
 };
 
 

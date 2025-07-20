@@ -9,6 +9,8 @@ import { CustomerLinkedRecords } from '@/components/dashboard/customer/CustomerL
 import { Separator } from '@/components/ui/separator';
 import { CustomerEstimates } from '@/components/dashboard/customer/CustomerEstimates';
 import { CustomerDeposits } from '@/components/dashboard/customer/CustomerDeposits';
+import { CustomerQuickNotes } from '@/components/dashboard/customer/CustomerQuickNotes';
+import { CustomerRecentTechnicians } from '@/components/dashboard/customer/CustomerRecentTechnicians';
 
 export default async function CustomerDetailsPage({ params }: { params: { customerId: string } }) {
   const customerId = params.customerId;
@@ -31,7 +33,9 @@ export default async function CustomerDetailsPage({ params }: { params: { custom
           <CustomerEstimates estimates={estimates} />
         </div>
         <div className="space-y-6">
+          <CustomerQuickNotes customerId={customer.id} />
           <CustomerEquipment equipment={equipment} />
+          <CustomerRecentTechnicians technicians={customer.recentTechnicians || []} />
           <CustomerDeposits deposits={deposits} />
           <CustomerLinkedRecords records={linkedRecords} />
         </div>

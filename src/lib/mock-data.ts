@@ -212,6 +212,12 @@ export const mockData: { [key: string]: any[] } = {
       taxRegion: 'ca-sv',
       createdAt: new Date(),
       updatedAt: new Date(),
+      hasOpenInvoices: true,
+      smartTags: ['High Churn Risk'],
+      recentTechnicians: [
+          { id: 'tech1', name: 'John Doe' },
+          { id: 'tech2', name: 'Jane Smith' },
+      ],
     },
     {
       id: 'cust2',
@@ -220,6 +226,13 @@ export const mockData: { [key: string]: any[] } = {
       taxRegion: 'il-metro',
       createdAt: new Date(),
       updatedAt: new Date(),
+      hasOpenInvoices: true,
+      smartTags: ['Recent Issue'],
+       recentTechnicians: [
+          { id: 'tech2', name: 'Jane Smith' },
+          { id: 'tech3', name: 'Mike Johnson' },
+          { id: 'tech4', name: 'Emily Brown' },
+      ],
     },
       {
       id: 'cust3',
@@ -228,6 +241,11 @@ export const mockData: { [key: string]: any[] } = {
       taxRegion: 'ny-gotham',
       createdAt: new Date(),
       updatedAt: new Date(),
+      hasOpenInvoices: false,
+      smartTags: [],
+       recentTechnicians: [
+          { id: 'tech1', name: 'John Doe' },
+      ],
     },
   ] as Customer[],
   jobs: [

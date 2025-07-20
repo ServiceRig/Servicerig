@@ -32,10 +32,9 @@ export async function getCustomerData(customerId: string): Promise<CustomerData 
   });
 
   // Simulate financial calculations
-  const totalBilled = invoicesForCustomer.reduce((sum, inv) => sum + inv.amount, 0);
+  const totalBilled = invoicesForCustomer.reduce((sum, inv) => sum + inv.total, 0);
   const totalPaid = invoicesForCustomer
-    .filter(inv => inv.status === 'Paid')
-    .reduce((sum, inv) => sum + inv.amount, 0);
+    .reduce((sum, inv) => sum + inv.amountPaid, 0);
 
   // Combine into the final data structure
   const customerData: CustomerData = {
