@@ -791,7 +791,6 @@ export async function updateEquipmentCondition(prevState: UpdateEquipmentConditi
     const { equipmentId, technicianId, newCondition, notes } = validatedFields.data;
 
     try {
-        // In a real app, you would fetch and update the document in Firestore
         const equipmentIndex = mockData.equipment.findIndex((eq: Equipment) => eq.id === equipmentId);
         if (equipmentIndex === -1) {
             return { success: false, message: 'Equipment not found.' };
