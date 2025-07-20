@@ -3,6 +3,7 @@
 'use client';
 
 import React, { useState, useEffect, Suspense, use } from 'react';
+import { useFormStatus } from 'react-dom';
 import { notFound, useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -279,7 +280,7 @@ function PaymentPlanCard({ invoice }: { invoice: Invoice }) {
 
 // Internal component to use useFormStatus hook correctly
 function AnalyzeButton() {
-    const { pending } = React.useFormStatus();
+    const { pending } = useFormStatus();
     return (
         <Button type="submit" disabled={pending} className="w-full">
             {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
@@ -359,12 +360,12 @@ function InvoiceDetailsPageContent({ invoiceId }: { invoiceId: string }) {
         if (!fetchedInvoice && newInvoiceDataParam) {
             console.log("Invoice not found in DB, using fallback from URL params.");
             try {
-                fetchedInvoice = JSON.parse(decodeURIComponent(newInvoiceDataParam));
+                const parsedData = JSON.parse(decodeURIComponent(newInvoiceDataParam));
                  // Enrich with customer and job data since it won't be in the param
-                if (fetchedInvoice) {
-                  const customer = mockData.customers.find(c => c.id === fetchedInvoice!.customerId);
-                  const jobs = (fetchedInvoice!.jobIds || []).map(jobId => mockData.jobs.find(j => j.id === jobId)).filter(Boolean) as Job[];
-                  fetchedInvoice = { ...fetchedInvoice, customer: customer as Customer, jobs, payments: [], refunds: [] };
+                if (parsedData) {
+                  const customer = mockData.customers.find(c => c.id === parsedData.customerId);
+                  const jobs = (parsedData.jobIds || []).map((jobId: string) => mockData.jobs.find(j => j.id === jobId)).filter(Boolean) as Job[];
+                  fetchedInvoice = { ...parsedData, customer: customer as Customer, jobs, payments: [], refunds: [] };
                 }
             } catch(e) {
                 console.error("Failed to parse invoice data from URL", e);
@@ -741,7 +742,7 @@ export default function InvoiceDetailsPage({ params }: { params: { invoiceId: st
     const resolvedParams = use(params);
     return (
         <TooltipProvider>
-            <Suspense fallback={<div>Loading invoice details...</div>}>
+            <Suspense fallback={<div className="flex items-center justify-center h-64"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>}>
                 <InvoiceDetailsPageContent invoiceId={resolvedParams.invoiceId} />
             </Suspense>
         </TooltipProvider>
