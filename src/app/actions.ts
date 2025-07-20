@@ -696,7 +696,7 @@ export async function updateInvoice(prevState: UpdateInvoiceState, formData: For
         const subtotal = lineItems.reduce((acc, item) => acc + item.quantity * item.unitPrice, 0);
         const taxZone = mockData.taxZones.find(zone => zone.id === customer.taxRegion);
         const taxRate = taxZone ? taxZone.rate : 0;
-        const tax = subtotal + taxRate;
+        const tax = subtotal * taxRate;
         const total = subtotal + tax;
 
         const updatedInvoice: Invoice = {
@@ -821,5 +821,3 @@ export async function updateEquipmentCondition(prevState: UpdateEquipmentConditi
         return { success: false, message: 'Failed to update equipment condition.' };
     }
 }
-
-    

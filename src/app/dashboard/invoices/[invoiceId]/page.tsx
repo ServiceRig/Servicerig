@@ -752,4 +752,3 @@ export default function InvoiceDetailsPage({ params }: { params: { invoiceId: st
         </TooltipProvider>
     )
 }
-
