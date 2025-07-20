@@ -65,10 +65,15 @@ export function MyStock({ searchTerm }: { searchTerm: string }) {
 
     const filteredStock = useMemo(() => {
         if (!searchTerm) return truckStock;
+        const lowercasedTerm = searchTerm.toLowerCase();
         return truckStock.filter(item => 
-            item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.partNumber.toLowerCase().includes(searchTerm.toLowerCase())
+            item.name.toLowerCase().includes(lowercasedTerm) ||
+            item.sku.toLowerCase().includes(lowercasedTerm) ||
+            item.partNumber.toLowerCase().includes(lowercasedTerm) ||
+            item.modelNumber.toLowerCase().includes(lowercasedTerm) ||
+            item.description.toLowerCase().includes(lowercasedTerm) ||
+            item.category.toLowerCase().includes(lowercasedTerm) ||
+            item.trade.toLowerCase().includes(lowercasedTerm)
         );
     }, [truckStock, searchTerm]);
 

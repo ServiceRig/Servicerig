@@ -19,12 +19,15 @@ export function WarehouseStock({ searchTerm }: { searchTerm: string }) {
 
     const filteredStock = useMemo(() => {
         if (!searchTerm) return stock;
+        const lowercasedTerm = searchTerm.toLowerCase();
         return stock.filter(item => 
-            item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.partNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.trade.toLowerCase().includes(searchTerm.toLowerCase())
+            item.name.toLowerCase().includes(lowercasedTerm) ||
+            item.sku.toLowerCase().includes(lowercasedTerm) ||
+            item.partNumber.toLowerCase().includes(lowercasedTerm) ||
+            item.modelNumber.toLowerCase().includes(lowercasedTerm) ||
+            item.description.toLowerCase().includes(lowercasedTerm) ||
+            item.category.toLowerCase().includes(lowercasedTerm) ||
+            item.trade.toLowerCase().includes(lowercasedTerm)
         );
     }, [stock, searchTerm]);
 

@@ -37,9 +37,10 @@ export function EquipmentLog({ searchTerm }: { searchTerm: string }) {
 
     const filteredLogs = useMemo(() => {
         return equipmentLogs.filter(log => {
+            const lowercasedTerm = searchTerm.toLowerCase();
             const matchesSearch = searchTerm ? (
-                log.notes.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                log.equipmentName?.toLowerCase().includes(searchTerm.toLowerCase())
+                log.notes.toLowerCase().includes(lowercasedTerm) ||
+                (log.equipmentName && log.equipmentName.toLowerCase().includes(lowercasedTerm))
             ) : true;
             const matchesEquipment = equipmentFilter === 'all' || log.equipmentId === equipmentFilter;
             const matchesTechnician = technicianFilter === 'all' || log.technicianId === technicianFilter;
@@ -62,7 +63,7 @@ export function EquipmentLog({ searchTerm }: { searchTerm: string }) {
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">All Equipment</SelectItem>
-                            {uniqueEquipment.map(e => <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>)}
+                            {uniqueEquipment.map(e => <SelectItem key={e.id} value={e.id || ''}>{e.name}</SelectItem>)}
                         </SelectContent>
                     </Select>
                      <Select value={technicianFilter} onValueChange={setTechnicianFilter}>
@@ -71,7 +72,7 @@ export function EquipmentLog({ searchTerm }: { searchTerm: string }) {
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">All Technicians</SelectItem>
-                             {uniqueTechnicians.map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+                             {uniqueTechnicians.map(t => <SelectItem key={t.id} value={t.id || ''}>{t.name}</SelectItem>)}
                         </SelectContent>
                     </Select>
                 </div>
