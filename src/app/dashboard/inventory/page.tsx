@@ -18,10 +18,11 @@ import { AssetValue } from '@/components/dashboard/inventory/AssetValue';
 import { MyEquipment } from '@/components/dashboard/inventory/MyEquipment';
 import { OnOrder } from '@/components/dashboard/inventory/OnOrder';
 import { CompletedOrders } from '@/components/dashboard/inventory/CompletedOrders';
+import { TruckStock } from '@/components/dashboard/inventory/TruckStock';
 
 
 const allTabs = [
-    { id: 'my-stock', label: 'My Stock', roles: [UserRole.Technician], component: MyStock },
+    { id: 'my-stock', label: 'My Truck Stock', roles: [UserRole.Technician], component: MyStock },
     { id: 'my-equipment', label: 'My Equipment', roles: [UserRole.Technician], component: MyEquipment },
     { id: 'my-requests', label: 'My Requests', roles: [UserRole.Technician], component: MyRequests },
     { id: 'pending-requests', label: 'Pending Requests', roles: [UserRole.Dispatcher, UserRole.Admin], component: PendingRequests },
@@ -29,6 +30,7 @@ const allTabs = [
     { id: 'on-order', label: 'On-Order', roles: [UserRole.Dispatcher, UserRole.Admin], component: OnOrder },
     { id: 'completed', label: 'Completed', roles: [UserRole.Dispatcher, UserRole.Admin], component: CompletedOrders },
     { id: 'warehouse', label: 'Warehouse', roles: [UserRole.Admin], component: WarehouseStock },
+    { id: 'truck-stock', label: 'Truck Stock', roles: [UserRole.Admin, UserRole.Dispatcher], component: TruckStock },
     { id: 'equipment-log', label: 'Equipment Log', roles: [UserRole.Admin], component: EquipmentLog },
     { id: 'asset-value', label: 'Asset Value', roles: [UserRole.Admin], component: AssetValue },
 ];
