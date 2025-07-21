@@ -18,11 +18,12 @@ export enum UserRole {
 
 // User model from /users/{uid}
 export interface User {
+  id: string;
   name: string;
   email: string;
   role: UserRole;
   active: boolean;
-  teamId: string;
+  teamId?: string;
   avatarUrl?: string;
 }
 

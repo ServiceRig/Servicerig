@@ -36,7 +36,7 @@ const settingsLinks = [
         description: 'Manage tax zones, rates, and rules for different regions.'
     },
     {
-        href: '#',
+        href: '/dashboard/settings/users',
         icon: Users,
         title: 'User Management',
         description: 'Add, remove, and manage user roles and permissions.'

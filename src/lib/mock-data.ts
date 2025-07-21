@@ -1,6 +1,6 @@
 
 
-import { Customer, Invoice, Job, Technician, UserRole, Equipment, Estimate, EstimateTemplate, PricebookItem, InventoryItem, Payment, ServiceAgreement, Refund, TaxLine, PaymentPlan, Deposit, ChangeOrder, AuditLogEntry, TaxZone, PartRequest, ShoppingListItem, PurchaseOrder, PurchaseOrderPart, EquipmentLog, PartUsageLog } from './types';
+import { Customer, Invoice, Job, Technician, UserRole, Equipment, Estimate, EstimateTemplate, PricebookItem, InventoryItem, Payment, ServiceAgreement, Refund, TaxLine, PaymentPlan, Deposit, ChangeOrder, AuditLogEntry, TaxZone, PartRequest, ShoppingListItem, PurchaseOrder, PurchaseOrderPart, EquipmentLog, PartUsageLog, User } from './types';
 
 const getDay = (day: number) => {
     const newDate = new Date();
@@ -13,6 +13,14 @@ const getDay = (day: number) => {
 // Wrapping our mock data in a single object makes it mutable across requests
 // in a Node.js development server environment. This simulates a persistent store.
 export const mockData: { [key: string]: any[] } = {
+  users: [
+      { id: 'admin1', name: 'Admin User', email: 'admin@servicerig.com', role: UserRole.Admin, active: true },
+      { id: 'dispatch1', name: 'Dispatcher Dan', email: 'dan@servicerig.com', role: UserRole.Dispatcher, active: true },
+      { id: 'tech1', name: 'John Doe', email: 'john@servicerig.com', role: UserRole.Technician, active: true },
+      { id: 'tech2', name: 'Jane Smith', email: 'jane@servicerig.com', role: UserRole.Technician, active: true },
+      { id: 'tech3', name: 'Mike Johnson', email: 'mike@servicerig.com', role: UserRole.Technician, active: true },
+      { id: 'tech4', name: 'Emily Brown', email: 'emily@servicerig.com', role: UserRole.Technician, active: false },
+  ] as User[],
   partUsageLogs: [
       { id: 'pulog1', partId: 'inv_part_001', quantity: 1, timestamp: new Date(new Date().setDate(new Date().getDate() - 1)), technicianId: 'tech1', jobId: 'job1' },
       { id: 'pulog2', partId: 'inv_part_003', quantity: 2, timestamp: new Date(new Date().setDate(new Date().getDate() - 1)), technicianId: 'tech1', jobId: 'job1' },

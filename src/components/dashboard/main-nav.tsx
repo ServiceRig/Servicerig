@@ -1,4 +1,5 @@
 
+
 'use client';
 import {
   SidebarMenu,
@@ -9,7 +10,7 @@ import {
   SidebarMenuSubButton,
 } from "@/components/ui/sidebar";
 import { UserRole } from "@/lib/types";
-import { LayoutDashboard, Calendar, UserSquare, Users, BarChart3, Book, Warehouse, Calculator, FileText, FileDiff, FileSignature, ClipboardList, DollarSign, Clock, AppWindow, Settings, LifeBuoy, LogOut, FilePlus, Bot, ListChecks, UserCog, History, HardHat, ShoppingBasket, LandPlot } from "lucide-react";
+import { LayoutDashboard, Calendar, UserSquare, Users, BarChart3, Book, Warehouse, Calculator, FileText, FileDiff, FileSignature, ClipboardList, DollarSign, Clock, AppWindow, Settings, LifeBuoy, LogOut, FilePlus, Bot, ListChecks, UserCog, History, HardHat, ShoppingBasket, LandPlot, Palette } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from 'next/navigation';
 
@@ -45,10 +46,16 @@ const navItems = [
 ];
 
 const settingsItems = [
-    { href: "/dashboard/settings", icon: Settings, label: "Settings" },
-    { href: "/dashboard/settings/estimates", icon: FilePlus, label: "Estimate Templates" },
-    { href: "/dashboard/settings/automations", icon: Bot, label: "Automations" },
-    { href: "/dashboard/settings/tax", icon: LandPlot, label: "Tax Settings" },
+    { href: "/dashboard/settings", icon: Settings, label: "Settings",
+      subItems: [
+        { href: "/dashboard/settings/users", icon: Users, label: "User Management" },
+        { href: "/dashboard/settings/estimates", icon: FilePlus, label: "Estimate Templates" },
+        { href: "/dashboard/settings/automations", icon: Bot, label: "Automations" },
+        { href: "/dashboard/settings/billing", icon: FileText, label: "Billing" },
+        { href: "/dashboard/settings/tax", icon: LandPlot, label: "Tax" },
+        { href: "/dashboard/settings/appearance", icon: Palette, label: "Appearance" },
+      ]
+    },
     { href: "/dashboard/support", icon: LifeBuoy, label: "Support" },
 ]
 
@@ -95,12 +102,26 @@ export function MainNav({ role }: { role: UserRole }) {
         <SidebarMenu>
              {settingsItems.map((item) => (
                 <SidebarMenuItem key={item.href}>
-                    <SidebarMenuButton asChild isActive={pathname.startsWith(item.href)} tooltip={item.label}>
+                    <SidebarMenuButton asChild isActive={pathname.startsWith(item.href)  && !item.subItems?.some(si => pathname.includes(si.href))} tooltip={item.label}>
                         <Link href={getHref(item.href)}>
                             <item.icon/>
                             <span>{item.label}</span>
                         </Link>
                     </SidebarMenuButton>
+                     {item.subItems && (
+                        <SidebarMenuSub>
+                            {item.subItems.map(subItem => (
+                                <SidebarMenuItem key={subItem.href}>
+                                    <SidebarMenuSubButton asChild isActive={pathname.startsWith(subItem.href)}>
+                                         <Link href={getHref(subItem.href)}>
+                                            <subItem.icon />
+                                            <span>{subItem.label}</span>
+                                        </Link>
+                                    </SidebarMenuSubButton>
+                                </SidebarMenuItem>
+                            ))}
+                        </SidebarMenuSub>
+                     )}
                 </SidebarMenuItem>
             ))}
              <SidebarSeparator />
