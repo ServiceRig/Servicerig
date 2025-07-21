@@ -20,7 +20,7 @@ import { OnOrder } from '@/components/dashboard/inventory/OnOrder';
 import { CompletedOrders } from '@/components/dashboard/inventory/CompletedOrders';
 import { TruckStock } from '@/components/dashboard/inventory/TruckStock';
 import { mockData } from '@/lib/mock-data';
-import type { InventoryItem, Equipment, EquipmentLog as EquipmentLogType, PurchaseOrder, Job, PartRequest } from '@/lib/types';
+import type { InventoryItem, Equipment, EquipmentLog as EquipmentLogType, PurchaseOrder, Job, PartRequest, Technician } from '@/lib/types';
 
 
 const allTabs = [
@@ -48,20 +48,22 @@ export default function InventoryPage() {
     const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([]);
     const [jobs, setJobs] = useState<Job[]>([]);
     const [partRequests, setPartRequests] = useState<PartRequest[]>([]);
+    const [technicians, setTechnicians] = useState<Technician[]>([]);
 
-    const onDataUpdate = useCallback((updates: {
-        inventoryItems?: InventoryItem[];
-        equipment?: Equipment[];
-        equipmentLogs?: EquipmentLogType[];
-    }) => {
+
+    const onDataUpdate = useCallback((updates: Partial<{
+        inventoryItems: InventoryItem[];
+        equipment: Equipment[];
+        equipmentLogs: EquipmentLogType[];
+    }>) => {
         if (updates.inventoryItems) {
-            setInventoryItems([...updates.inventoryItems]);
+            setInventoryItems(updates.inventoryItems);
         }
         if (updates.equipment) {
-            setEquipment([...updates.equipment]);
+            setEquipment(updates.equipment);
         }
         if (updates.equipmentLogs) {
-            setEquipmentLogs([...updates.equipmentLogs]);
+            setEquipmentLogs(updates.equipmentLogs);
         }
     }, []);
 
@@ -73,6 +75,7 @@ export default function InventoryPage() {
         setPurchaseOrders([...mockData.purchaseOrders as PurchaseOrder[]]);
         setJobs([...mockData.jobs as Job[]]);
         setPartRequests([...mockData.partRequests as PartRequest[]]);
+        setTechnicians([...mockData.technicians as Technician[]]);
     }, []);
 
     const visibleTabs = useMemo(() => {
@@ -130,6 +133,7 @@ export default function InventoryPage() {
                         purchaseOrders,
                         jobs,
                         partRequests,
+                        technicians,
                         onDataUpdate, // Pass the central update handler
                     };
 

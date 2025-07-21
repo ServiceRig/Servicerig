@@ -7,10 +7,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { mockData } from '@/lib/mock-data';
-import type { EquipmentLog } from '@/lib/types';
+import type { EquipmentLog as EquipmentLogType, Equipment, Technician } from '@/lib/types';
 import { format } from 'date-fns';
 
-const getLogTypeStyles = (type: EquipmentLog['type']) => {
+const getLogTypeStyles = (type: EquipmentLogType['type']) => {
   switch (type) {
     case 'inspection': return 'bg-blue-500 text-white';
     case 'repair': return 'bg-yellow-500 text-white';
@@ -19,24 +19,31 @@ const getLogTypeStyles = (type: EquipmentLog['type']) => {
   }
 };
 
-export function EquipmentLog({ searchTerm }: { searchTerm: string }) {
-    const [equipmentLogs, setEquipmentLogs] = useState<EquipmentLog[]>(() => {
-        return mockData.equipmentLogs.map(log => {
-            const equipment = mockData.equipment.find(e => e.id === log.equipmentId);
-            const technician = mockData.technicians.find(t => t.id === log.technicianId);
-            return {
-                ...log,
-                equipmentName: equipment?.name || 'Unknown Equipment',
-                technicianName: technician?.name || 'Unknown User',
-            };
-        });
-    });
+interface EquipmentLogProps {
+    searchTerm: string;
+    equipmentLogs: EquipmentLogType[];
+    equipment: Equipment[];
+    technicians: Technician[];
+}
 
+export function EquipmentLog({ searchTerm, equipmentLogs, equipment, technicians }: EquipmentLogProps) {
     const [equipmentFilter, setEquipmentFilter] = useState('all');
     const [technicianFilter, setTechnicianFilter] = useState('all');
 
+    const enrichedLogs = useMemo(() => {
+        return equipmentLogs.map(log => {
+            const equipmentItem = equipment.find(e => e.id === log.equipmentId);
+            const technicianItem = technicians.find(t => t.id === log.technicianId);
+            return {
+                ...log,
+                equipmentName: equipmentItem?.name || 'Unknown Equipment',
+                technicianName: technicianItem?.name || 'Unknown User',
+            };
+        });
+    }, [equipmentLogs, equipment, technicians]);
+
     const filteredLogs = useMemo(() => {
-        return equipmentLogs.filter(log => {
+        return enrichedLogs.filter(log => {
             const lowercasedTerm = searchTerm.toLowerCase();
             const matchesSearch = searchTerm ? (
                 log.notes.toLowerCase().includes(lowercasedTerm) ||
@@ -46,10 +53,10 @@ export function EquipmentLog({ searchTerm }: { searchTerm: string }) {
             const matchesTechnician = technicianFilter === 'all' || log.technicianId === technicianFilter;
             return matchesSearch && matchesEquipment && matchesTechnician;
         });
-    }, [equipmentLogs, searchTerm, equipmentFilter, technicianFilter]);
+    }, [enrichedLogs, searchTerm, equipmentFilter, technicianFilter]);
     
-    const uniqueEquipment = useMemo(() => Array.from(new Map(equipmentLogs.map(log => [log.equipmentId, {id: log.equipmentId, name: log.equipmentName}])).values()), [equipmentLogs]);
-    const uniqueTechnicians = useMemo(() => Array.from(new Map(equipmentLogs.map(log => [log.technicianId, {id: log.technicianId, name: log.technicianName}])).values()), [equipmentLogs]);
+    const uniqueEquipment = useMemo(() => Array.from(new Map(enrichedLogs.map(log => [log.equipmentId, {id: log.equipmentId, name: log.equipmentName}])).values()), [enrichedLogs]);
+    const uniqueTechnicians = useMemo(() => Array.from(new Map(enrichedLogs.map(log => [log.technicianId, {id: log.technicianId, name: log.technicianName}])).values()), [enrichedLogs]);
 
     return (
         <Card>
