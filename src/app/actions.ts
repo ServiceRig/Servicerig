@@ -1207,6 +1207,7 @@ export async function updateInventoryItem(prevState: any, formData: FormData) {
         return { 
             success: true, 
             message: 'Item updated successfully.',
+            inventory: mockData.inventoryItems,
         };
     } catch (e) {
         console.error(e);

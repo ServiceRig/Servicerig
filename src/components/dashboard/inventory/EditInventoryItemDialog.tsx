@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useActionState, useCallback } from 'react';
@@ -14,7 +15,7 @@ import type { InventoryItem } from '@/lib/types';
 
 interface EditInventoryItemDialogProps {
   item: InventoryItem;
-  onUpdate: () => void;
+  onUpdate: (updatedInventory: InventoryItem[]) => void;
 }
 
 function SubmitButton() {
@@ -30,7 +31,7 @@ function SubmitButton() {
 export function EditInventoryItemDialog({ item, onUpdate }: EditInventoryItemDialogProps) {
     const [isOpen, setIsOpen] = useState(false);
     const { toast } = useToast();
-    const [state, formAction] = useActionState(updateInventoryItem, { success: false, message: '' });
+    const [state, formAction] = useActionState(updateInventoryItem, { success: false, message: '', inventory: [] });
 
     useEffect(() => {
         if (state?.message) {
@@ -39,8 +40,8 @@ export function EditInventoryItemDialog({ item, onUpdate }: EditInventoryItemDia
                 description: state.message,
                 variant: state.success ? 'default' : 'destructive',
             });
-            if (state.success) {
-                onUpdate();
+            if (state.success && state.inventory) {
+                onUpdate(state.inventory);
                 setIsOpen(false);
             }
         }

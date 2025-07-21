@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -16,7 +17,7 @@ import { IssueToTechDialog } from './IssueToTechDialog';
 import { ReceivePoDialog } from './ReceivePoDialog';
 import { EditInventoryItemDialog } from './EditInventoryItemDialog';
 
-export function WarehouseStock({ searchTerm, inventoryItems, onDataUpdate }: { searchTerm: string, inventoryItems: InventoryItem[], onDataUpdate: () => void }) {
+export function WarehouseStock({ searchTerm, inventoryItems, onDataUpdate }: { searchTerm: string, inventoryItems: InventoryItem[], onDataUpdate: (updatedInventory: InventoryItem[]) => void }) {
 
     const filteredStock = useMemo(() => {
         if (!searchTerm) return inventoryItems;

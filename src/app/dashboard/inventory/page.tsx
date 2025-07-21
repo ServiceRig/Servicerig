@@ -49,8 +49,23 @@ export default function InventoryPage() {
     const [jobs, setJobs] = useState<Job[]>([]);
     const [partRequests, setPartRequests] = useState<PartRequest[]>([]);
 
-    const onDataUpdate = useCallback(() => {
-        // Refetch from mock source to ensure all state is current
+    const onDataUpdate = useCallback((updatedInventory?: InventoryItem[]) => {
+        // If updated inventory is provided, use it. Otherwise, refetch everything.
+        if (updatedInventory) {
+            setInventoryItems([...updatedInventory]);
+        } else {
+            // Refetch from mock source to ensure all state is current
+            setInventoryItems([...mockData.inventoryItems as InventoryItem[]]);
+            setEquipment([...mockData.equipment as Equipment[]]);
+            setEquipmentLogs([...mockData.equipmentLogs as EquipmentLogType[]]);
+            setPurchaseOrders([...mockData.purchaseOrders as PurchaseOrder[]]);
+            setJobs([...mockData.jobs as Job[]]);
+            setPartRequests([...mockData.partRequests as PartRequest[]]);
+        }
+    }, []);
+
+    useEffect(() => {
+        // Initial data load
         setInventoryItems([...mockData.inventoryItems as InventoryItem[]]);
         setEquipment([...mockData.equipment as Equipment[]]);
         setEquipmentLogs([...mockData.equipmentLogs as EquipmentLogType[]]);
@@ -58,11 +73,6 @@ export default function InventoryPage() {
         setJobs([...mockData.jobs as Job[]]);
         setPartRequests([...mockData.partRequests as PartRequest[]]);
     }, []);
-
-    useEffect(() => {
-        // Initial data load
-        onDataUpdate();
-    }, [onDataUpdate]);
 
     const visibleTabs = useMemo(() => {
         if (!role) return [];
