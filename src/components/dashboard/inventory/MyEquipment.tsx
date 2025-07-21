@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -6,8 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { mockData } from '@/lib/mock-data';
-import type { Equipment } from '@/lib/types';
+import type { Equipment, EquipmentLog } from '@/lib/types';
 import { Wrench } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { LogEquipmentServiceDialog } from './LogEquipmentServiceDialog';
@@ -30,23 +30,31 @@ const getConditionStyles = (condition: Equipment['condition']) => {
   }
 };
 
-export function MyEquipment({ searchTerm }: { searchTerm: string }) {
-    const [equipment, setEquipment] = useState<Equipment[]>([]);
+interface MyEquipmentProps {
+    searchTerm: string;
+    equipment: Equipment[];
+    onDataUpdate: (updates: { equipment: Equipment[], equipmentLogs: EquipmentLog[] }) => void;
+}
+
+export function MyEquipment({ searchTerm, equipment: initialEquipment, onDataUpdate }: MyEquipmentProps) {
+    const [myEquipment, setMyEquipment] = useState<Equipment[]>(() => 
+        initialEquipment.filter(eq => eq.technicianId === LOGGED_IN_TECHNICIAN_ID)
+    );
 
     useEffect(() => {
-       setEquipment(mockData.equipment.filter(eq => eq.technicianId === LOGGED_IN_TECHNICIAN_ID));
-    }, []);
+        setMyEquipment(initialEquipment.filter(eq => eq.technicianId === LOGGED_IN_TECHNICIAN_ID));
+    }, [initialEquipment]);
 
     const filteredEquipment = useMemo(() => {
-        if (!searchTerm) return equipment;
+        if (!searchTerm) return myEquipment;
         const lowercasedTerm = searchTerm.toLowerCase();
-        return equipment.filter(item => 
+        return myEquipment.filter(item => 
             item.name.toLowerCase().includes(lowercasedTerm) ||
             item.make.toLowerCase().includes(lowercasedTerm) ||
             item.model.toLowerCase().includes(lowercasedTerm) ||
             item.serial.toLowerCase().includes(lowercasedTerm)
         );
-    }, [equipment, searchTerm]);
+    }, [myEquipment, searchTerm]);
 
     return (
         <Card>
@@ -75,8 +83,8 @@ export function MyEquipment({ searchTerm }: { searchTerm: string }) {
                                     </Badge>
                                 </TableCell>
                                 <TableCell className="text-right space-x-2">
-                                     <ChangeEquipmentConditionDialog equipment={item} technicianId={LOGGED_IN_TECHNICIAN_ID} />
-                                     <LogEquipmentServiceDialog equipment={item} technicianId={LOGGED_IN_TECHNICIAN_ID} />
+                                     <ChangeEquipmentConditionDialog equipment={item} technicianId={LOGGED_IN_TECHNICIAN_ID} onUpdate={onDataUpdate} />
+                                     <LogEquipmentServiceDialog equipment={item} technicianId={LOGGED_IN_TECHNICIAN_ID} onUpdate={onDataUpdate} />
                                 </TableCell>
                             </TableRow>
                         )) : (

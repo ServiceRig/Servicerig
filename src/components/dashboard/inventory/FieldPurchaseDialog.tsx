@@ -1,9 +1,9 @@
 
+
 'use client';
 
 import { useState, useRef, useEffect, useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
-import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { PlusCircle, Trash2, Camera, UploadCloud, FilePlus, ShoppingCart, Loader2 } from 'lucide-react';
 import Image from 'next/image';
-import type { Job } from '@/lib/types';
+import type { Job, InventoryItem, PurchaseOrder } from '@/lib/types';
 import { addFieldPurchase } from '@/app/actions';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
@@ -22,6 +22,11 @@ type TempPart = {
     qty: number;
     unitCost: number;
 };
+
+interface FieldPurchaseDialogProps {
+    jobs: Job[];
+    onPurchaseLogged: (updates: { inventoryItems?: InventoryItem[], purchaseOrders?: PurchaseOrder[] }) => void;
+}
 
 function SubmitButton({ disabled }: { disabled: boolean }) {
     const { pending } = useFormStatus();
@@ -33,10 +38,9 @@ function SubmitButton({ disabled }: { disabled: boolean }) {
     )
 }
 
-export function FieldPurchaseDialog({ jobs }: { jobs: Job[] }) {
+export function FieldPurchaseDialog({ jobs, onPurchaseLogged }: FieldPurchaseDialogProps) {
     const [isOpen, setIsOpen] = useState(false);
     const { toast } = useToast();
-    const router = useRouter();
     const [state, formAction] = useActionState(addFieldPurchase, { success: false, message: '' });
 
     const [selectedJobId, setSelectedJobId] = useState('');
@@ -45,6 +49,14 @@ export function FieldPurchaseDialog({ jobs }: { jobs: Job[] }) {
     const [totalCost, setTotalCost] = useState(0);
     const [vendorName, setVendorName] = useState('');
     const formRef = useRef<HTMLFormElement>(null);
+    
+    const resetForm = () => {
+        setSelectedJobId('');
+        setParts([]);
+        setReceiptImage(null);
+        setTotalCost(0);
+        setVendorName('');
+    }
 
     useEffect(() => {
         if (state.message) {
@@ -54,11 +66,15 @@ export function FieldPurchaseDialog({ jobs }: { jobs: Job[] }) {
                 variant: state.success ? 'default' : 'destructive',
             });
             if (state.success) {
+                onPurchaseLogged({
+                    inventoryItems: state.updatedInventory,
+                    purchaseOrders: state.updatedPOs,
+                })
+                resetForm();
                 setIsOpen(false);
-                router.refresh();
             }
         }
-    }, [state, toast, router]);
+    }, [state, toast, onPurchaseLogged]);
 
     const handleAddPart = () => {
         setParts(prev => [...prev, { id: `new_${Date.now()}`, name: '', qty: 1, unitCost: 0 }]);

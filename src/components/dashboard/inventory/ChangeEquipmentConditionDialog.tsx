@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useActionState, useTransition } from 'react';
@@ -11,11 +12,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Edit, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { updateEquipmentCondition } from '@/app/actions';
-import type { Equipment } from '@/lib/types';
+import type { Equipment, EquipmentLog } from '@/lib/types';
 
 interface ChangeEquipmentConditionDialogProps {
   equipment: Equipment;
   technicianId: string;
+  onUpdate: (updates: { equipment: Equipment[], equipmentLogs: EquipmentLog[] }) => void;
 }
 
 function SubmitButton() {
@@ -30,7 +32,7 @@ function SubmitButton() {
 
 const conditions: Equipment['condition'][] = ['new', 'good', 'fair', 'poor', 'decommissioned'];
 
-export function ChangeEquipmentConditionDialog({ equipment, technicianId }: ChangeEquipmentConditionDialogProps) {
+export function ChangeEquipmentConditionDialog({ equipment, technicianId, onUpdate }: ChangeEquipmentConditionDialogProps) {
     const [isOpen, setIsOpen] = useState(false);
     const { toast } = useToast();
     const [state, formAction] = useActionState(updateEquipmentCondition, { success: false, message: '' });
@@ -43,10 +45,14 @@ export function ChangeEquipmentConditionDialog({ equipment, technicianId }: Chan
                 variant: state.success ? 'default' : 'destructive',
             });
             if (state.success) {
+                onUpdate({
+                    equipment: state.updatedEquipment!,
+                    equipmentLogs: state.updatedLogs!,
+                });
                 setIsOpen(false);
             }
         }
-    }, [state, toast]);
+    }, [state, toast, onUpdate]);
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>

@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
@@ -19,6 +19,8 @@ import { MyEquipment } from '@/components/dashboard/inventory/MyEquipment';
 import { OnOrder } from '@/components/dashboard/inventory/OnOrder';
 import { CompletedOrders } from '@/components/dashboard/inventory/CompletedOrders';
 import { TruckStock } from '@/components/dashboard/inventory/TruckStock';
+import { mockData } from '@/lib/mock-data';
+import type { InventoryItem, Equipment, EquipmentLog as EquipmentLogType, PurchaseOrder } from '@/lib/types';
 
 
 const allTabs = [
@@ -39,11 +41,29 @@ export default function InventoryPage() {
     const { role } = useRole();
     const [searchTerm, setSearchTerm] = useState('');
 
+    // Centralized state management for inventory data
+    const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>(mockData.inventoryItems as InventoryItem[]);
+    const [equipment, setEquipment] = useState<Equipment[]>(mockData.equipment as Equipment[]);
+    const [equipmentLogs, setEquipmentLogs] = useState<EquipmentLogType[]>(mockData.equipmentLogs as EquipmentLogType[]);
+    const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>(mockData.purchaseOrders as PurchaseOrder[]);
+
     const visibleTabs = useMemo(() => {
         if (!role) return [];
         if (role === UserRole.Admin) return allTabs;
         return allTabs.filter(tab => tab.roles.includes(role));
     }, [role]);
+
+    const handleDataUpdate = (updates: {
+        inventoryItems?: InventoryItem[];
+        equipment?: Equipment[];
+        equipmentLogs?: EquipmentLogType[];
+        purchaseOrders?: PurchaseOrder[];
+    }) => {
+        if (updates.inventoryItems) setInventoryItems(updates.inventoryItems);
+        if (updates.equipment) setEquipment(updates.equipment);
+        if (updates.equipmentLogs) setEquipmentLogs(updates.equipmentLogs);
+        if (updates.purchaseOrders) setPurchaseOrders(updates.purchaseOrders);
+    };
 
     if (!role || visibleTabs.length === 0) {
         return (
@@ -88,7 +108,15 @@ export default function InventoryPage() {
                     return (
                         <TabsContent key={tab.id} value={tab.id} className="mt-4">
                             {TabComponent ? (
-                                <TabComponent searchTerm={searchTerm} />
+                                <TabComponent 
+                                    searchTerm={searchTerm} 
+                                    // Pass relevant state and update handlers to each component
+                                    inventoryItems={inventoryItems}
+                                    equipment={equipment}
+                                    equipmentLogs={equipmentLogs}
+                                    purchaseOrders={purchaseOrders}
+                                    onDataUpdate={handleDataUpdate}
+                                />
                             ) : (
                                 <Card>
                                     <CardHeader>

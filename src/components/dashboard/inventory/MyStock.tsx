@@ -19,18 +19,24 @@ type TruckStockItem = InventoryItem & {
     truckQuantity: number;
 };
 
-export function MyStock({ searchTerm }: { searchTerm: string }) {
+interface MyStockProps {
+    searchTerm: string;
+    inventoryItems: InventoryItem[];
+    onDataUpdate: (updates: { inventoryItems: InventoryItem[] }) => void;
+}
+
+export function MyStock({ searchTerm, inventoryItems, onDataUpdate }: MyStockProps) {
     const { toast } = useToast();
-    const [truckStock, setTruckStock] = useState<TruckStockItem[]>(() => {
-        return mockData.inventoryItems
+    
+    const truckStock = useMemo(() => {
+        return inventoryItems
             .map(item => {
                 const truckInfo = item.truckLocations?.find(loc => loc.technicianId === LOGGED_IN_TECHNICIAN_ID);
                 return truckInfo ? { ...item, truckQuantity: truckInfo.quantity } : null;
             })
             .filter((item): item is TruckStockItem => item !== null);
-    });
+    }, [inventoryItems]);
     
-    // This is needed for the FieldPurchaseDialog
     const technicianJobs = useMemo(() => {
         return mockData.jobs.filter(job => job.technicianId === LOGGED_IN_TECHNICIAN_ID);
     }, []);
@@ -77,7 +83,7 @@ export function MyStock({ searchTerm }: { searchTerm: string }) {
                     <CardTitle>My Truck Stock</CardTitle>
                     <CardDescription>A list of all parts currently assigned to your truck.</CardDescription>
                 </div>
-                <FieldPurchaseDialog jobs={technicianJobs} />
+                <FieldPurchaseDialog jobs={technicianJobs} onPurchaseLogged={onDataUpdate} />
             </CardHeader>
             <CardContent>
                 <Table>
@@ -100,6 +106,7 @@ export function MyStock({ searchTerm }: { searchTerm: string }) {
                                         item={item} 
                                         technicianId={LOGGED_IN_TECHNICIAN_ID} 
                                         disabled={item.truckQuantity <= 0}
+                                        onPartLogged={onDataUpdate}
                                     />
                                     <Button variant="secondary" size="sm" onClick={() => handleRequestRestock(item)}>
                                         <Truck className="mr-2 h-4 w-4" /> Restock

@@ -766,6 +766,7 @@ const addEquipmentLogSchema = z.object({
 type AddEquipmentLogState = {
     success: boolean;
     message: string;
+    updatedLogs?: EquipmentLog[];
 }
 
 export async function addEquipmentLog(prevState: AddEquipmentLogState, formData: FormData): Promise<AddEquipmentLogState> {
@@ -790,8 +791,7 @@ export async function addEquipmentLog(prevState: AddEquipmentLogState, formData:
             timestamp: new Date(),
         };
         mockData.equipmentLogs.unshift(newLog);
-        revalidatePath('/dashboard/inventory'); // Revalidate to update the log view
-        return { success: true, message: 'Service log added successfully.' };
+        return { success: true, message: 'Service log added successfully.', updatedLogs: mockData.equipmentLogs as EquipmentLog[] };
     } catch(e) {
         return { success: false, message: 'Failed to add service log.' };
     }
@@ -807,6 +807,8 @@ const updateEquipmentConditionSchema = z.object({
 type UpdateEquipmentConditionState = {
     success: boolean;
     message: string;
+    updatedEquipment?: Equipment[];
+    updatedLogs?: EquipmentLog[];
 }
 
 export async function updateEquipmentCondition(prevState: UpdateEquipmentConditionState, formData: FormData): Promise<UpdateEquipmentConditionState> {
@@ -847,8 +849,12 @@ export async function updateEquipmentCondition(prevState: UpdateEquipmentConditi
         };
         mockData.equipmentLogs.unshift(newLog);
 
-        revalidatePath('/dashboard/inventory');
-        return { success: true, message: 'Equipment condition updated successfully.' };
+        return { 
+            success: true, 
+            message: 'Equipment condition updated successfully.',
+            updatedEquipment: [...mockData.equipment],
+            updatedLogs: [...mockData.equipmentLogs]
+        };
 
     } catch (e) {
         return { success: false, message: 'Failed to update equipment condition.' };
@@ -965,6 +971,8 @@ const logPartUsageSchema = z.object({
 type LogPartUsageState = {
   success: boolean;
   message: string;
+  updatedInventory?: InventoryItem[];
+  updatedJobs?: Job[];
 };
 
 export async function logPartUsage(
@@ -1035,8 +1043,12 @@ export async function logPartUsage(
     job.usedParts.push(usedPartLog);
     mockData.jobs[jobIndex] = job;
     
-    revalidatePath('/dashboard/inventory');
-    return { success: true, message: `${quantity} x ${item.name} logged to job ${job.title}.` };
+    return { 
+        success: true, 
+        message: `${quantity} x ${item.name} logged to job ${job.title}.`,
+        updatedInventory: [...mockData.inventoryItems],
+        updatedJobs: [...mockData.jobs],
+    };
 
   } catch (e) {
     console.error(e);
@@ -1073,6 +1085,8 @@ const addFieldPurchaseSchema = z.object({
 type AddFieldPurchaseState = {
     success: boolean;
     message: string;
+    updatedInventory?: InventoryItem[];
+    updatedPOs?: PurchaseOrder[];
 }
 
 export async function addFieldPurchase(prevState: AddFieldPurchaseState, formData: FormData): Promise<AddFieldPurchaseState> {
@@ -1128,6 +1142,7 @@ export async function addFieldPurchase(prevState: AddFieldPurchaseState, formDat
                     }
                     inventoryItem.truckLocations!.push({ technicianId: loggedInTechId, quantity: part.qty });
                 }
+                 mockData.inventoryItems[existingItemIndex] = inventoryItem;
             } else {
                 const newItem: InventoryItem = {
                     id: part.id,
@@ -1151,12 +1166,16 @@ export async function addFieldPurchase(prevState: AddFieldPurchaseState, formDat
                 mockData.inventoryItems.push(newItem);
             }
         });
+
+        return { 
+            success: true, 
+            message: 'Field purchase logged successfully.',
+            updatedInventory: [...mockData.inventoryItems],
+            updatedPOs: [...mockData.purchaseOrders],
+        };
         
     } catch (e: any) {
         console.error(e);
         return { success: false, message: e.message || 'An unexpected error occurred.' };
     }
-    
-    revalidatePath('/dashboard/inventory');
-    return { success: true, message: 'Field purchase logged successfully.' };
 }

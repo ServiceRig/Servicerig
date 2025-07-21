@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useMemo, useActionState, useTransition } from 'react';
@@ -19,6 +20,7 @@ interface LogPartUsageDialogProps {
   item: InventoryItem & { truckQuantity: number };
   technicianId: string;
   disabled?: boolean;
+  onPartLogged: (updates: { inventoryItems?: InventoryItem[], jobs?: Job[]}) => void;
 }
 
 function SubmitButton() {
@@ -31,7 +33,7 @@ function SubmitButton() {
     )
 }
 
-export function LogPartUsageDialog({ item, technicianId, disabled }: LogPartUsageDialogProps) {
+export function LogPartUsageDialog({ item, technicianId, disabled, onPartLogged }: LogPartUsageDialogProps) {
     const [isOpen, setIsOpen] = useState(false);
     const { toast } = useToast();
     const [state, formAction] = useActionState(logPartUsage, { success: false, message: '' });
@@ -49,10 +51,14 @@ export function LogPartUsageDialog({ item, technicianId, disabled }: LogPartUsag
                 variant: state.success ? 'default' : 'destructive',
             });
             if (state.success) {
+                onPartLogged({
+                    inventoryItems: state.updatedInventory,
+                    jobs: state.updatedJobs,
+                });
                 setIsOpen(false);
             }
         }
-    }, [state, toast, isOpen]);
+    }, [state, toast, isOpen, onPartLogged]);
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>

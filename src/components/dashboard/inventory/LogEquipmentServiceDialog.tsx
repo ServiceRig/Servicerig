@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useActionState } from 'react';
@@ -11,11 +12,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Wrench, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { addEquipmentLog } from '@/app/actions';
-import type { Equipment } from '@/lib/types';
+import type { Equipment, EquipmentLog } from '@/lib/types';
 
 interface LogEquipmentServiceDialogProps {
   equipment: Equipment;
   technicianId: string;
+  onUpdate: (updates: { equipmentLogs: EquipmentLog[] }) => void;
 }
 
 function SubmitButton() {
@@ -28,7 +30,7 @@ function SubmitButton() {
     )
 }
 
-export function LogEquipmentServiceDialog({ equipment, technicianId }: LogEquipmentServiceDialogProps) {
+export function LogEquipmentServiceDialog({ equipment, technicianId, onUpdate }: LogEquipmentServiceDialogProps) {
     const [isOpen, setIsOpen] = useState(false);
     const { toast } = useToast();
     const [state, formAction] = useActionState(addEquipmentLog, { success: false, message: '' });
@@ -41,10 +43,11 @@ export function LogEquipmentServiceDialog({ equipment, technicianId }: LogEquipm
                 variant: state.success ? 'default' : 'destructive',
             });
             if (state.success) {
+                onUpdate({ equipmentLogs: state.updatedLogs! });
                 setIsOpen(false);
             }
         }
-    }, [state, toast]);
+    }, [state, toast, onUpdate]);
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
