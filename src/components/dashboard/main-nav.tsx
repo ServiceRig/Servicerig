@@ -10,7 +10,7 @@ import {
   SidebarMenuSubButton,
 } from "@/components/ui/sidebar";
 import { UserRole } from "@/lib/types";
-import { LayoutDashboard, Calendar, UserSquare, Users, BarChart3, Book, Warehouse, Calculator, FileText, FileDiff, FileSignature, ClipboardList, DollarSign, Clock, AppWindow, Settings, LifeBuoy, LogOut, FilePlus, Bot, ListChecks, UserCog, History, HardHat, ShoppingBasket, LandPlot, Palette, Link as LinkIcon, Building } from "lucide-react";
+import { LayoutDashboard, Calendar, UserSquare, Users, BarChart3, Book, Warehouse, Calculator, FileText, FileDiff, FileSignature, ClipboardList, DollarSign, Clock, AppWindow, Settings, LifeBuoy, LogOut, FilePlus, Bot, ListChecks, UserCog, History, HardHat, ShoppingBasket, LandPlot, Palette, Link as LinkIcon, Building, Code } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from 'next/navigation';
 
@@ -58,6 +58,7 @@ const settingsItems = [
         { href: "/dashboard/settings/integrations", icon: LinkIcon, label: "Integrations" },
       ]
     },
+    { href: "/dashboard/dev-matrix", icon: Code, label: "Dev Matrix" },
     { href: "/dashboard/support", icon: LifeBuoy, label: "Support" },
 ]
 
@@ -73,16 +74,16 @@ export function MainNav({ role }: { role: UserRole }) {
   const getHref = (baseHref: string) => `${baseHref}?role=${role}`;
   
   const isParentActive = (item: { href: string, subItems?: any[] }) => {
-    // A parent is active if the current path starts with its href.
-    // This handles nested routes correctly.
+    // A parent is active if the current path starts with its href, but it's not a sub-item's path
     if (item.subItems) {
-      return pathname.startsWith(item.href);
+      const isSubItemActive = item.subItems.some(sub => pathname.startsWith(sub.href));
+      return pathname.startsWith(item.href) && !isSubItemActive;
     }
     // For items without children, it's active only on an exact match.
     return pathname === item.href;
   };
 
-  const renderNavMenu = (items: typeof navItems) => {
+  const renderNavMenu = (items: typeof navItems | typeof settingsItems) => {
     return items.map((item) => (
       <SidebarMenuItem key={item.href}>
           <SidebarMenuButton asChild isActive={isParentActive(item)} tooltip={item.label}>
