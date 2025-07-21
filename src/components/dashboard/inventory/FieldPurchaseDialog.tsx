@@ -15,6 +15,7 @@ import Image from 'next/image';
 import type { Job } from '@/lib/types';
 import { addFieldPurchase } from '@/app/actions';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { useRole } from '@/hooks/use-role';
 
 type TempPart = {
     id: string;
@@ -28,6 +29,7 @@ type TempPart = {
 
 interface FieldPurchaseDialogProps {
     jobs: Job[];
+    onPurchaseLogged: (updates: any) => void;
 }
 
 function SubmitButton({ disabled }: { disabled: boolean }) {
@@ -40,10 +42,11 @@ function SubmitButton({ disabled }: { disabled: boolean }) {
     )
 }
 
-export function FieldPurchaseDialog({ jobs }: FieldPurchaseDialogProps) {
+export function FieldPurchaseDialog({ jobs, onPurchaseLogged }: FieldPurchaseDialogProps) {
     const [isOpen, setIsOpen] = useState(false);
     const router = useRouter();
     const { toast } = useToast();
+    const { role } = useRole();
     
     const [state, formAction] = useActionState(addFieldPurchase, { success: false, message: '' });
 
@@ -53,22 +56,6 @@ export function FieldPurchaseDialog({ jobs }: FieldPurchaseDialogProps) {
     const [totalCost, setTotalCost] = useState(0);
     const [vendorName, setVendorName] = useState('');
     
-    useEffect(() => {
-        if (!isOpen) return; // Only process state changes when dialog is open
-        if (state.message) {
-            toast({
-                title: state.success ? 'Success' : 'Error',
-                description: state.message,
-                variant: state.success ? 'default' : 'destructive',
-            });
-            if (state.success) {
-                resetForm();
-                setIsOpen(false);
-                router.refresh(); // This re-fetches server components and gets new data
-            }
-        }
-    }, [state, toast, isOpen, router]);
-
     const resetForm = () => {
         setSelectedJobId('');
         setParts([]);
@@ -76,6 +63,22 @@ export function FieldPurchaseDialog({ jobs }: FieldPurchaseDialogProps) {
         setTotalCost(0);
         setVendorName('');
     }
+    
+    useEffect(() => {
+        if (!isOpen) return; // Only process state changes when dialog is open
+        if (state.message) {
+             toast({
+                title: state.success ? 'Success' : 'Error',
+                description: state.message,
+                variant: state.success ? 'default' : 'destructive',
+            });
+            if(state.success) {
+                onPurchaseLogged({ inventoryItems: state.updatedInventory });
+                setIsOpen(false);
+                resetForm();
+            }
+        }
+    }, [state, toast, isOpen, onPurchaseLogged]);
 
     const handleAddPart = () => {
         setParts(prev => [...prev, { 
@@ -137,6 +140,8 @@ export function FieldPurchaseDialog({ jobs }: FieldPurchaseDialogProps) {
                 <form action={formAction}>
                     <input type="hidden" name="parts" value={JSON.stringify(parts)} />
                     <input type="hidden" name="receiptImage" value={receiptImage || ''} />
+                    <input type="hidden" name="role" value={role || ''} />
+
                     <div className="space-y-4 py-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-2">
@@ -167,7 +172,7 @@ export function FieldPurchaseDialog({ jobs }: FieldPurchaseDialogProps) {
                                     <div className="w-9"></div>
                                 </div>
                                 {parts.map((part, index) => (
-                                    <div key={index} className="grid grid-cols-6 items-center gap-2">
+                                    <div key={part.id} className="grid grid-cols-6 items-center gap-2">
                                         <Input className="col-span-2" placeholder="Part name" value={part.name} onChange={(e) => handlePartChange(index, 'name', e.target.value)} />
                                         <Input placeholder="SKU" value={part.sku} onChange={(e) => handlePartChange(index, 'sku', e.target.value)} />
                                         <Input placeholder="Part #" value={part.partNumber} onChange={(e) => handlePartChange(index, 'partNumber', e.target.value)} />

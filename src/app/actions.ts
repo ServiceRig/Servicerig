@@ -784,7 +784,11 @@ export async function addEquipmentLog(prevState: any, formData: FormData) {
             timestamp: new Date(),
         };
         mockData.equipmentLogs.unshift(newLog);
-        return { success: true, message: 'Service log added successfully.', updatedLogs: [...mockData.equipmentLogs] };
+        return { 
+            success: true, 
+            message: 'Service log added successfully.',
+            updatedLogs: [...mockData.equipmentLogs]
+        };
     } catch(e) {
         return { success: false, message: 'Failed to add service log.' };
     }
@@ -867,7 +871,7 @@ export async function issueStockToTechnician(prevState: any, formData: FormData)
   const { itemId, technicianId, quantity } = validatedFields.data;
 
   try {
-    const itemIndex = mockData.inventoryItems.findIndex(i => i.id === itemId);
+    const itemIndex = mockData.inventoryItems.findIndex((i: any) => i.id === itemId);
     if (itemIndex === -1) {
       return { success: false, message: 'Inventory item not found.' };
     }
@@ -881,7 +885,7 @@ export async function issueStockToTechnician(prevState: any, formData: FormData)
     item.quantityOnHand -= quantity;
 
     // Increase truck stock
-    const truckLocationIndex = item.truckLocations?.findIndex(loc => loc.technicianId === technicianId) ?? -1;
+    const truckLocationIndex = item.truckLocations?.findIndex((loc: any) => loc.technicianId === technicianId) ?? -1;
     if (truckLocationIndex > -1) {
       item.truckLocations![truckLocationIndex].quantity += quantity;
     } else {
@@ -921,7 +925,7 @@ export async function receivePurchaseOrder(prevState: any, formData: FormData): 
     const poIndex = mockData.purchaseOrders.findIndex((p: PurchaseOrder) => p.id === poId);
     if (poIndex === -1) return { success: false, message: 'Purchase Order not found.' };
 
-    const itemIndex = mockData.inventoryItems.findIndex(i => i.id === itemId);
+    const itemIndex = mockData.inventoryItems.findIndex((i: any) => i.id === itemId);
     if (itemIndex === -1) return { success: false, message: 'Inventory item not found.' };
     
     const po = mockData.purchaseOrders[poIndex];
@@ -980,7 +984,7 @@ export async function logPartUsage(
     }
     const item = mockData.inventoryItems[itemIndex];
     
-    const truckLocationIndex = item.truckLocations?.findIndex(loc => loc.technicianId === technicianId);
+    const truckLocationIndex = item.truckLocations?.findIndex((loc: any) => loc.technicianId === technicianId);
     if (truckLocationIndex === undefined || truckLocationIndex === -1) {
       return { success: false, message: "Part not found in this technician's truck stock." };
     }
@@ -991,7 +995,7 @@ export async function logPartUsage(
     }
 
     // 2. Find the job to log against
-    const jobIndex = mockData.jobs.findIndex(j => j.id === jobId);
+    const jobIndex = mockData.jobs.findIndex((j: any) => j.id === jobId);
     if (jobIndex === -1) {
       return { success: false, message: 'Job not found.' };
     }
@@ -1063,6 +1067,7 @@ const addFieldPurchaseSchema = z.object({
         }
     }),
     receiptImage: z.string().url('A valid receipt image is required.').or(z.literal('')),
+    role: z.string().optional(),
 });
 
 export async function addFieldPurchase(prevState: any, formData: FormData) {
@@ -1072,6 +1077,7 @@ export async function addFieldPurchase(prevState: any, formData: FormData) {
         total: formData.get('total'),
         parts: formData.get('parts'),
         receiptImage: formData.get('receiptImage'),
+        role: formData.get('role'),
     });
 
     if (!validatedFields.success) {
@@ -1080,7 +1086,7 @@ export async function addFieldPurchase(prevState: any, formData: FormData) {
     }
 
     try {
-        const { jobId, vendor, total, parts, receiptImage } = validatedFields.data;
+        const { jobId, vendor, total, parts, receiptImage, role } = validatedFields.data;
         const loggedInTechId = 'tech1'; // This should come from auth context
 
         const newPO: PurchaseOrder = {
@@ -1143,12 +1149,13 @@ export async function addFieldPurchase(prevState: any, formData: FormData) {
             }
         });
         
+        revalidatePath('/dashboard/inventory');
+        redirect(`/dashboard/inventory?role=${role || 'technician'}`);
+
     } catch (e: any) {
         console.error(e);
         return { success: false, message: 'An unexpected error occurred while logging the purchase.' };
     }
-    
-    redirect('/dashboard/inventory');
 }
 
 const updateInventoryItemSchema = z.object({
