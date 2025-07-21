@@ -1,13 +1,11 @@
 
-
 'use client';
 
 import { useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { mockData } from '@/lib/mock-data';
-import type { InventoryItem, PartUsageLog, Job } from '@/lib/types';
+import type { InventoryItem, PartUsageLog, Job, PurchaseOrder } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Truck, Wrench } from 'lucide-react';
 import { LogPartUsageDialog } from './LogPartUsageDialog';
@@ -22,10 +20,11 @@ type TruckStockItem = InventoryItem & {
 interface MyStockProps {
     searchTerm: string;
     inventoryItems: InventoryItem[];
-    onDataUpdate: (updates: { inventoryItems: InventoryItem[] }) => void;
+    jobs: Job[];
+    onDataUpdate: (updates: { inventoryItems?: InventoryItem[], jobs?: Job[], purchaseOrders?: PurchaseOrder[] }) => void;
 }
 
-export function MyStock({ searchTerm, inventoryItems, onDataUpdate }: MyStockProps) {
+export function MyStock({ searchTerm, inventoryItems, jobs, onDataUpdate }: MyStockProps) {
     const { toast } = useToast();
     
     const truckStock = useMemo(() => {
@@ -34,30 +33,18 @@ export function MyStock({ searchTerm, inventoryItems, onDataUpdate }: MyStockPro
                 const truckInfo = item.truckLocations?.find(loc => loc.technicianId === LOGGED_IN_TECHNICIAN_ID);
                 return truckInfo ? { ...item, truckQuantity: truckInfo.quantity } : null;
             })
-            .filter((item): item is TruckStockItem => item !== null);
+            .filter((item): item is TruckStockItem => item !== null && item.truckQuantity > 0);
     }, [inventoryItems]);
     
     const technicianJobs = useMemo(() => {
-        return mockData.jobs.filter(job => job.technicianId === LOGGED_IN_TECHNICIAN_ID);
-    }, []);
+        return jobs.filter(job => job.technicianId === LOGGED_IN_TECHNICIAN_ID);
+    }, [jobs]);
 
     const handleRequestRestock = (item: TruckStockItem) => {
-        const requestQty = item.reorderQtyDefault || 1;
-        // In a real app, this would be a server action to create a part request.
-         mockData.partRequests.unshift({
-            id: `req_${Date.now()}`,
-            technicianId: LOGGED_IN_TECHNICIAN_ID,
-            technicianName: 'John Doe',
-            itemId: item.id,
-            itemName: item.name,
-            quantity: requestQty,
-            status: 'pending',
-            createdAt: new Date(),
-        });
-
+        // This is a placeholder for a future feature.
         toast({
             title: 'Restock Requested',
-            description: `A request for ${requestQty} x ${item.name} has been sent.`,
+            description: `A request has been sent for ${item.name}.`,
         });
     }
 
@@ -116,7 +103,7 @@ export function MyStock({ searchTerm, inventoryItems, onDataUpdate }: MyStockPro
                         )) : (
                              <TableRow>
                                 <TableCell colSpan={4} className="h-24 text-center">
-                                    No stock found matching your search.
+                                    No stock found on your truck.
                                 </TableCell>
                             </TableRow>
                         )}

@@ -1,8 +1,7 @@
 
-
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,10 +11,9 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { PlusCircle, Trash2, Camera, UploadCloud, FilePlus, ShoppingCart, Loader2 } from 'lucide-react';
 import Image from 'next/image';
-import type { Job } from '@/lib/types';
+import type { Job, InventoryItem, PurchaseOrder } from '@/lib/types';
 import { addFieldPurchase } from '@/app/actions';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { useRouter, useSearchParams } from 'next/navigation';
 
 type TempPart = {
     id: string;
@@ -26,6 +24,7 @@ type TempPart = {
 
 interface FieldPurchaseDialogProps {
     jobs: Job[];
+    onPurchaseLogged: (updates: { inventoryItems?: InventoryItem[], purchaseOrders?: PurchaseOrder[]}) => void;
 }
 
 function SubmitButton({ disabled }: { disabled: boolean }) {
@@ -38,39 +37,36 @@ function SubmitButton({ disabled }: { disabled: boolean }) {
     )
 }
 
-export function FieldPurchaseDialog({ jobs }: FieldPurchaseDialogProps) {
+export function FieldPurchaseDialog({ jobs, onPurchaseLogged }: FieldPurchaseDialogProps) {
     const [isOpen, setIsOpen] = useState(false);
     const { toast } = useToast();
-    const router = useRouter();
-    const searchParams = useSearchParams();
+    
+    const [state, formAction] = useActionState(addFieldPurchase, { success: false, message: '' });
 
     const [selectedJobId, setSelectedJobId] = useState('');
     const [parts, setParts] = useState<TempPart[]>([]);
     const [receiptImage, setReceiptImage] = useState<string | null>(null);
     const [totalCost, setTotalCost] = useState(0);
     const [vendorName, setVendorName] = useState('');
-    const formRef = useRef<HTMLFormElement>(null);
     
     useEffect(() => {
-        if (searchParams.get('success') === 'true' && isOpen) {
+        if (!isOpen) return; // Only process state changes when dialog is open
+        if (state.message) {
             toast({
-                title: 'Success',
-                description: 'Field purchase logged successfully.',
+                title: state.success ? 'Success' : 'Error',
+                description: state.message,
+                variant: state.success ? 'default' : 'destructive',
             });
-            setIsOpen(false);
-            // Clean up URL params
-            router.replace('/dashboard/inventory');
+            if (state.success) {
+                onPurchaseLogged({
+                    inventoryItems: state.updatedInventory,
+                    purchaseOrders: state.updatedPurchaseOrders,
+                });
+                resetForm();
+                setIsOpen(false);
+            }
         }
-        if (searchParams.get('error') && isOpen) {
-             toast({
-                variant: 'destructive',
-                title: 'Error',
-                description: 'Could not log field purchase.',
-            });
-            setIsOpen(false);
-            router.replace('/dashboard/inventory');
-        }
-    }, [searchParams, isOpen, toast, router]);
+    }, [state, toast, isOpen, onPurchaseLogged]);
 
     const resetForm = () => {
         setSelectedJobId('');
@@ -128,7 +124,7 @@ export function FieldPurchaseDialog({ jobs }: FieldPurchaseDialogProps) {
                     <DialogTitle className="flex items-center gap-2"><ShoppingCart className="h-6 w-6"/>Log a Field Purchase</DialogTitle>
                     <DialogDescription>Track parts bought on the go and assign them to a job or your truck stock.</DialogDescription>
                 </DialogHeader>
-                <form action={addFieldPurchase} ref={formRef}>
+                <form action={formAction}>
                     <input type="hidden" name="parts" value={JSON.stringify(parts)} />
                     <input type="hidden" name="receiptImage" value={receiptImage || ''} />
                     <div className="space-y-4 py-4">
@@ -180,8 +176,8 @@ export function FieldPurchaseDialog({ jobs }: FieldPurchaseDialogProps) {
                                             <Camera className="h-8 w-8 text-muted-foreground" />
                                         </div>
                                     )}
-                                    <Button type="button" variant="outline" onClick={() => (formRef.current?.querySelector('input[type=file]') as HTMLInputElement)?.click()}><UploadCloud className="mr-2 h-4 w-4" /> Upload</Button>
-                                    <input type="file" name="receiptFile" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                                    <Button type="button" variant="outline" onClick={() => (document.getElementById('receiptFile') as HTMLInputElement)?.click()}><UploadCloud className="mr-2 h-4 w-4" /> Upload</Button>
+                                    <input type="file" id="receiptFile" name="receiptFile" accept="image/*" onChange={handleImageUpload} className="hidden" />
                                 </div>
                             </div>
                             <div className="space-y-2">

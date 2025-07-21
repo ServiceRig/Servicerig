@@ -1082,7 +1082,14 @@ const addFieldPurchaseSchema = z.object({
     receiptImage: z.string().url('A valid receipt image is required.').or(z.literal('')),
 });
 
-export async function addFieldPurchase(prevState: any, formData: FormData) {
+type AddFieldPurchaseState = {
+    success: boolean;
+    message: string;
+    updatedInventory?: InventoryItem[];
+    updatedPurchaseOrders?: PurchaseOrder[];
+}
+
+export async function addFieldPurchase(prevState: AddFieldPurchaseState, formData: FormData): Promise<AddFieldPurchaseState> {
     const validatedFields = addFieldPurchaseSchema.safeParse({
         jobId: formData.get('jobId'),
         vendor: formData.get('vendor'),
@@ -1092,11 +1099,7 @@ export async function addFieldPurchase(prevState: any, formData: FormData) {
     });
 
     if (!validatedFields.success) {
-        console.error(validatedFields.error.flatten().fieldErrors);
-        // This is not a real form state action, so we can't return an error state
-        // The redirect will handle informing the user implicitly by not showing changes
-        redirect('/dashboard/inventory?error=validation_failed');
-        return;
+        return { success: false, message: 'Invalid field purchase data.' };
     }
 
     try {
@@ -1163,15 +1166,15 @@ export async function addFieldPurchase(prevState: any, formData: FormData) {
             }
         });
         
+        return { 
+            success: true, 
+            message: 'Field purchase logged successfully.',
+            updatedInventory: [...mockData.inventoryItems],
+            updatedPurchaseOrders: [...mockData.purchaseOrders]
+        };
+        
     } catch (e: any) {
         console.error(e);
-        redirect('/dashboard/inventory?error=unknown_error');
-        return;
+        return { success: false, message: 'An unexpected error occurred while logging the purchase.' };
     }
-    
-    // Use revalidatePath and then redirect to ensure data is fresh
-    revalidatePath('/dashboard/inventory');
-    redirect('/dashboard/inventory?success=true');
 }
-
-    

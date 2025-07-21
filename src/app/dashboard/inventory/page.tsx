@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -20,7 +19,7 @@ import { OnOrder } from '@/components/dashboard/inventory/OnOrder';
 import { CompletedOrders } from '@/components/dashboard/inventory/CompletedOrders';
 import { TruckStock } from '@/components/dashboard/inventory/TruckStock';
 import { mockData } from '@/lib/mock-data';
-import type { InventoryItem, Equipment, EquipmentLog as EquipmentLogType, PurchaseOrder } from '@/lib/types';
+import type { InventoryItem, Equipment, EquipmentLog as EquipmentLogType, PurchaseOrder, Job } from '@/lib/types';
 
 
 const allTabs = [
@@ -41,11 +40,12 @@ export default function InventoryPage() {
     const { role } = useRole();
     const [searchTerm, setSearchTerm] = useState('');
 
-    // Centralized state management for inventory data
+    // Centralized state management for all inventory data
     const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>(mockData.inventoryItems as InventoryItem[]);
     const [equipment, setEquipment] = useState<Equipment[]>(mockData.equipment as Equipment[]);
     const [equipmentLogs, setEquipmentLogs] = useState<EquipmentLogType[]>(mockData.equipmentLogs as EquipmentLogType[]);
     const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>(mockData.purchaseOrders as PurchaseOrder[]);
+    const [jobs, setJobs] = useState<Job[]>(mockData.jobs as Job[]);
 
     const visibleTabs = useMemo(() => {
         if (!role) return [];
@@ -58,11 +58,13 @@ export default function InventoryPage() {
         equipment?: Equipment[];
         equipmentLogs?: EquipmentLogType[];
         purchaseOrders?: PurchaseOrder[];
+        jobs?: Job[];
     }) => {
-        if (updates.inventoryItems) setInventoryItems(updates.inventoryItems);
-        if (updates.equipment) setEquipment(updates.equipment);
-        if (updates.equipmentLogs) setEquipmentLogs(updates.equipmentLogs);
-        if (updates.purchaseOrders) setPurchaseOrders(updates.purchaseOrders);
+        if (updates.inventoryItems) setInventoryItems([...updates.inventoryItems]);
+        if (updates.equipment) setEquipment([...updates.equipment]);
+        if (updates.equipmentLogs) setEquipmentLogs([...updates.equipmentLogs]);
+        if (updates.purchaseOrders) setPurchaseOrders([...updates.purchaseOrders]);
+        if (updates.jobs) setJobs([...updates.jobs]);
     };
 
     if (!role || visibleTabs.length === 0) {
@@ -115,6 +117,7 @@ export default function InventoryPage() {
                                     equipment={equipment}
                                     equipmentLogs={equipmentLogs}
                                     purchaseOrders={purchaseOrders}
+                                    jobs={jobs}
                                     onDataUpdate={handleDataUpdate}
                                 />
                             ) : (
