@@ -8,7 +8,7 @@ import { addEstimate as addEstimateToDb, getEstimateById, updateEstimate as upda
 import { addJob as addJobToDb, getJobById, updateJob } from "@/lib/firestore/jobs";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import type { Estimate, GbbTier, LineItem, PricebookItem, Job, Invoice, EquipmentLog, Equipment, PurchaseOrder, UsedPart, PurchaseOrderPart, EstimateTemplate } from "@/lib/types";
+import type { Estimate, GbbTier, LineItem, PricebookItem, Job, Invoice, EquipmentLog, Equipment, PurchaseOrder, UsedPart, PurchaseOrderPart, EstimateTemplate, InventoryItem } from "@/lib/types";
 import { addEstimateTemplate, updateEstimateTemplate } from "@/lib/firestore/templates";
 import { mockData } from "@/lib/mock-data";
 import { addPricebookItem } from "@/lib/firestore/pricebook";
@@ -1114,25 +1114,42 @@ export async function addFieldPurchase(prevState: AddFieldPurchaseState, formDat
         mockData.purchaseOrders.unshift(newPO);
 
         parts.forEach(part => {
-            const existingItemIndex = mockData.inventoryItems.findIndex((i: any) => i.name.toLowerCase() === part.name.toLowerCase());
+            const existingItemIndex = mockData.inventoryItems.findIndex((i: InventoryItem) => i.name.toLowerCase() === part.name.toLowerCase());
+
             if (existingItemIndex > -1) {
-                const truckStockIndex = mockData.inventoryItems[existingItemIndex].truckLocations?.findIndex(loc => loc.technicianId === loggedInTechId) ?? -1;
+                // Item exists in master inventory, update truck stock
+                const truckStockIndex = mockData.inventoryItems[existingItemIndex].truckLocations?.findIndex((loc: any) => loc.technicianId === loggedInTechId) ?? -1;
 
                 if (truckStockIndex > -1) {
+                    // Tech already has this item on their truck, increase quantity
                     mockData.inventoryItems[existingItemIndex].truckLocations![truckStockIndex].quantity += part.qty;
                 } else {
+                     // Tech does not have this item, add it to their truck stock
                     if (!mockData.inventoryItems[existingItemIndex].truckLocations) {
                         mockData.inventoryItems[existingItemIndex].truckLocations = [];
                     }
                     mockData.inventoryItems[existingItemIndex].truckLocations!.push({ technicianId: loggedInTechId, quantity: part.qty });
                 }
             } else {
-                const newItem = {
-                    id: part.id, name: part.name, description: 'Field purchased item', sku: `FIELD-${part.id}`,
-                    partNumber: `FIELD-${part.id}`, modelNumber: `FIELD-${part.id}`, warehouseLocation: '',
-                    quantityOnHand: 0, reorderThreshold: 0, unitCost: part.unitCost, ourPrice: part.unitCost * 1.5,
-                    vendor: vendor, trade: 'General', category: 'Field Purchase', reorderQtyDefault: 1,
-                    truckLocations: [{ technicianId: loggedInTechId, quantity: part.qty }], createdAt: new Date()
+                // Item is brand new to the system, create it and add to truck stock
+                const newItem: InventoryItem = {
+                    id: part.id,
+                    name: part.name,
+                    description: 'Field purchased item',
+                    sku: 'FIELD', // Use "FIELD" as requested
+                    partNumber: 'N/A',
+                    modelNumber: 'N/A',
+                    warehouseLocation: '',
+                    quantityOnHand: 0, // This item goes straight to truck stock, not warehouse
+                    reorderThreshold: 0,
+                    unitCost: part.unitCost,
+                    ourPrice: part.unitCost * 1.5, // Example pricing logic
+                    vendor: vendor,
+                    trade: 'General',
+                    category: 'Field Purchase',
+                    reorderQtyDefault: 1,
+                    truckLocations: [{ technicianId: loggedInTechId, quantity: part.qty }], // Add directly to truck
+                    createdAt: new Date(),
                 };
                 mockData.inventoryItems.push(newItem);
             }
