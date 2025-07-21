@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect, useMemo, useCallback, Suspense, useActionState } from 'react';
@@ -10,22 +9,73 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Trash2, PlusCircle, BookOpen } from 'lucide-react';
+import { Trash2, PlusCircle, BookOpen, Presentation } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { mockData } from '@/lib/mock-data';
-import type { Customer, Job, EstimateTemplate, LineItem, PricebookItem, TierDetails, GbbTier } from '@/lib/types';
+import type { Customer, Job, EstimateTemplate, LineItem, GbbTier, TierDetails } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { AITierGenerator, TierData } from '@/components/dashboard/ai-tier-generator';
+import { AITierGenerator, type TierData } from '@/components/dashboard/ai-tier-generator';
 import { CustomerPresentationView } from '@/components/dashboard/customer-presentation-view';
 import { addEstimate } from '@/app/actions';
 import { SubmitButton } from './SubmitButton';
 import { useRole } from '@/hooks/use-role';
 import { PricebookSelector } from '@/components/dashboard/pricebook-selector';
+import { Textarea } from '@/components/ui/textarea';
 
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
 };
+
+const EditableTierCard = ({ tiers, onTiersChange, onDisplayToCustomer }: { tiers: TierData[], onTiersChange: (tiers: TierData[]) => void, onDisplayToCustomer: () => void }) => {
+    const handleTierChange = (index: number, field: 'description' | 'price', value: string | number) => {
+      const newTiers = [...tiers];
+      if (field === 'price') {
+          newTiers[index][field] = parseFloat(value as string) || 0;
+      } else {
+          newTiers[index][field] = value as string;
+      }
+      onTiersChange(newTiers);
+    }
+    
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Pricing Tiers</CardTitle>
+                <CardDescription>Review and edit the generated tiers.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                 {tiers.map((tier, index) => (
+                    <div key={index} className="space-y-2 p-3 border rounded-lg">
+                        <Label className="font-semibold text-lg">{tier.title}</Label>
+                        <Textarea 
+                            value={tier.description}
+                            onChange={(e) => handleTierChange(index, 'description', e.target.value)}
+                            rows={4}
+                            className="text-sm"
+                        />
+                        <div className="grid gap-2">
+                             <Label htmlFor={`price-${index}`} className="text-sm">Price</Label>
+                             <Input 
+                                id={`price-${index}`}
+                                type="number"
+                                value={tier.price}
+                                onChange={(e) => handleTierChange(index, 'price', e.target.value)}
+                                placeholder="Enter price"
+                             />
+                        </div>
+                    </div>
+                 ))}
+            </CardContent>
+            <CardFooter>
+                <Button onClick={onDisplayToCustomer} className="w-full bg-accent hover:bg-accent/90">
+                    <Presentation className="mr-2 h-4 w-4" />
+                    Display To Customer
+                </Button>
+            </CardFooter>
+        </Card>
+    )
+}
 
 function NewEstimatePageContent() {
   const { toast } = useToast();
@@ -147,7 +197,7 @@ function NewEstimatePageContent() {
   const discountAmount = useMemo(() => subtotal * (discountRate / 100), [subtotal, discountRate]);
   const subtotalAfterDiscount = useMemo(() => subtotal - discountAmount, [subtotal, discountAmount]);
   const taxAmount = useMemo(() => subtotalAfterDiscount * (taxRate / 100), [subtotalAfterDiscount, taxRate]);
-  const grandTotal = useMemo(() => subtotalAfterDiscount + taxAmount, [subtotalAfterDiscount, taxRate]);
+  const grandTotal = useMemo(() => subtotalAfterDiscount + taxAmount, [subtotal, taxRate]);
 
   useEffect(() => {
     if (selectedCustomerId && estimateTitle) {
@@ -390,12 +440,17 @@ function NewEstimatePageContent() {
                     </CardFooter>
                 </Card>
             </div>
-            <div className="lg:col-span-1">
+            <div className="lg:col-span-1 space-y-6">
                 <AITierGenerator 
-                    tiers={gbbTiers} 
                     onTiersChange={setGbbTiers} 
-                    onDisplayToCustomer={handleDisplayToCustomer} 
                 />
+                {gbbTiers && (
+                    <EditableTierCard 
+                        tiers={gbbTiers}
+                        onTiersChange={setGbbTiers}
+                        onDisplayToCustomer={handleDisplayToCustomer}
+                    />
+                )}
             </div>
         </div>
       </form>
