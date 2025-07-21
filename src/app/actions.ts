@@ -1082,14 +1082,7 @@ const addFieldPurchaseSchema = z.object({
     receiptImage: z.string().url('A valid receipt image is required.').or(z.literal('')),
 });
 
-type AddFieldPurchaseState = {
-    success: boolean;
-    message: string;
-    updatedInventory?: InventoryItem[];
-    updatedPOs?: PurchaseOrder[];
-}
-
-export async function addFieldPurchase(prevState: AddFieldPurchaseState, formData: FormData): Promise<AddFieldPurchaseState> {
+export async function addFieldPurchase(prevState: any, formData: FormData) {
     const validatedFields = addFieldPurchaseSchema.safeParse({
         jobId: formData.get('jobId'),
         vendor: formData.get('vendor'),
@@ -1100,7 +1093,10 @@ export async function addFieldPurchase(prevState: AddFieldPurchaseState, formDat
 
     if (!validatedFields.success) {
         console.error(validatedFields.error.flatten().fieldErrors);
-        return { success: false, message: 'Invalid data provided. Please check all fields.' };
+        // This is not a real form state action, so we can't return an error state
+        // The redirect will handle informing the user implicitly by not showing changes
+        redirect('/dashboard/inventory?error=validation_failed');
+        return;
     }
 
     try {
@@ -1152,7 +1148,7 @@ export async function addFieldPurchase(prevState: AddFieldPurchaseState, formDat
                     partNumber: 'N/A',
                     modelNumber: 'N/A',
                     warehouseLocation: '',
-                    quantityOnHand: 0,
+                    quantityOnHand: 0, // This is warehouse quantity, should be 0
                     reorderThreshold: 0,
                     unitCost: part.unitCost,
                     ourPrice: part.unitCost * 1.5,
@@ -1166,18 +1162,16 @@ export async function addFieldPurchase(prevState: AddFieldPurchaseState, formDat
                 mockData.inventoryItems.push(newItem);
             }
         });
-
-        return { 
-            success: true, 
-            message: 'Field purchase logged successfully.',
-            updatedInventory: [...mockData.inventoryItems],
-            updatedPOs: [...mockData.purchaseOrders],
-        };
         
     } catch (e: any) {
         console.error(e);
-        return { success: false, message: e.message || 'An unexpected error occurred.' };
+        redirect('/dashboard/inventory?error=unknown_error');
+        return;
     }
+    
+    // Use revalidatePath and then redirect to ensure data is fresh
+    revalidatePath('/dashboard/inventory');
+    redirect('/dashboard/inventory?success=true');
 }
 
     
