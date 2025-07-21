@@ -9,7 +9,7 @@ import {
   SidebarMenuSubButton,
 } from "@/components/ui/sidebar";
 import { UserRole } from "@/lib/types";
-import { LayoutDashboard, Calendar, UserSquare, Users, BarChart3, Book, Warehouse, Calculator, FileText, FileDiff, FileSignature, ClipboardList, DollarSign, Clock, AppWindow, Settings, LifeBuoy, LogOut, FilePlus, Bot, ListChecks, UserCog, History, HardHat, ShoppingBasket, LandPlot, Palette } from "lucide-react";
+import { LayoutDashboard, Calendar, UserSquare, Users, BarChart3, Book, Warehouse, Calculator, FileText, FileDiff, FileSignature, ClipboardList, DollarSign, Clock, AppWindow, Settings, LifeBuoy, LogOut, FilePlus, Bot, ListChecks, UserCog, History, HardHat, ShoppingBasket, LandPlot, Palette, Link as LinkIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from 'next/navigation';
 
@@ -53,6 +53,7 @@ const settingsItems = [
         { href: "/dashboard/settings/billing", icon: FileText, label: "Billing" },
         { href: "/dashboard/settings/tax", icon: LandPlot, label: "Tax" },
         { href: "/dashboard/settings/appearance", icon: Palette, label: "Appearance" },
+        { href: "/dashboard/settings/integrations", icon: LinkIcon, label: "Integrations" },
       ]
     },
     { href: "/dashboard/support", icon: LifeBuoy, label: "Support" },
@@ -134,3 +135,4 @@ export function MainNav({ role }: { role: UserRole }) {
     </>
   );
 }
+
