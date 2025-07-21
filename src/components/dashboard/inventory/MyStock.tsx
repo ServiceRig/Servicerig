@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Truck, Wrench } from 'lucide-react';
 import { LogPartUsageDialog } from './LogPartUsageDialog';
 import { FieldPurchaseDialog } from './FieldPurchaseDialog';
+import { EditInventoryItemDialog } from './EditInventoryItemDialog';
 
 const LOGGED_IN_TECHNICIAN_ID = 'tech1';
 
@@ -98,6 +99,7 @@ export function MyStock({ searchTerm, inventoryItems, jobs, onDataUpdate }: MySt
                                     <Button variant="secondary" size="sm" onClick={() => handleRequestRestock(item)}>
                                         <Truck className="mr-2 h-4 w-4" /> Restock
                                     </Button>
+                                     <EditInventoryItemDialog item={item} onUpdate={onDataUpdate as any} />
                                 </TableCell>
                             </TableRow>
                         )) : (

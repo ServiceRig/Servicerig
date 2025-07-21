@@ -1066,6 +1066,7 @@ const addFieldPurchaseSchema = z.object({
             const parsed = z.array(z.object({
                 id: z.string(),
                 name: z.string().min(1, 'Part name is required.'),
+                sku: z.string().optional(),
                 qty: z.coerce.number().min(1, 'Quantity must be at least 1.'),
                 unitCost: z.coerce.number().min(0),
             })).parse(JSON.parse(val));
@@ -1082,14 +1083,7 @@ const addFieldPurchaseSchema = z.object({
     receiptImage: z.string().url('A valid receipt image is required.').or(z.literal('')),
 });
 
-type AddFieldPurchaseState = {
-    success: boolean;
-    message: string;
-    updatedInventory?: InventoryItem[];
-    updatedPurchaseOrders?: PurchaseOrder[];
-}
-
-export async function addFieldPurchase(prevState: AddFieldPurchaseState, formData: FormData): Promise<AddFieldPurchaseState> {
+export async function addFieldPurchase(prevState: any, formData: FormData): Promise<{ success: boolean; message: string; inventoryItems?: InventoryItem[]; purchaseOrders?: PurchaseOrder[] }> {
     const validatedFields = addFieldPurchaseSchema.safeParse({
         jobId: formData.get('jobId'),
         vendor: formData.get('vendor'),
@@ -1147,7 +1141,7 @@ export async function addFieldPurchase(prevState: AddFieldPurchaseState, formDat
                     id: part.id,
                     name: part.name,
                     description: 'Field purchased item',
-                    sku: 'FIELD',
+                    sku: part.sku || 'FIELD',
                     partNumber: 'N/A',
                     modelNumber: 'N/A',
                     warehouseLocation: '',
@@ -1166,15 +1160,55 @@ export async function addFieldPurchase(prevState: AddFieldPurchaseState, formDat
             }
         });
         
+        revalidatePath('/dashboard/inventory'); // Still useful for future-proofing with real DBs
         return { 
             success: true, 
             message: 'Field purchase logged successfully.',
-            updatedInventory: [...mockData.inventoryItems],
-            updatedPurchaseOrders: [...mockData.purchaseOrders]
+            inventoryItems: [...mockData.inventoryItems],
+            purchaseOrders: [...mockData.purchaseOrders]
         };
         
     } catch (e: any) {
         console.error(e);
         return { success: false, message: 'An unexpected error occurred while logging the purchase.' };
+    }
+}
+
+const updateInventoryItemSchema = z.object({
+  itemId: z.string(),
+  name: z.string().min(1, 'Name is required.'),
+  sku: z.string().min(1, 'SKU is required.'),
+});
+
+export async function updateInventoryItem(prevState: any, formData: FormData): Promise<{ success: boolean; message: string; inventoryItems?: InventoryItem[] }> {
+    const validatedFields = updateInventoryItemSchema.safeParse({
+        itemId: formData.get('itemId'),
+        name: formData.get('name'),
+        sku: formData.get('sku'),
+    });
+
+    if (!validatedFields.success) {
+        return { success: false, message: 'Invalid data' };
+    }
+
+    try {
+        const { itemId, name, sku } = validatedFields.data;
+        const itemIndex = mockData.inventoryItems.findIndex(i => i.id === itemId);
+        if (itemIndex === -1) {
+            return { success: false, message: 'Item not found' };
+        }
+
+        mockData.inventoryItems[itemIndex].name = name;
+        mockData.inventoryItems[itemIndex].sku = sku;
+        mockData.inventoryItems[itemIndex].description = `Updated field item: ${name}`;
+
+        return { 
+            success: true, 
+            message: 'Item updated successfully.', 
+            inventoryItems: [...mockData.inventoryItems] 
+        };
+    } catch (e) {
+        console.error(e);
+        return { success: false, message: 'An unexpected error occurred.' };
     }
 }

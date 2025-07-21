@@ -18,6 +18,7 @@ import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, Di
 type TempPart = {
     id: string;
     name: string;
+    sku: string;
     qty: number;
     unitCost: number;
 };
@@ -50,7 +51,7 @@ export function FieldPurchaseDialog({ jobs, onPurchaseLogged }: FieldPurchaseDia
     const [vendorName, setVendorName] = useState('');
     
     useEffect(() => {
-        if (!isOpen) return; // Only process state changes when dialog is open
+        if (!isOpen) return;
         if (state.message) {
             toast({
                 title: state.success ? 'Success' : 'Error',
@@ -59,8 +60,8 @@ export function FieldPurchaseDialog({ jobs, onPurchaseLogged }: FieldPurchaseDia
             });
             if (state.success) {
                 onPurchaseLogged({
-                    inventoryItems: state.updatedInventory,
-                    purchaseOrders: state.updatedPurchaseOrders,
+                    inventoryItems: state.inventoryItems,
+                    purchaseOrders: state.purchaseOrders,
                 });
                 resetForm();
                 setIsOpen(false);
@@ -77,16 +78,19 @@ export function FieldPurchaseDialog({ jobs, onPurchaseLogged }: FieldPurchaseDia
     }
 
     const handleAddPart = () => {
-        setParts(prev => [...prev, { id: `new_${Date.now()}`, name: '', qty: 1, unitCost: 0 }]);
+        setParts(prev => [...prev, { id: `new_${Date.now()}`, name: '', sku: 'FIELD', qty: 1, unitCost: 0 }]);
     };
 
     const handlePartChange = (index: number, field: keyof TempPart, value: string | number) => {
         setParts(prev => {
             const newParts = [...prev];
             const part = { ...newParts[index] };
-            if (typeof value === 'string' && field !== 'name') {
-                (part as any)[field] = parseFloat(value) || 0;
-            } else {
+            if (typeof value === 'string' && (field === 'name' || field === 'sku')) {
+                part[field] = value;
+            } else if (typeof value === 'string') {
+                 (part as any)[field] = parseFloat(value) || 0;
+            }
+             else {
                 (part as any)[field] = value;
             }
             newParts[index] = part;
@@ -119,7 +123,7 @@ export function FieldPurchaseDialog({ jobs, onPurchaseLogged }: FieldPurchaseDia
                     <PlusCircle className="mr-2 h-4 w-4" /> Add Field Purchase
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-2xl">
+            <DialogContent className="sm:max-w-3xl">
                  <DialogHeader>
                     <DialogTitle className="flex items-center gap-2"><ShoppingCart className="h-6 w-6"/>Log a Field Purchase</DialogTitle>
                     <DialogDescription>Track parts bought on the go and assign them to a job or your truck stock.</DialogDescription>
@@ -149,6 +153,7 @@ export function FieldPurchaseDialog({ jobs, onPurchaseLogged }: FieldPurchaseDia
                             <div className="space-y-2 rounded-md border p-2">
                                 <div className="flex items-center gap-2 px-1 pb-2">
                                     <Label className="flex-grow">Part Name</Label>
+                                    <Label className="w-24 text-center">SKU</Label>
                                     <Label className="w-20 text-center">Quantity</Label>
                                     <Label className="w-24 text-center">Unit Cost</Label>
                                     <div className="w-9"></div>
@@ -156,6 +161,7 @@ export function FieldPurchaseDialog({ jobs, onPurchaseLogged }: FieldPurchaseDia
                                 {parts.map((part, index) => (
                                     <div key={index} className="flex items-center gap-2">
                                         <Input placeholder="Part name" value={part.name} onChange={(e) => handlePartChange(index, 'name', e.target.value)} />
+                                        <Input placeholder="SKU" value={part.sku} onChange={(e) => handlePartChange(index, 'sku', e.target.value)} className="w-24" />
                                         <Input type="number" placeholder="Qty" value={part.qty} onChange={(e) => handlePartChange(index, 'qty', e.target.value)} className="w-20" />
                                         <Input type="number" placeholder="Cost" value={part.unitCost} onChange={(e) => handlePartChange(index, 'unitCost', e.target.value)} className="w-24" />
                                         <Button type="button" variant="ghost" size="icon" onClick={() => handleRemovePart(index)}><Trash2 className="h-4 w-4" /></Button>

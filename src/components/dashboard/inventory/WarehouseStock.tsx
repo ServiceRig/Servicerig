@@ -14,15 +14,14 @@ import { useToast } from '@/hooks/use-toast';
 import { Truck, PackagePlus, Pencil } from 'lucide-react';
 import { IssueToTechDialog } from './IssueToTechDialog';
 import { ReceivePoDialog } from './ReceivePoDialog';
+import { EditInventoryItemDialog } from './EditInventoryItemDialog';
 
-export function WarehouseStock({ searchTerm }: { searchTerm: string }) {
-    const { toast } = useToast();
-    const [stock, setStock] = useState<InventoryItem[]>(mockData.inventoryItems);
+export function WarehouseStock({ searchTerm, inventoryItems, onDataUpdate }: { searchTerm: string, inventoryItems: InventoryItem[], onDataUpdate: (updates: { inventoryItems: InventoryItem[] }) => void }) {
 
     const filteredStock = useMemo(() => {
-        if (!searchTerm) return stock;
+        if (!searchTerm) return inventoryItems;
         const lowercasedTerm = searchTerm.toLowerCase();
-        return stock.filter(item => 
+        return inventoryItems.filter(item => 
             item.name.toLowerCase().includes(lowercasedTerm) ||
             item.sku.toLowerCase().includes(lowercasedTerm) ||
             item.partNumber.toLowerCase().includes(lowercasedTerm) ||
@@ -31,21 +30,7 @@ export function WarehouseStock({ searchTerm }: { searchTerm: string }) {
             item.category.toLowerCase().includes(lowercasedTerm) ||
             item.trade.toLowerCase().includes(lowercasedTerm)
         );
-    }, [stock, searchTerm]);
-
-    const handleAdjustStock = (itemId: string, adjustment: number) => {
-        // In a real app, this would be a server action.
-        setStock(prevStock => {
-            const newStock = prevStock.map(item => {
-                if (item.id === itemId) {
-                    return { ...item, quantityOnHand: item.quantityOnHand + adjustment };
-                }
-                return item;
-            });
-            return newStock;
-        });
-        toast({ title: 'Stock Adjusted', description: 'Warehouse quantity has been updated.' });
-    };
+    }, [inventoryItems, searchTerm]);
 
     return (
         <Card>
@@ -72,11 +57,9 @@ export function WarehouseStock({ searchTerm }: { searchTerm: string }) {
                                 <TableCell className="font-bold">{item.quantityOnHand}</TableCell>
                                 <TableCell>{item.warehouseLocation}</TableCell>
                                 <TableCell className="text-right space-x-2">
-                                     <IssueToTechDialog item={item} />
+                                     <IssueToTechDialog item={item} onUpdate={onDataUpdate as any} />
                                      <ReceivePoDialog item={item} />
-                                    <Button variant="ghost" size="icon">
-                                        <Pencil className="h-4 w-4" />
-                                    </Button>
+                                     <EditInventoryItemDialog item={item} onUpdate={onDataUpdate as any} />
                                 </TableCell>
                             </TableRow>
                         )) : (
