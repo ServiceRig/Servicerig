@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useMemo, useActionState } from 'react';
@@ -16,7 +17,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 interface ReceivePoDialogProps {
   item: InventoryItem;
-  onUpdate: () => void;
+  onUpdate: (updates: { inventoryItems: InventoryItem[] }) => void;
 }
 
 function SubmitButton() {
@@ -32,7 +33,7 @@ function SubmitButton() {
 export function ReceivePoDialog({ item, onUpdate }: ReceivePoDialogProps) {
     const [isOpen, setIsOpen] = useState(false);
     const { toast } = useToast();
-    const [state, formAction] = useActionState(receivePurchaseOrder, { success: false, message: '' });
+    const [state, formAction] = useActionState(receivePurchaseOrder, { success: false, message: '', inventory: [] });
 
     const openPOs = useMemo(() => {
         return (mockData.purchaseOrders as PurchaseOrder[]).filter(po => 
@@ -50,8 +51,8 @@ export function ReceivePoDialog({ item, onUpdate }: ReceivePoDialogProps) {
                 description: state.message,
                 variant: state.success ? 'default' : 'destructive',
             });
-            if (state.success) {
-                onUpdate();
+            if (state.success && state.inventory) {
+                onUpdate({ inventoryItems: state.inventory });
                 setIsOpen(false);
             }
         }

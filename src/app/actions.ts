@@ -2,6 +2,7 @@
 
 
 
+
 'use server';
 
 import { generateTieredEstimates, type GenerateTieredEstimatesInput, type GenerateTieredEstimatesOutput } from "@/ai/flows/generate-tiered-estimates";
@@ -936,7 +937,13 @@ const receivePurchaseOrderSchema = z.object({
   itemId: z.string(),
 });
 
-export async function receivePurchaseOrder(prevState: any, formData: FormData): Promise<{ success: boolean, message: string }> {
+type ReceivePoState = {
+  success: boolean;
+  message: string;
+  inventory?: InventoryItem[];
+}
+
+export async function receivePurchaseOrder(prevState: any, formData: FormData): Promise<ReceivePoState> {
   const validatedFields = receivePurchaseOrderSchema.safeParse({
     poId: formData.get('poId'),
     itemId: formData.get('itemId'),
@@ -968,7 +975,11 @@ export async function receivePurchaseOrder(prevState: any, formData: FormData): 
     po.receivedBy = 'user_admin';
     mockData.purchaseOrders[poIndex] = po;
 
-    return { success: true, message: `${poPart.qty} x ${mockData.inventoryItems[itemIndex].name} received from PO ${po.id}.` };
+    return { 
+        success: true, 
+        message: `${poPart.qty} x ${mockData.inventoryItems[itemIndex].name} received from PO ${po.id}.`,
+        inventory: [...mockData.inventoryItems],
+    };
 
   } catch (e) {
     console.error(e);
