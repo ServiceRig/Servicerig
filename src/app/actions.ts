@@ -801,7 +801,14 @@ const updateEquipmentConditionSchema = z.object({
   notes: z.string().min(1, 'Notes are required.'),
 });
 
-export async function updateEquipmentCondition(prevState: any, formData: FormData) {
+type UpdateEquipmentState = {
+    success: boolean;
+    message: string;
+    equipment?: Equipment[];
+    equipmentLogs?: EquipmentLog[];
+};
+
+export async function updateEquipmentCondition(prevState: any, formData: FormData): Promise<UpdateEquipmentState> {
     const validatedFields = updateEquipmentConditionSchema.safeParse({
         equipmentId: formData.get('equipmentId'),
         technicianId: formData.get('technicianId'),
@@ -842,6 +849,8 @@ export async function updateEquipmentCondition(prevState: any, formData: FormDat
         return { 
             success: true, 
             message: 'Equipment condition updated successfully.',
+            equipment: [...mockData.equipment],
+            equipmentLogs: [...mockData.equipmentLogs],
         };
 
     } catch (e) {
@@ -904,7 +913,7 @@ export async function issueStockToTechnician(prevState: any, formData: FormData)
     return { 
         success: true, 
         message: `${quantity} x ${item.name} issued to ${technician?.name || 'technician'}.`,
-        inventory: mockData.inventoryItems,
+        inventory: [...mockData.inventoryItems],
     };
 
   } catch (e) {
@@ -1096,7 +1105,7 @@ export async function addFieldPurchase(
         if (!validatedFields.success) {
             console.error("Field purchase validation failed:", validatedFields.error.flatten().fieldErrors);
             const errorMessage = validatedFields.error.flatten().fieldErrors.parts?.[0] || 'Invalid field purchase data.';
-            return { success: false, message: errorMessage, inventory: mockData.inventoryItems as InventoryItem[] };
+            return { success: false, message: errorMessage };
         }
 
         const { jobId, vendor, total, parts, receiptImage } = validatedFields.data;
@@ -1162,7 +1171,7 @@ export async function addFieldPurchase(
             }
         });
         
-        return { success: true, message: 'Field purchase logged successfully.', inventory: mockData.inventoryItems as InventoryItem[] };
+        return { success: true, message: 'Field purchase logged successfully.', inventory: [...mockData.inventoryItems] };
 
     } catch (e: any) {
         console.error("Critical error in addFieldPurchase action:", e);
@@ -1214,3 +1223,4 @@ export async function updateInventoryItem(prevState: any, formData: FormData) {
         return { success: false, message: 'An unexpected error occurred.' };
     }
 }
+

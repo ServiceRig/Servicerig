@@ -17,7 +17,7 @@ import type { Equipment, EquipmentLog } from '@/lib/types';
 interface ChangeEquipmentConditionDialogProps {
   equipment: Equipment;
   technicianId: string;
-  onUpdate: () => void;
+  onUpdate: (updates: { equipment: Equipment[], equipmentLogs: EquipmentLog[] }) => void;
 }
 
 function SubmitButton() {
@@ -35,7 +35,7 @@ const conditions: Equipment['condition'][] = ['new', 'good', 'fair', 'poor', 'de
 export function ChangeEquipmentConditionDialog({ equipment, technicianId, onUpdate }: ChangeEquipmentConditionDialogProps) {
     const [isOpen, setIsOpen] = useState(false);
     const { toast } = useToast();
-    const [state, formAction] = useActionState(updateEquipmentCondition, { success: false, message: '' });
+    const [state, formAction] = useActionState(updateEquipmentCondition, { success: false, message: '', equipment: [], equipmentLogs: [] });
 
     useEffect(() => {
         if (state?.message) {
@@ -44,8 +44,8 @@ export function ChangeEquipmentConditionDialog({ equipment, technicianId, onUpda
                 description: state.message,
                 variant: state.success ? 'default' : 'destructive',
             });
-            if (state.success) {
-                onUpdate();
+            if (state.success && state.equipment && state.equipmentLogs) {
+                onUpdate({ equipment: state.equipment, equipmentLogs: state.equipmentLogs });
                 setIsOpen(false);
             }
         }
