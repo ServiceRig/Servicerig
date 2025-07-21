@@ -14,10 +14,10 @@ const getDay = (day: number) => {
 // in a Node.js development server environment. This simulates a persistent store.
 export const mockData: { [key: string]: any[] } = {
   vendors: [
-    { id: 'vendor_fhd1', name: 'Ferguson Plumbing Supply', contactName: 'Amanda Rivera', phone: '555-123-4567', email: 'arivera@ferguson.com', website: 'ferguson.com', paymentTerms: 'Net 30', createdAt: new Date() },
-    { id: 'vendor_js1', name: 'Johnstone Supply', contactName: 'Bill Thompson', phone: '555-987-6543', email: 'bthompson@johnstone.com', website: 'johnstonesupply.com', paymentTerms: 'Net 30', createdAt: new Date() },
-    { id: 'vendor_rem1', name: 'RE Michel Company', contactName: 'Chris Green', phone: '555-555-1111', email: 'cgreen@remichel.com', website: 'remichel.com', paymentTerms: 'Net 30', createdAt: new Date() },
-    { id: 'vendor_hd1', name: 'Home Depot Pro', contactName: 'Pro Desk', phone: '800-466-3337', email: 'pro@homedepot.com', website: 'homedepot.com/pro', paymentTerms: 'Credit Card', createdAt: new Date() },
+    { id: 'vendor_fhd1', name: 'Ferguson Plumbing Supply', contactName: 'Amanda Rivera', phone: '555-123-4567', email: 'arivera@ferguson.com', website: 'ferguson.com', paymentTerms: 'Net 30', createdAt: new Date(), preferred: true, trades: ['Plumbing', 'HVAC'], deliveryOptions: ['Warehouse'], portalUrl: 'https://www.ferguson.com/' },
+    { id: 'vendor_js1', name: 'Johnstone Supply', contactName: 'Bill Thompson', phone: '555-987-6543', email: 'bthompson@johnstone.com', website: 'johnstonesupply.com', paymentTerms: 'Net 30', createdAt: new Date(), preferred: true, trades: ['HVAC'], deliveryOptions: ['Warehouse', 'Tech Truck'], portalUrl: 'https://www.johnstonesupply.com/' },
+    { id: 'vendor_rem1', name: 'RE Michel Company', contactName: 'Chris Green', phone: '555-555-1111', email: 'cgreen@remichel.com', website: 'remichel.com', paymentTerms: 'Net 30', createdAt: new Date(), preferred: false, trades: ['HVAC'], deliveryOptions: ['Warehouse'], portalUrl: 'https://www.remichel.com/' },
+    { id: 'vendor_hd1', name: 'Home Depot Pro', contactName: 'Pro Desk', phone: '800-466-3337', email: 'pro@homedepot.com', website: 'homedepot.com/pro', paymentTerms: 'Credit Card', createdAt: new Date(), preferred: false, trades: ['Plumbing', 'Electrical', 'General'], deliveryOptions: ['Tech Truck'], portalUrl: 'https://www.homedepot.com/c/pro' },
   ] as Vendor[],
   users: [
       { id: 'admin1', name: 'Admin User', email: 'admin@servicerig.com', role: UserRole.Admin, active: true },

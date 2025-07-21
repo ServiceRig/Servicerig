@@ -38,6 +38,11 @@ export type Vendor = {
   paymentTerms?: string;
   notes?: string;
   createdAt: Timestamp | Date;
+  preferred: boolean;
+  trades: ('Plumbing' | 'HVAC' | 'Electrical' | 'General')[];
+  locations?: string[];
+  portalUrl?: string;
+  deliveryOptions: ('Warehouse' | 'Tech Truck')[];
 }
 
 
