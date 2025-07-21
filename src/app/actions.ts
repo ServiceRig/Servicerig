@@ -8,7 +8,7 @@ import { addEstimate as addEstimateToDb, getEstimateById, updateEstimate as upda
 import { addJob as addJobToDb, getJobById, updateJob } from "@/lib/firestore/jobs";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import type { Estimate, GbbTier, LineItem, PricebookItem, Job, Invoice, EquipmentLog, Equipment, PurchaseOrder, UsedPart } from "@/lib/types";
+import type { Estimate, GbbTier, LineItem, PricebookItem, Job, Invoice, EquipmentLog, Equipment, PurchaseOrder, UsedPart, PurchaseOrderPart } from "@/lib/types";
 import { addEstimateTemplate } from "@/lib/firestore/templates";
 import { mockData } from "@/lib/mock-data";
 import { addPricebookItem } from "@/lib/firestore/pricebook";
@@ -1010,4 +1010,105 @@ export async function logPartUsage(
     console.error(e);
     return { success: false, message: 'An unexpected error occurred while logging the part.' };
   }
+}
+
+
+const addFieldPurchaseSchema = z.object({
+    jobId: z.string().optional(),
+    vendor: z.string().min(1, 'Vendor name is required.'),
+    total: z.coerce.number().min(0.01, 'Total cost is required.'),
+    parts: z.string().transform((val, ctx) => {
+        try {
+            const parsed = z.array(z.object({
+                id: z.string(),
+                name: z.string().min(1, 'Part name is required.'),
+                qty: z.coerce.number().min(1, 'Quantity must be at least 1.'),
+                unitCost: z.coerce.number().min(0),
+            })).parse(JSON.parse(val));
+            if (parsed.length === 0) {
+                ctx.addIssue({ code: 'custom', message: 'At least one part is required.' });
+                return z.NEVER;
+            }
+            return parsed;
+        } catch {
+            ctx.addIssue({ code: 'custom', message: 'Invalid parts data.' });
+            return z.NEVER;
+        }
+    }),
+    receiptImage: z.string().url('A valid receipt image is required.'),
+});
+
+type AddFieldPurchaseState = {
+    success: boolean;
+    message: string;
+}
+
+export async function addFieldPurchase(prevState: AddFieldPurchaseState, formData: FormData): Promise<AddFieldPurchaseState> {
+    const validatedFields = addFieldPurchaseSchema.safeParse({
+        jobId: formData.get('jobId'),
+        vendor: formData.get('vendor'),
+        total: formData.get('total'),
+        parts: formData.get('parts'),
+        receiptImage: formData.get('receiptImage'),
+    });
+
+    if (!validatedFields.success) {
+        console.error(validatedFields.error.flatten().fieldErrors);
+        return { success: false, message: 'Invalid data provided. Please check all fields.' };
+    }
+
+    try {
+        const { jobId, vendor, total, parts, receiptImage } = validatedFields.data;
+        const loggedInTechId = 'tech1'; // This should come from auth context
+
+        const newPO: PurchaseOrder = {
+            id: `po_field_${Date.now()}`,
+            vendor,
+            parts: parts.map(p => ({ partId: p.id, qty: p.qty, unitCost: p.unitCost })),
+            total,
+            status: 'field-purchased',
+            destination: loggedInTechId,
+            orderDate: new Date(),
+            isFieldPurchase: true,
+            jobId: jobId || undefined,
+            receiptImage: receiptImage,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            requestedBy: loggedInTechId,
+            receivedBy: loggedInTechId,
+            receivedAt: new Date(),
+        };
+
+        mockData.purchaseOrders.unshift(newPO);
+
+        parts.forEach(part => {
+            const existingItem = mockData.inventoryItems.find((i: any) => i.name.toLowerCase() === part.name.toLowerCase());
+            if (existingItem) {
+                const truckStock = existingItem.truckLocations?.find(loc => loc.technicianId === loggedInTechId);
+                if (truckStock) {
+                    truckStock.quantity += part.qty;
+                } else {
+                    if (!existingItem.truckLocations) existingItem.truckLocations = [];
+                    existingItem.truckLocations.push({ technicianId: loggedInTechId, quantity: part.qty });
+                }
+            } else {
+                const newItem = {
+                    id: part.id, name: part.name, description: 'Field purchased item', sku: `FIELD-${part.id}`,
+                    partNumber: `FIELD-${part.id}`, modelNumber: `FIELD-${part.id}`, warehouseLocation: '',
+                    quantityOnHand: 0, reorderThreshold: 0, unitCost: part.unitCost, ourPrice: part.unitCost * 1.5,
+                    vendor: vendor, trade: 'General', category: 'Field Purchase', reorderQtyDefault: 1,
+                    truckLocations: [{ technicianId: loggedInTechId, quantity: part.qty }], createdAt: new Date()
+                };
+                mockData.inventoryItems.push(newItem);
+            }
+        });
+        
+        revalidatePath('/dashboard/my-schedule');
+        revalidatePath('/dashboard/inventory');
+
+        return { success: true, message: `Field purchase logged and PO ${newPO.id} created.` };
+    } catch (e) {
+        console.error(e);
+        return { success: false, message: 'An unexpected error occurred.' };
+    }
 }
