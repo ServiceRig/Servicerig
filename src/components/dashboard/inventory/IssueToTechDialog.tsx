@@ -1,8 +1,8 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useState, useEffect, useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -31,7 +31,7 @@ function SubmitButton({ maxQuantity }: { maxQuantity: number }) {
 export function IssueToTechDialog({ item }: IssueToTechDialogProps) {
     const [isOpen, setIsOpen] = useState(false);
     const { toast } = useToast();
-    const [state, formAction] = useFormState(issueStockToTechnician, { success: false, message: '' });
+    const [state, formAction] = useActionState(issueStockToTechnician, { success: false, message: '' });
     
     useEffect(() => {
         if (state?.message) {

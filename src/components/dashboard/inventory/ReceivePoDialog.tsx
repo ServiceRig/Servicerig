@@ -1,8 +1,8 @@
 
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useState, useEffect, useMemo, useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -31,7 +31,7 @@ function SubmitButton() {
 export function ReceivePoDialog({ item }: ReceivePoDialogProps) {
     const [isOpen, setIsOpen] = useState(false);
     const { toast } = useToast();
-    const [state, formAction] = useFormState(receivePurchaseOrder, { success: false, message: '' });
+    const [state, formAction] = useActionState(receivePurchaseOrder, { success: false, message: '' });
 
     const openPOs = useMemo(() => {
         return (mockData.purchaseOrders as PurchaseOrder[]).filter(po => 
