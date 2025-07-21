@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -22,7 +23,7 @@ interface MyStockProps {
     searchTerm: string;
     inventoryItems: InventoryItem[];
     jobs: Job[];
-    onDataUpdate: () => void;
+    onDataUpdate: (updatedInventory: InventoryItem[]) => void;
 }
 
 export function MyStock({ searchTerm, inventoryItems, jobs, onDataUpdate }: MyStockProps) {
@@ -55,8 +56,8 @@ export function MyStock({ searchTerm, inventoryItems, jobs, onDataUpdate }: MySt
         return truckStock.filter(item => 
             item.name.toLowerCase().includes(lowercasedTerm) ||
             item.sku.toLowerCase().includes(lowercasedTerm) ||
-            item.partNumber.toLowerCase().includes(lowercasedTerm) ||
-            item.modelNumber.toLowerCase().includes(lowercasedTerm) ||
+            (item.partNumber && item.partNumber.toLowerCase().includes(lowercasedTerm)) ||
+            (item.modelNumber && item.modelNumber.toLowerCase().includes(lowercasedTerm)) ||
             item.description.toLowerCase().includes(lowercasedTerm) ||
             item.category.toLowerCase().includes(lowercasedTerm) ||
             item.trade.toLowerCase().includes(lowercasedTerm)
@@ -100,12 +101,12 @@ export function MyStock({ searchTerm, inventoryItems, jobs, onDataUpdate }: MySt
                                         item={item} 
                                         technicianId={LOGGED_IN_TECHNICIAN_ID} 
                                         disabled={item.truckQuantity <= 0}
-                                        onPartLogged={onDataUpdate}
+                                        onPartLogged={() => onDataUpdate()}
                                     />
                                     <Button variant="secondary" size="sm" onClick={() => handleRequestRestock(item)}>
                                         <Truck className="mr-2 h-4 w-4" /> Restock
                                     </Button>
-                                     <EditInventoryItemDialog item={item} onUpdate={onDataUpdate} />
+                                     <EditInventoryItemDialog item={item} onUpdate={() => onDataUpdate()} />
                                 </TableCell>
                             </TableRow>
                         )) : (

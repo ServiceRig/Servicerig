@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
@@ -40,16 +41,16 @@ export default function InventoryPage() {
     const { role } = useRole();
     const [searchTerm, setSearchTerm] = useState('');
 
+    // Centralized state management for all inventory data
     const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
     const [equipment, setEquipment] = useState<Equipment[]>([]);
     const [equipmentLogs, setEquipmentLogs] = useState<EquipmentLogType[]>([]);
     const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([]);
     const [jobs, setJobs] = useState<Job[]>([]);
 
-    const onDataUpdate = useCallback(() => {
-        // This function forces a re-read from the central mockData object,
-        // ensuring any server-side mutations are reflected in the client state.
-        setInventoryItems([...mockData.inventoryItems as InventoryItem[]]);
+    const onDataUpdate = useCallback((updatedInventory?: InventoryItem[]) => {
+        // If specific data is passed, use it. Otherwise, refetch from mock source.
+        setInventoryItems(updatedInventory || [...mockData.inventoryItems as InventoryItem[]]);
         setEquipment([...mockData.equipment as Equipment[]]);
         setEquipmentLogs([...mockData.equipmentLogs as EquipmentLogType[]]);
         setPurchaseOrders([...mockData.purchaseOrders as PurchaseOrder[]]);
@@ -107,15 +108,15 @@ export default function InventoryPage() {
                 
                 {visibleTabs.map(tab => {
                     const TabComponent = tab.component;
-                    
-                    const componentProps = {
+                    // Prepare props for each component, ensuring they receive the live state
+                    const componentProps: any = {
                         searchTerm,
                         inventoryItems,
                         equipment,
                         equipmentLogs,
                         purchaseOrders,
                         jobs,
-                        onDataUpdate,
+                        onDataUpdate, // Pass the central update handler
                     };
 
                     return (

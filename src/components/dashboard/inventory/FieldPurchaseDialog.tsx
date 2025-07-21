@@ -1,7 +1,8 @@
 
+
 'use client';
 
-import { useState, useRef, useEffect, useActionState } from 'react';
+import { useState, useRef, useEffect, useActionState, useTransition } from 'react';
 import { useFormStatus } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -27,7 +28,7 @@ type TempPart = {
 
 interface FieldPurchaseDialogProps {
     jobs: Job[];
-    onPurchaseLogged: () => void;
+    onPurchaseLogged: (updatedInventory: InventoryItem[]) => void;
 }
 
 function SubmitButton({ disabled }: { disabled: boolean }) {
@@ -43,7 +44,7 @@ function SubmitButton({ disabled }: { disabled: boolean }) {
 export function FieldPurchaseDialog({ jobs, onPurchaseLogged }: FieldPurchaseDialogProps) {
     const [isOpen, setIsOpen] = useState(false);
     const { toast } = useToast();
-    const [state, formAction] = useActionState(addFieldPurchase, { success: false, message: '' });
+    const [state, formAction] = useActionState(addFieldPurchase, { success: false, message: '', inventory: [] });
     
     const [selectedJobId, setSelectedJobId] = useState('');
     const [parts, setParts] = useState<TempPart[]>([]);
@@ -66,14 +67,13 @@ export function FieldPurchaseDialog({ jobs, onPurchaseLogged }: FieldPurchaseDia
                 description: state.message,
                 variant: state.success ? 'default' : 'destructive',
             });
-            if(state.success) {
-                onPurchaseLogged();
+            if(state.success && state.inventory) {
+                onPurchaseLogged(state.inventory);
                 setIsOpen(false);
                 resetForm();
             }
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [state]);
+    }, [state, toast, onPurchaseLogged]);
 
     const handleAddPart = () => {
         setParts(prev => [...prev, { 
