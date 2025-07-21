@@ -1152,12 +1152,11 @@ export async function addFieldPurchase(prevState: AddFieldPurchaseState, formDat
             }
         });
         
-        revalidatePath('/dashboard/my-schedule');
-        revalidatePath('/dashboard/inventory');
-
-        return { success: true, message: `Field purchase logged and PO ${newPO.id} created.` };
-    } catch (e) {
+    } catch (e: any) {
         console.error(e);
-        return { success: false, message: 'An unexpected error occurred.' };
+        return { success: false, message: e.message || 'An unexpected error occurred.' };
     }
+    
+    // Redirect to force a full data refresh on the client
+    redirect('/dashboard/inventory');
 }

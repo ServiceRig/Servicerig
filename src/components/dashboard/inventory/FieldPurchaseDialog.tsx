@@ -1,10 +1,9 @@
 
-
 'use client';
 
-import { useState, useRef, useActionState, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { useFormState, useFormStatus } from 'react-dom';
 import { useRouter } from 'next/navigation';
-import { useFormStatus } from 'react-dom';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -29,46 +28,33 @@ function SubmitButton({ disabled }: { disabled: boolean }) {
     return (
         <Button type="submit" disabled={pending || disabled}>
             {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FilePlus className="mr-2 h-4 w-4" />}
-            Log Field Purchase
+            {pending ? 'Logging...' : 'Log Field Purchase'}
         </Button>
     )
 }
 
 export function FieldPurchaseDialog({ jobs }: { jobs: Job[] }) {
     const [isOpen, setIsOpen] = useState(false);
-    const router = useRouter();
     const { toast } = useToast();
-    const [state, formAction] = useActionState(addFieldPurchase, { success: false, message: '' });
+    const [state, formAction] = useFormState(addFieldPurchase, { success: false, message: '' });
 
     const [selectedJobId, setSelectedJobId] = useState('');
     const [parts, setParts] = useState<TempPart[]>([]);
     const [receiptImage, setReceiptImage] = useState<string | null>(null);
     const [totalCost, setTotalCost] = useState(0);
     const [vendorName, setVendorName] = useState('');
-
-    const fileInputRef = useRef<HTMLInputElement>(null);
     const formRef = useRef<HTMLFormElement>(null);
 
+     // This useEffect will run when the server action completes and the state updates.
     useEffect(() => {
-        if (state?.message) {
+        if (state?.message && !state.success) {
             toast({
-                title: state.success ? 'Success' : 'Error',
+                title: 'Error',
                 description: state.message,
-                variant: state.success ? 'default' : 'destructive',
+                variant: 'destructive',
             });
-            if (state.success) {
-                // Reset form
-                setSelectedJobId('');
-                setParts([]);
-                setReceiptImage(null);
-                setTotalCost(0);
-                setVendorName('');
-                formRef.current?.reset();
-                setIsOpen(false);
-                router.refresh();
-            }
         }
-    }, [state, toast, router]);
+    }, [state, toast]);
 
     const handleAddPart = () => {
         setParts(prev => [...prev, { id: `new_${Date.now()}`, name: '', qty: 1, unitCost: 0 }]);
@@ -170,8 +156,8 @@ export function FieldPurchaseDialog({ jobs }: { jobs: Job[] }) {
                                             <Camera className="h-8 w-8 text-muted-foreground" />
                                         </div>
                                     )}
-                                    <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}><UploadCloud className="mr-2 h-4 w-4" /> Upload</Button>
-                                    <input type="file" accept="image/*" ref={fileInputRef} onChange={handleImageUpload} className="hidden" />
+                                    <Button type="button" variant="outline" onClick={() => (formRef.current?.querySelector('input[type=file]') as HTMLInputElement)?.click()}><UploadCloud className="mr-2 h-4 w-4" /> Upload</Button>
+                                    <input type="file" name="receiptFile" accept="image/*" onChange={handleImageUpload} className="hidden" />
                                 </div>
                             </div>
                             <div className="space-y-2">
