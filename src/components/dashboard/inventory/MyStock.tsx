@@ -79,6 +79,9 @@ export function MyStock({ searchTerm, inventoryItems, jobs, onDataUpdate }: MySt
                         <TableRow>
                             <TableHead>Part Name</TableHead>
                             <TableHead>SKU</TableHead>
+                            <TableHead>Part #</TableHead>
+                            <TableHead>Model #</TableHead>
+                            <TableHead>Supplier</TableHead>
                             <TableHead>On Truck</TableHead>
                             <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
@@ -88,6 +91,9 @@ export function MyStock({ searchTerm, inventoryItems, jobs, onDataUpdate }: MySt
                             <TableRow key={item.id}>
                                 <TableCell className="font-medium">{item.name}</TableCell>
                                 <TableCell>{item.sku}</TableCell>
+                                <TableCell>{item.partNumber}</TableCell>
+                                <TableCell>{item.modelNumber}</TableCell>
+                                <TableCell>{item.vendor}</TableCell>
                                 <TableCell className="font-bold">{item.truckQuantity}</TableCell>
                                 <TableCell className="text-right space-x-2">
                                     <LogPartUsageDialog 
@@ -99,12 +105,12 @@ export function MyStock({ searchTerm, inventoryItems, jobs, onDataUpdate }: MySt
                                     <Button variant="secondary" size="sm" onClick={() => handleRequestRestock(item)}>
                                         <Truck className="mr-2 h-4 w-4" /> Restock
                                     </Button>
-                                     <EditInventoryItemDialog item={item} onUpdate={onDataUpdate as any} />
+                                     <EditInventoryItemDialog item={item} onUpdate={onDataUpdate} />
                                 </TableCell>
                             </TableRow>
                         )) : (
                              <TableRow>
-                                <TableCell colSpan={4} className="h-24 text-center">
+                                <TableCell colSpan={7} className="h-24 text-center">
                                     No stock found on your truck.
                                 </TableCell>
                             </TableRow>

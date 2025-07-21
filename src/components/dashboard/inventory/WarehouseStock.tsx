@@ -28,7 +28,8 @@ export function WarehouseStock({ searchTerm, inventoryItems, onDataUpdate }: { s
             item.modelNumber.toLowerCase().includes(lowercasedTerm) ||
             item.description.toLowerCase().includes(lowercasedTerm) ||
             item.category.toLowerCase().includes(lowercasedTerm) ||
-            item.trade.toLowerCase().includes(lowercasedTerm)
+            item.trade.toLowerCase().includes(lowercasedTerm) ||
+            (item.vendor && item.vendor.toLowerCase().includes(lowercasedTerm))
         );
     }, [inventoryItems, searchTerm]);
 
@@ -44,6 +45,9 @@ export function WarehouseStock({ searchTerm, inventoryItems, onDataUpdate }: { s
                         <TableRow>
                             <TableHead>Part Name</TableHead>
                             <TableHead>SKU</TableHead>
+                            <TableHead>Part #</TableHead>
+                            <TableHead>Model #</TableHead>
+                            <TableHead>Supplier</TableHead>
                             <TableHead>On Hand</TableHead>
                             <TableHead>Location</TableHead>
                             <TableHead className="text-right">Actions</TableHead>
@@ -54,17 +58,20 @@ export function WarehouseStock({ searchTerm, inventoryItems, onDataUpdate }: { s
                             <TableRow key={item.id} className={item.quantityOnHand <= item.reorderThreshold ? 'bg-red-50 dark:bg-red-900/20' : ''}>
                                 <TableCell className="font-medium">{item.name}</TableCell>
                                 <TableCell>{item.sku}</TableCell>
+                                <TableCell>{item.partNumber}</TableCell>
+                                <TableCell>{item.modelNumber}</TableCell>
+                                <TableCell>{item.vendor}</TableCell>
                                 <TableCell className="font-bold">{item.quantityOnHand}</TableCell>
                                 <TableCell>{item.warehouseLocation}</TableCell>
                                 <TableCell className="text-right space-x-2">
-                                     <IssueToTechDialog item={item} onUpdate={onDataUpdate as any} />
+                                     <IssueToTechDialog item={item} />
                                      <ReceivePoDialog item={item} />
-                                     <EditInventoryItemDialog item={item} onUpdate={onDataUpdate as any} />
+                                     <EditInventoryItemDialog item={item} onUpdate={onDataUpdate} />
                                 </TableCell>
                             </TableRow>
                         )) : (
                              <TableRow>
-                                <TableCell colSpan={5} className="h-24 text-center">
+                                <TableCell colSpan={8} className="h-24 text-center">
                                     No stock found matching your search.
                                 </TableCell>
                             </TableRow>

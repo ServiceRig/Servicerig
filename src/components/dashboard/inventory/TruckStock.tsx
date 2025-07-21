@@ -40,7 +40,9 @@ export function TruckStock({ inventoryItems, searchTerm }: { inventoryItems: Inv
             const matchesSearch = searchTerm ? (
                 item.name.toLowerCase().includes(lowercasedTerm) ||
                 item.sku.toLowerCase().includes(lowercasedTerm) ||
-                item.partNumber.toLowerCase().includes(lowercasedTerm)
+                item.partNumber.toLowerCase().includes(lowercasedTerm) ||
+                item.modelNumber.toLowerCase().includes(lowercasedTerm) ||
+                (item.vendor && item.vendor.toLowerCase().includes(lowercasedTerm))
             ) : true;
             
             return matchesTech && matchesSearch;
@@ -71,7 +73,9 @@ export function TruckStock({ inventoryItems, searchTerm }: { inventoryItems: Inv
                     <TableHeader>
                         <TableRow>
                             <TableHead>Part Name</TableHead>
-                            <TableHead>SKU</TableHead>
+                            <TableHead>Part #</TableHead>
+                            <TableHead>Model #</TableHead>
+                            <TableHead>Supplier</TableHead>
                             <TableHead>Technician</TableHead>
                             <TableHead className="text-right">Quantity on Truck</TableHead>
                         </TableRow>
@@ -80,13 +84,15 @@ export function TruckStock({ inventoryItems, searchTerm }: { inventoryItems: Inv
                         {filteredStock.length > 0 ? filteredStock.map(item => (
                             <TableRow key={`${item.id}-${item.technicianId}`}>
                                 <TableCell className="font-medium">{item.name}</TableCell>
-                                <TableCell>{item.sku}</TableCell>
+                                <TableCell>{item.partNumber}</TableCell>
+                                <TableCell>{item.modelNumber}</TableCell>
+                                <TableCell>{item.vendor}</TableCell>
                                 <TableCell>{item.technicianName}</TableCell>
                                 <TableCell className="text-right font-bold">{item.truckQuantity}</TableCell>
                             </TableRow>
                         )) : (
                              <TableRow>
-                                <TableCell colSpan={4} className="h-24 text-center">
+                                <TableCell colSpan={6} className="h-24 text-center">
                                     No truck stock found for the selected filters.
                                 </TableCell>
                             </TableRow>
