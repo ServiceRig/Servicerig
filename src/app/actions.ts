@@ -7,7 +7,7 @@ import { addEstimate as addEstimateToDb, getEstimateById, updateEstimate as upda
 import { addJob as addJobToDb, getJobById, updateJob } from "@/lib/firestore/jobs";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import type { Estimate, GbbTier, LineItem, PricebookItem, Job, Invoice, EquipmentLog, Equipment } from "@/lib/types";
+import type { Estimate, GbbTier, LineItem, PricebookItem, Job, Invoice, EquipmentLog, Equipment, PurchaseOrder } from "@/lib/types";
 import { addEstimateTemplate } from "@/lib/firestore/templates";
 import { mockData } from "@/lib/mock-data";
 import { addPricebookItem } from "@/lib/firestore/pricebook";
@@ -820,4 +820,103 @@ export async function updateEquipmentCondition(prevState: UpdateEquipmentConditi
     } catch (e) {
         return { success: false, message: 'Failed to update equipment condition.' };
     }
+}
+
+const issueStockToTechnicianSchema = z.object({
+  itemId: z.string(),
+  technicianId: z.string(),
+  quantity: z.coerce.number().min(1, 'Quantity must be at least 1.'),
+});
+
+export async function issueStockToTechnician(prevState: any, formData: FormData): Promise<{ success: boolean, message: string }> {
+  const validatedFields = issueStockToTechnicianSchema.safeParse({
+    itemId: formData.get('itemId'),
+    technicianId: formData.get('technicianId'),
+    quantity: formData.get('quantity'),
+  });
+
+  if (!validatedFields.success) {
+    return { success: false, message: 'Invalid data provided.' };
+  }
+  
+  const { itemId, technicianId, quantity } = validatedFields.data;
+
+  try {
+    const itemIndex = mockData.inventoryItems.findIndex(i => i.id === itemId);
+    if (itemIndex === -1) {
+      return { success: false, message: 'Inventory item not found.' };
+    }
+    
+    const item = mockData.inventoryItems[itemIndex];
+    if (item.quantityOnHand < quantity) {
+      return { success: false, message: `Not enough stock. Only ${item.quantityOnHand} available.` };
+    }
+    
+    // Decrease warehouse stock
+    item.quantityOnHand -= quantity;
+
+    // Increase truck stock
+    const truckLocationIndex = item.truckLocations?.findIndex(loc => loc.technicianId === technicianId) ?? -1;
+    if (truckLocationIndex > -1) {
+      item.truckLocations![truckLocationIndex].quantity += quantity;
+    } else {
+      if (!item.truckLocations) item.truckLocations = [];
+      item.truckLocations.push({ technicianId, quantity });
+    }
+    
+    mockData.inventoryItems[itemIndex] = item;
+
+    revalidatePath('/dashboard/inventory');
+    return { success: true, message: `${quantity} x ${item.name} issued to technician.` };
+
+  } catch (e) {
+    console.error(e);
+    return { success: false, message: 'An unexpected error occurred.' };
+  }
+}
+
+const receivePurchaseOrderSchema = z.object({
+  poId: z.string(),
+  itemId: z.string(),
+});
+
+export async function receivePurchaseOrder(prevState: any, formData: FormData): Promise<{ success: boolean, message: string }> {
+  const validatedFields = receivePurchaseOrderSchema.safeParse({
+    poId: formData.get('poId'),
+    itemId: formData.get('itemId'),
+  });
+
+  if (!validatedFields.success) {
+    return { success: false, message: 'Invalid data.' };
+  }
+
+  const { poId, itemId } = validatedFields.data;
+
+  try {
+    const poIndex = mockData.purchaseOrders.findIndex((p: PurchaseOrder) => p.id === poId);
+    if (poIndex === -1) return { success: false, message: 'Purchase Order not found.' };
+
+    const itemIndex = mockData.inventoryItems.findIndex(i => i.id === itemId);
+    if (itemIndex === -1) return { success: false, message: 'Inventory item not found.' };
+    
+    const po = mockData.purchaseOrders[poIndex];
+    const poPart = po.parts.find(p => p.partId === itemId);
+    if (!poPart) return { success: false, message: 'Item not on this PO.' };
+    
+    // Update inventory
+    mockData.inventoryItems[itemIndex].quantityOnHand += poPart.qty;
+
+    // Update PO status
+    po.status = 'received';
+    po.receivedAt = new Date();
+    po.receivedBy = 'user_admin';
+    mockData.purchaseOrders[poIndex] = po;
+
+    revalidatePath('/dashboard/inventory');
+    return { success: true, message: `${poPart.qty} x ${mockData.inventoryItems[itemIndex].name} received from PO ${po.id}.` };
+
+  } catch (e) {
+    console.error(e);
+    return { success: false, message: 'An unexpected error occurred.' };
+  }
 }

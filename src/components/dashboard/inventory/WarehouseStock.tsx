@@ -12,6 +12,8 @@ import { mockData } from '@/lib/mock-data';
 import type { InventoryItem } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Truck, PackagePlus, Pencil } from 'lucide-react';
+import { IssueToTechDialog } from './IssueToTechDialog';
+import { ReceivePoDialog } from './ReceivePoDialog';
 
 export function WarehouseStock({ searchTerm }: { searchTerm: string }) {
     const { toast } = useToast();
@@ -70,12 +72,8 @@ export function WarehouseStock({ searchTerm }: { searchTerm: string }) {
                                 <TableCell className="font-bold">{item.quantityOnHand}</TableCell>
                                 <TableCell>{item.warehouseLocation}</TableCell>
                                 <TableCell className="text-right space-x-2">
-                                     <Button variant="outline" size="sm">
-                                        <Truck className="mr-2 h-4 w-4" /> Issue to Tech
-                                    </Button>
-                                    <Button variant="outline" size="sm">
-                                        <PackagePlus className="mr-2 h-4 w-4" /> Receive PO
-                                    </Button>
+                                     <IssueToTechDialog item={item} />
+                                     <ReceivePoDialog item={item} />
                                     <Button variant="ghost" size="icon">
                                         <Pencil className="h-4 w-4" />
                                     </Button>
