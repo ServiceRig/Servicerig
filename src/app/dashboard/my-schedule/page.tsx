@@ -17,6 +17,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import Link from 'next/link';
 import Image from 'next/image';
 import { FieldPurchaseDialog } from '@/components/dashboard/inventory/FieldPurchaseDialog';
+import { useRole } from '@/hooks/use-role';
 
 type EnrichedJob = Job & {
   customer?: Customer;
@@ -38,9 +39,10 @@ const getStatusStyles = (status: Job['status']) => {
   }
 };
 
-const JobCard = ({ job }: { job: EnrichedJob }) => {
+const JobCard = ({ job, role }: { job: EnrichedJob, role: string | null }) => {
   const customerName = job.customer?.primaryContact.name || 'N/A';
   const customerInitials = customerName.split(' ').map(n => n[0]).join('');
+  const getHref = (path: string) => `${path}?role=${role || ''}`;
 
   return (
     <Card className="flex flex-col">
@@ -60,10 +62,10 @@ const JobCard = ({ job }: { job: EnrichedJob }) => {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem asChild>
-                <Link href={`/dashboard/jobs/${job.id}`}>View Job Details</Link>
+                <Link href={getHref(`/dashboard/jobs/${job.id}`)}>View Job Details</Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
-                <Link href={`/dashboard/customers/${job.customerId}`}>View Customer</Link>
+                <Link href={getHref(`/dashboard/customers/${job.customerId}`)}>View Customer</Link>
             </DropdownMenuItem>
             <DropdownMenuItem>Change Status</DropdownMenuItem>
           </DropdownMenuContent>
@@ -100,12 +102,13 @@ const JobCard = ({ job }: { job: EnrichedJob }) => {
   );
 };
 
-const TodaysJobListItem = ({ job }: { job: EnrichedJob }) => {
+const TodaysJobListItem = ({ job, role }: { job: EnrichedJob, role: string | null }) => {
     const customerName = job.customer?.primaryContact.name || 'N/A';
     const customerAddress = job.customer?.companyInfo.address || 'No address';
+    const getHref = (path: string) => `${path}?role=${role || ''}`;
 
     return (
-        <Link href={`/dashboard/jobs/${job.id}`} className="block hover:bg-muted/50 rounded-lg">
+        <Link href={getHref(`/dashboard/jobs/${job.id}`)} className="block hover:bg-muted/50 rounded-lg">
             <div className="flex items-center gap-4 py-3 px-2 border-b">
                 <div className="flex items-center justify-center h-10 w-10 bg-muted rounded-full">
                     <Clock className="h-5 w-5 text-muted-foreground" />
@@ -124,14 +127,14 @@ const TodaysJobListItem = ({ job }: { job: EnrichedJob }) => {
     )
 }
 
-const JobsGrid = ({ jobs }: { jobs: EnrichedJob[] }) => {
+const JobsGrid = ({ jobs, role }: { jobs: EnrichedJob[], role: string | null }) => {
   if (jobs.length === 0) {
     return <p className="text-center text-muted-foreground py-8">No jobs in this category.</p>;
   }
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
       {jobs.map(job => (
-        <JobCard key={job.id} job={job} />
+        <JobCard key={job.id} job={job} role={role} />
       ))}
     </div>
   );
@@ -139,6 +142,7 @@ const JobsGrid = ({ jobs }: { jobs: EnrichedJob[] }) => {
 
 export default function MySchedulePage() {
   const [jobs, setJobs] = useState<EnrichedJob[]>([]);
+  const { role } = useRole();
 
   useEffect(() => {
     // Simulate fetching and enriching data from Firestore
@@ -170,7 +174,7 @@ export default function MySchedulePage() {
       </div>
       
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        <FieldPurchaseDialog jobs={jobs} />
+        <FieldPurchaseDialog jobs={jobs} onPurchaseLogged={() => { /* Implement data update logic */ }}/>
       </div>
 
 
@@ -194,7 +198,7 @@ export default function MySchedulePage() {
             <CardContent>
                 <ScrollArea className="h-96">
                     {todaysJobs.length > 0 ? (
-                        todaysJobs.map(job => <TodaysJobListItem key={job.id} job={job} />)
+                        todaysJobs.map(job => <TodaysJobListItem key={job.id} job={job} role={role} />)
                     ) : (
                         <div className="flex items-center justify-center h-full">
                             <p className="text-muted-foreground">No jobs scheduled for today.</p>
@@ -213,13 +217,13 @@ export default function MySchedulePage() {
           <TabsTrigger value="personal-metrics">Personal Metrics</TabsTrigger>
         </TabsList>
         <TabsContent value="upcoming">
-          <JobsGrid jobs={upcomingJobs} />
+          <JobsGrid jobs={upcomingJobs} role={role} />
         </TabsContent>
         <TabsContent value="needs-invoice">
-          <JobsGrid jobs={needsInvoiceJobs} />
+          <JobsGrid jobs={needsInvoiceJobs} role={role} />
         </TabsContent>
         <TabsContent value="all-completed">
-          <JobsGrid jobs={allCompletedJobs} />
+          <JobsGrid jobs={allCompletedJobs} role={role} />
         </TabsContent>
         <TabsContent value="personal-metrics">
           <p className="text-center text-muted-foreground py-8">Personal metrics coming soon.</p>
