@@ -138,6 +138,12 @@ export function FieldPurchaseDialog({ jobs }: { jobs: Job[] }) {
                         <div className="space-y-2">
                             <Label>Parts Purchased</Label>
                             <div className="space-y-2 rounded-md border p-2">
+                                <div className="flex items-center gap-2 px-1 pb-2">
+                                    <Label className="flex-grow">Part Name</Label>
+                                    <Label className="w-20 text-center">Quantity</Label>
+                                    <Label className="w-24 text-center">Unit Cost</Label>
+                                    <div className="w-9"></div>
+                                </div>
                                 {parts.map((part, index) => (
                                     <div key={index} className="flex items-center gap-2">
                                         <Input placeholder="Part name" value={part.name} onChange={(e) => handlePartChange(index, 'name', e.target.value)} />
