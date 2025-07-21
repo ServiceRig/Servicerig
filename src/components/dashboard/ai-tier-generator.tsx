@@ -28,25 +28,18 @@ export type TierData = {
 }
 
 interface AITierGeneratorProps {
-    onTiersFinalized: (tiers: TierData[]) => void;
-    initialTiers?: TierData[] | null;
+    tiers: TierData[] | null;
+    onTiersChange: (tiers: TierData[]) => void;
+    onDisplayToCustomer: () => void;
 }
 
-export function AITierGenerator({ onTiersFinalized, initialTiers }: AITierGeneratorProps) {
+export function AITierGenerator({ tiers, onTiersChange, onDisplayToCustomer }: AITierGeneratorProps) {
   const initialState = { message: null, errors: null, data: null };
   const [state, dispatch] = useActionState(runGenerateTieredEstimates, initialState);
   const { toast } = useToast();
   
   const [isPending, startTransition] = useTransition();
   const [jobDetails, setJobDetails] = useState('');
-
-  const [editableTiers, setEditableTiers] = useState<TierData[] | null>(null);
-
-  useEffect(() => {
-    if (initialTiers) {
-      setEditableTiers(initialTiers);
-    }
-  }, [initialTiers]);
 
   useEffect(() => {
     if (state.message) {
@@ -61,29 +54,24 @@ export function AITierGenerator({ onTiersFinalized, initialTiers }: AITierGenera
             title: "Success",
             description: "AI Tiers generated successfully. You can now edit them.",
         });
-        setEditableTiers([
+        onTiersChange([
             { title: 'Good', description: state.data.good.description, price: state.data.good.price },
             { title: 'Better', description: state.data.better.description, price: state.data.better.price },
             { title: 'Best', description: state.data.best.description, price: state.data.best.price },
         ]);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state, toast]);
 
   const handleTierChange = (index: number, field: 'description' | 'price', value: string | number) => {
-      if (!editableTiers) return;
-      const newTiers = [...editableTiers];
+      if (!tiers) return;
+      const newTiers = [...tiers];
       if (field === 'price') {
           newTiers[index][field] = parseFloat(value as string) || 0;
       } else {
           newTiers[index][field] = value as string;
       }
-      setEditableTiers(newTiers);
-  }
-
-  const handleDisplayToCustomer = () => {
-    if (editableTiers) {
-        onTiersFinalized(editableTiers);
-    }
+      onTiersChange(newTiers);
   }
 
   const handleGenerateClick = () => {
@@ -121,10 +109,10 @@ export function AITierGenerator({ onTiersFinalized, initialTiers }: AITierGenera
              </Button>
         </CardContent>
       </div>
-      {editableTiers && (
+      {tiers && (
         <>
             <CardContent className="space-y-4 border-t pt-4 mt-4">
-                 {editableTiers.map((tier, index) => (
+                 {tiers.map((tier, index) => (
                     <div key={index} className="space-y-2 p-3 border rounded-lg">
                         <Label className="font-semibold text-lg">{tier.title}</Label>
                         <Textarea 
@@ -147,7 +135,7 @@ export function AITierGenerator({ onTiersFinalized, initialTiers }: AITierGenera
                  ))}
             </CardContent>
             <CardFooter>
-                <Button onClick={handleDisplayToCustomer} className="w-full bg-accent hover:bg-accent/90">
+                <Button onClick={onDisplayToCustomer} className="w-full bg-accent hover:bg-accent/90">
                     <Presentation className="mr-2 h-4 w-4" />
                     Display To Customer
                 </Button>

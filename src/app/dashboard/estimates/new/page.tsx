@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useMemo, useCallback, Suspense, useActionState } from 'react';
@@ -156,7 +157,7 @@ function NewEstimatePageContent() {
     }
   }, [selectedCustomerId, estimateTitle]);
   
-  const handleTiersFinalized = useCallback((tiers: TierData[]) => {
+  const handleDisplayToCustomer = useCallback(() => {
     if (!selectedCustomerId) {
         toast({
             variant: "destructive",
@@ -165,13 +166,20 @@ function NewEstimatePageContent() {
         });
         return;
     }
-    setGbbTiers(tiers);
+    if (!gbbTiers || gbbTiers.length === 0) {
+        toast({
+            variant: "destructive",
+            title: "No Tiers Available",
+            description: "Please generate or load tiers before presenting.",
+        });
+        return;
+    }
     setShowPresentation(true);
     toast({
         title: "Displaying to Customer",
         description: "Presentation mode activated.",
     });
-  }, [selectedCustomerId, toast]);
+  }, [selectedCustomerId, gbbTiers, toast]);
 
   const handleLoadTemplate = (templateId: string) => {
     const template = templates.find(t => t.id === templateId);
@@ -383,7 +391,11 @@ function NewEstimatePageContent() {
                 </Card>
             </div>
             <div className="lg:col-span-1">
-                <AITierGenerator onTiersFinalized={handleTiersFinalized} initialTiers={gbbTiers} />
+                <AITierGenerator 
+                    tiers={gbbTiers} 
+                    onTiersChange={setGbbTiers} 
+                    onDisplayToCustomer={handleDisplayToCustomer} 
+                />
             </div>
         </div>
       </form>
