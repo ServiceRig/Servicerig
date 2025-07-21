@@ -69,6 +69,14 @@ export function EditInventoryItemDialog({ item, onUpdate }: EditInventoryItemDia
                             <Label htmlFor="sku">SKU</Label>
                             <Input id="sku" name="sku" defaultValue={item.sku} />
                         </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="partNumber">Part Number</Label>
+                            <Input id="partNumber" name="partNumber" defaultValue={item.partNumber} />
+                        </div>
+                         <div className="space-y-2">
+                            <Label htmlFor="modelNumber">Model Number</Label>
+                            <Input id="modelNumber" name="modelNumber" defaultValue={item.modelNumber} />
+                        </div>
                     </div>
                     <DialogFooter>
                         <DialogClose asChild><Button type="button" variant="ghost">Cancel</Button></DialogClose>

@@ -763,13 +763,7 @@ const addEquipmentLogSchema = z.object({
   notes: z.string().min(1, 'Notes are required.'),
 });
 
-type AddEquipmentLogState = {
-    success: boolean;
-    message: string;
-    updatedLogs?: EquipmentLog[];
-}
-
-export async function addEquipmentLog(prevState: AddEquipmentLogState, formData: FormData): Promise<AddEquipmentLogState> {
+export async function addEquipmentLog(prevState: any, formData: FormData): Promise<{ success: boolean; message: string; updatedLogs?: EquipmentLog[] }> {
     const validatedFields = addEquipmentLogSchema.safeParse({
         equipmentId: formData.get('equipmentId'),
         technicianId: formData.get('technicianId'),
@@ -804,14 +798,7 @@ const updateEquipmentConditionSchema = z.object({
   notes: z.string().min(1, 'Notes are required.'),
 });
 
-type UpdateEquipmentConditionState = {
-    success: boolean;
-    message: string;
-    updatedEquipment?: Equipment[];
-    updatedLogs?: EquipmentLog[];
-}
-
-export async function updateEquipmentCondition(prevState: UpdateEquipmentConditionState, formData: FormData): Promise<UpdateEquipmentConditionState> {
+export async function updateEquipmentCondition(prevState: any, formData: FormData): Promise<{ success: boolean; message: string; updatedEquipment?: Equipment[]; updatedLogs?: EquipmentLog[] }> {
     const validatedFields = updateEquipmentConditionSchema.safeParse({
         equipmentId: formData.get('equipmentId'),
         technicianId: formData.get('technicianId'),
@@ -968,17 +955,10 @@ const logPartUsageSchema = z.object({
   note: z.string().optional(),
 });
 
-type LogPartUsageState = {
-  success: boolean;
-  message: string;
-  updatedInventory?: InventoryItem[];
-  updatedJobs?: Job[];
-};
-
 export async function logPartUsage(
-  prevState: LogPartUsageState,
+  prevState: any,
   formData: FormData
-): Promise<LogPartUsageState> {
+): Promise<{ success: boolean; message: string; updatedInventory?: InventoryItem[]; updatedJobs?: Job[] }> {
   const validatedFields = logPartUsageSchema.safeParse({
     partId: formData.get('partId'),
     jobId: formData.get('jobId'),
@@ -995,7 +975,7 @@ export async function logPartUsage(
 
   try {
     // 1. Find the inventory item and technician's truck stock
-    const itemIndex = mockData.inventoryItems.findIndex(i => i.id === partId);
+    const itemIndex = mockData.inventoryItems.findIndex((i: InventoryItem) => i.id === partId);
     if (itemIndex === -1) {
       return { success: false, message: 'Inventory item not found.' };
     }
@@ -1083,7 +1063,7 @@ const addFieldPurchaseSchema = z.object({
     receiptImage: z.string().url('A valid receipt image is required.').or(z.literal('')),
 });
 
-export async function addFieldPurchase(prevState: any, formData: FormData): Promise<{ success: boolean; message: string; inventoryItems?: InventoryItem[]; purchaseOrders?: PurchaseOrder[] }> {
+export async function addFieldPurchase(prevState: any, formData: FormData) {
     const validatedFields = addFieldPurchaseSchema.safeParse({
         jobId: formData.get('jobId'),
         vendor: formData.get('vendor'),
@@ -1160,24 +1140,21 @@ export async function addFieldPurchase(prevState: any, formData: FormData): Prom
             }
         });
         
-        revalidatePath('/dashboard/inventory'); // Still useful for future-proofing with real DBs
-        return { 
-            success: true, 
-            message: 'Field purchase logged successfully.',
-            inventoryItems: [...mockData.inventoryItems],
-            purchaseOrders: [...mockData.purchaseOrders]
-        };
-        
     } catch (e: any) {
         console.error(e);
         return { success: false, message: 'An unexpected error occurred while logging the purchase.' };
     }
+    
+    revalidatePath('/dashboard/inventory');
+    redirect('/dashboard/inventory');
 }
 
 const updateInventoryItemSchema = z.object({
   itemId: z.string(),
   name: z.string().min(1, 'Name is required.'),
   sku: z.string().min(1, 'SKU is required.'),
+  partNumber: z.string().optional(),
+  modelNumber: z.string().optional(),
 });
 
 export async function updateInventoryItem(prevState: any, formData: FormData): Promise<{ success: boolean; message: string; inventoryItems?: InventoryItem[] }> {
@@ -1185,6 +1162,8 @@ export async function updateInventoryItem(prevState: any, formData: FormData): P
         itemId: formData.get('itemId'),
         name: formData.get('name'),
         sku: formData.get('sku'),
+        partNumber: formData.get('partNumber'),
+        modelNumber: formData.get('modelNumber'),
     });
 
     if (!validatedFields.success) {
@@ -1192,7 +1171,7 @@ export async function updateInventoryItem(prevState: any, formData: FormData): P
     }
 
     try {
-        const { itemId, name, sku } = validatedFields.data;
+        const { itemId, name, sku, partNumber, modelNumber } = validatedFields.data;
         const itemIndex = mockData.inventoryItems.findIndex(i => i.id === itemId);
         if (itemIndex === -1) {
             return { success: false, message: 'Item not found' };
@@ -1200,6 +1179,8 @@ export async function updateInventoryItem(prevState: any, formData: FormData): P
 
         mockData.inventoryItems[itemIndex].name = name;
         mockData.inventoryItems[itemIndex].sku = sku;
+        mockData.inventoryItems[itemIndex].partNumber = partNumber || mockData.inventoryItems[itemIndex].partNumber;
+        mockData.inventoryItems[itemIndex].modelNumber = modelNumber || mockData.inventoryItems[itemIndex].modelNumber;
         mockData.inventoryItems[itemIndex].description = `Updated field item: ${name}`;
 
         return { 
