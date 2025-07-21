@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { Suspense, useEffect, useMemo, useState } from 'react';
@@ -12,7 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Trash2, AlertCircle, Save, X, Package } from 'lucide-react';
 import { mockData } from '@/lib/mock-data';
-import type { PurchaseOrder, PurchaseOrderPart, InventoryItem } from '@/lib/types';
+import type { PurchaseOrderPart, InventoryItem } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 
 type TempPoPart = PurchaseOrderPart & {
@@ -31,7 +32,7 @@ function NewPurchaseOrderContent() {
         const itemsParam = searchParams.get('items');
         if (itemsParam) {
             try {
-                const parsedItems = JSON.parse(itemsParam);
+                const parsedItems = JSON.parse(decodeURIComponent(itemsParam));
                 const itemsWithVendors = parsedItems.map((item: any) => {
                     const inventoryItem = mockData.inventoryItems.find((i: InventoryItem) => i.id === item.partId);
                     return { ...item, vendor: inventoryItem?.vendor || 'Unknown' };
@@ -120,7 +121,7 @@ function NewPurchaseOrderContent() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {items.map(item => (
+                                {items.map((item, itemIndex) => (
                                     <TableRow key={`${index}-${item.partId}`}>
                                         <TableCell className="font-medium">{item.itemName}</TableCell>
                                         <TableCell><Input type="number" value={item.qty} onChange={(e) => handleQtyChange(item.partId, parseInt(e.target.value) || 0)}/></TableCell>

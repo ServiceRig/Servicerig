@@ -390,21 +390,26 @@ export type PurchaseOrderPart = {
 // PurchaseOrder model from /purchaseOrders/{poId}
 export interface PurchaseOrder {
   id: string;
-  vendorId: string;
+  vendor: string;
   parts: PurchaseOrderPart[];
-  status: 'draft' | 'ordered' | 'received' | 'delivered' | 'cancelled';
+  status: 'draft' | 'ordered' | 'received' | 'delivered' | 'cancelled' | 'pending' | 'field-purchased' | 'completed';
   destination: 'Warehouse' | string; // Warehouse or technicianId
   jobId?: string;
-  receiptUrl?: string;
+  receiptImage?: string;
   orderDate: Timestamp | Date;
   expectedDeliveryDate?: Timestamp | Date;
-  createdBy: string; // userId
+  requestedBy: string; // userId
   createdAt: Timestamp | Date;
+  updatedAt: Timestamp | Date;
   // For UI enrichment
-  vendorName?: string;
+  vendorId?: string;
   destinationName?: string;
   itemCount?: number;
-  total?: number;
+  total: number;
+  receivedBy?: string;
+  receivedAt?: Timestamp | Date;
+  deliveryNotes?: string;
+  isFieldPurchase?: boolean;
 }
 
 // Pricebook model from /pricebook/{itemId}
@@ -429,8 +434,7 @@ export type InventoryItem = {
   sku: string;
   modelNumber: string;
   partNumber: string;
-  vendorId?: string; // Changed to vendorId
-  vendorName?: string; // For UI enrichment
+  vendor: string; // Changed to vendor string
   category: string;
   trade: 'Plumbing' | 'HVAC' | 'Electrical' | 'General';
   quantityOnHand: number;
@@ -473,11 +477,15 @@ export type PartRequest = {
 }
 
 export type ShoppingListItem = {
+    id: string;
     itemId: string;
     itemName: string;
     quantityNeeded: number;
-    reason?: string;
-    requestId?: string;
+    reason: string;
+    trade: 'Plumbing' | 'HVAC' | 'Electrical' | 'General';
+    vendor: string;
+    destination: string; // Warehouse or tech ID
+    requestId?: string; // Link back to original PartRequest if applicable
 }
 
 

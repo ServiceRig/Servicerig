@@ -20,7 +20,7 @@ import { OnOrder } from '@/components/dashboard/inventory/OnOrder';
 import { CompletedOrders } from '@/components/dashboard/inventory/CompletedOrders';
 import { TruckStock } from '@/components/dashboard/inventory/TruckStock';
 import { mockData } from '@/lib/mock-data';
-import type { InventoryItem, Equipment, EquipmentLog as EquipmentLogType, PurchaseOrder, Job } from '@/lib/types';
+import type { InventoryItem, Equipment, EquipmentLog as EquipmentLogType, PurchaseOrder, Job, PartRequest } from '@/lib/types';
 
 
 const allTabs = [
@@ -47,14 +47,16 @@ export default function InventoryPage() {
     const [equipmentLogs, setEquipmentLogs] = useState<EquipmentLogType[]>([]);
     const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([]);
     const [jobs, setJobs] = useState<Job[]>([]);
+    const [partRequests, setPartRequests] = useState<PartRequest[]>([]);
 
-    const onDataUpdate = useCallback((updatedInventory?: InventoryItem[]) => {
-        // If specific data is passed, use it. Otherwise, refetch from mock source.
-        setInventoryItems(updatedInventory || [...mockData.inventoryItems as InventoryItem[]]);
+    const onDataUpdate = useCallback(() => {
+        // Refetch from mock source to ensure all state is current
+        setInventoryItems([...mockData.inventoryItems as InventoryItem[]]);
         setEquipment([...mockData.equipment as Equipment[]]);
         setEquipmentLogs([...mockData.equipmentLogs as EquipmentLogType[]]);
         setPurchaseOrders([...mockData.purchaseOrders as PurchaseOrder[]]);
         setJobs([...mockData.jobs as Job[]]);
+        setPartRequests([...mockData.partRequests as PartRequest[]]);
     }, []);
 
     useEffect(() => {
@@ -116,6 +118,7 @@ export default function InventoryPage() {
                         equipmentLogs,
                         purchaseOrders,
                         jobs,
+                        partRequests,
                         onDataUpdate, // Pass the central update handler
                     };
 
