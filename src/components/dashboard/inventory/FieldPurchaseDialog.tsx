@@ -1,8 +1,8 @@
 
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
-import { useActionState, useFormStatus } from 'react-dom';
+import { useState, useRef, useEffect, useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -29,7 +29,7 @@ type TempPart = {
 
 interface FieldPurchaseDialogProps {
     jobs: Job[];
-    onPurchaseLogged: (updates: any) => void;
+    onPurchaseLogged: () => void;
 }
 
 function SubmitButton({ disabled }: { disabled: boolean }) {
@@ -72,6 +72,7 @@ export function FieldPurchaseDialog({ jobs, onPurchaseLogged }: FieldPurchaseDia
                 variant: state.success ? 'default' : 'destructive',
             });
             if(state.success) {
+                onPurchaseLogged();
                 router.refresh();
                 setIsOpen(false);
                 resetForm();
@@ -162,8 +163,8 @@ export function FieldPurchaseDialog({ jobs, onPurchaseLogged }: FieldPurchaseDia
                         <div className="space-y-2">
                             <Label>Parts Purchased</Label>
                             <div className="space-y-2 rounded-md border p-2">
-                                <div className="grid grid-cols-6 items-center gap-2 px-1 pb-2">
-                                    <Label className="col-span-2">Part Name</Label>
+                                <div className="grid grid-cols-[2fr,1fr,1fr,1fr,0.5fr,auto] items-center gap-2 px-1 pb-2">
+                                    <Label>Part Name</Label>
                                     <Label className="text-center">SKU</Label>
                                     <Label className="text-center">Part #</Label>
                                     <Label className="text-center">Model #</Label>
@@ -171,8 +172,8 @@ export function FieldPurchaseDialog({ jobs, onPurchaseLogged }: FieldPurchaseDia
                                     <div className="w-9"></div>
                                 </div>
                                 {parts.map((part, index) => (
-                                    <div key={part.id} className="grid grid-cols-6 items-center gap-2">
-                                        <Input className="col-span-2" placeholder="Part name" value={part.name} onChange={(e) => handlePartChange(index, 'name', e.target.value)} />
+                                    <div key={part.id} className="grid grid-cols-[2fr,1fr,1fr,1fr,0.5fr,auto] items-center gap-2">
+                                        <Input placeholder="Part name" value={part.name} onChange={(e) => handlePartChange(index, 'name', e.target.value)} />
                                         <Input placeholder="SKU" value={part.sku} onChange={(e) => handlePartChange(index, 'sku', e.target.value)} />
                                         <Input placeholder="Part #" value={part.partNumber} onChange={(e) => handlePartChange(index, 'partNumber', e.target.value)} />
                                         <Input placeholder="Model #" value={part.modelNumber} onChange={(e) => handlePartChange(index, 'modelNumber', e.target.value)} />

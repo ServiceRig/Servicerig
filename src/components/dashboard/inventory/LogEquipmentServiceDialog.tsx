@@ -17,7 +17,7 @@ import type { Equipment, EquipmentLog } from '@/lib/types';
 interface LogEquipmentServiceDialogProps {
   equipment: Equipment;
   technicianId: string;
-  onUpdate: (updates: { equipmentLogs: EquipmentLog[] }) => void;
+  onUpdate: () => void;
 }
 
 function SubmitButton() {
@@ -43,7 +43,7 @@ export function LogEquipmentServiceDialog({ equipment, technicianId, onUpdate }:
                 variant: state.success ? 'default' : 'destructive',
             });
             if (state.success) {
-                onUpdate({ equipmentLogs: state.updatedLogs! });
+                onUpdate();
                 setIsOpen(false);
             }
         }

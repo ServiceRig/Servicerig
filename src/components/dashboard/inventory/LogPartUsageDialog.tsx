@@ -20,7 +20,7 @@ interface LogPartUsageDialogProps {
   item: InventoryItem & { truckQuantity: number };
   technicianId: string;
   disabled?: boolean;
-  onPartLogged: (updates: { inventoryItems?: InventoryItem[], jobs?: Job[]}) => void;
+  onPartLogged: () => void;
 }
 
 function SubmitButton() {
@@ -51,10 +51,7 @@ export function LogPartUsageDialog({ item, technicianId, disabled, onPartLogged 
                 variant: state.success ? 'default' : 'destructive',
             });
             if (state.success) {
-                onPartLogged({
-                    inventoryItems: state.updatedInventory,
-                    jobs: state.updatedJobs,
-                });
+                onPartLogged();
                 setIsOpen(false);
             }
         }

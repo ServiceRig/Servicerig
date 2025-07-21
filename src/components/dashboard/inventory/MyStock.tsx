@@ -22,7 +22,7 @@ interface MyStockProps {
     searchTerm: string;
     inventoryItems: InventoryItem[];
     jobs: Job[];
-    onDataUpdate: (updates: { inventoryItems?: InventoryItem[], jobs?: Job[], purchaseOrders?: PurchaseOrder[] }) => void;
+    onDataUpdate: () => void;
 }
 
 export function MyStock({ searchTerm, inventoryItems, jobs, onDataUpdate }: MyStockProps) {

@@ -17,7 +17,7 @@ import type { Equipment, EquipmentLog } from '@/lib/types';
 interface ChangeEquipmentConditionDialogProps {
   equipment: Equipment;
   technicianId: string;
-  onUpdate: (updates: { equipment: Equipment[], equipmentLogs: EquipmentLog[] }) => void;
+  onUpdate: () => void;
 }
 
 function SubmitButton() {
@@ -45,10 +45,7 @@ export function ChangeEquipmentConditionDialog({ equipment, technicianId, onUpda
                 variant: state.success ? 'default' : 'destructive',
             });
             if (state.success) {
-                onUpdate({
-                    equipment: state.updatedEquipment!,
-                    equipmentLogs: state.updatedLogs!,
-                });
+                onUpdate();
                 setIsOpen(false);
             }
         }

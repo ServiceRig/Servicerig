@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
@@ -53,19 +53,15 @@ export default function InventoryPage() {
         return allTabs.filter(tab => tab.roles.includes(role));
     }, [role]);
 
-    const handleDataUpdate = (updates: {
-        inventoryItems?: InventoryItem[];
-        equipment?: Equipment[];
-        equipmentLogs?: EquipmentLogType[];
-        purchaseOrders?: PurchaseOrder[];
-        jobs?: Job[];
-    }) => {
-        if (updates.inventoryItems) setInventoryItems([...updates.inventoryItems]);
-        if (updates.equipment) setEquipment([...updates.equipment]);
-        if (updates.equipmentLogs) setEquipmentLogs([...updates.equipmentLogs]);
-        if (updates.purchaseOrders) setPurchaseOrders([...updates.purchaseOrders]);
-        if (updates.jobs) setJobs([...updates.jobs]);
-    };
+    const handleDataUpdate = useCallback(() => {
+        // This function will re-fetch all data from the "database" (mockData)
+        // This simulates a full data refresh after a mutation
+        setInventoryItems([...mockData.inventoryItems]);
+        setEquipment([...mockData.equipment]);
+        setEquipmentLogs([...mockData.equipmentLogs]);
+        setPurchaseOrders([...mockData.purchaseOrders]);
+        setJobs([...mockData.jobs]);
+    }, []);
 
     if (!role || visibleTabs.length === 0) {
         return (
@@ -107,19 +103,21 @@ export default function InventoryPage() {
                 
                 {visibleTabs.map(tab => {
                     const TabComponent = tab.component;
+                    
+                    const componentProps = {
+                        searchTerm,
+                        inventoryItems,
+                        equipment,
+                        equipmentLogs,
+                        purchaseOrders,
+                        jobs,
+                        onDataUpdate: handleDataUpdate,
+                    };
+                    
                     return (
                         <TabsContent key={tab.id} value={tab.id} className="mt-4">
                             {TabComponent ? (
-                                <TabComponent 
-                                    searchTerm={searchTerm} 
-                                    // Pass relevant state and update handlers to each component
-                                    inventoryItems={inventoryItems}
-                                    equipment={equipment}
-                                    equipmentLogs={equipmentLogs}
-                                    purchaseOrders={purchaseOrders}
-                                    jobs={jobs}
-                                    onDataUpdate={handleDataUpdate}
-                                />
+                                <TabComponent {...componentProps} />
                             ) : (
                                 <Card>
                                     <CardHeader>

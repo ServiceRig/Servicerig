@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useActionState } from 'react';
+import { useState, useEffect, useActionState, useCallback } from 'react';
 import { useFormStatus } from 'react-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -14,7 +14,7 @@ import type { InventoryItem } from '@/lib/types';
 
 interface EditInventoryItemDialogProps {
   item: InventoryItem;
-  onUpdate: (updates: { inventoryItems: InventoryItem[] }) => void;
+  onUpdate: () => void;
 }
 
 function SubmitButton() {
@@ -39,8 +39,8 @@ export function EditInventoryItemDialog({ item, onUpdate }: EditInventoryItemDia
                 description: state.message,
                 variant: state.success ? 'default' : 'destructive',
             });
-            if (state.success && state.inventoryItems) {
-                onUpdate({ inventoryItems: state.inventoryItems });
+            if (state.success) {
+                onUpdate();
                 setIsOpen(false);
             }
         }
