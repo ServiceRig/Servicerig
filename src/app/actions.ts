@@ -787,7 +787,6 @@ export async function addEquipmentLog(prevState: any, formData: FormData) {
         return { 
             success: true, 
             message: 'Service log added successfully.',
-            updatedLogs: [...mockData.equipmentLogs]
         };
     } catch(e) {
         return { success: false, message: 'Failed to add service log.' };
@@ -842,8 +841,6 @@ export async function updateEquipmentCondition(prevState: any, formData: FormDat
         return { 
             success: true, 
             message: 'Equipment condition updated successfully.',
-            updatedEquipment: [...mockData.equipment],
-            updatedLogs: [...mockData.equipmentLogs]
         };
 
     } catch (e) {
@@ -1029,8 +1026,6 @@ export async function logPartUsage(
     return { 
         success: true, 
         message: `${quantity} x ${item.name} logged to job ${job.title}.`,
-        updatedInventory: [...mockData.inventoryItems],
-        updatedJobs: [...mockData.jobs],
     };
 
   } catch (e) {
@@ -1192,11 +1187,11 @@ export async function updateInventoryItem(prevState: any, formData: FormData) {
 
         return { 
             success: true, 
-            message: 'Item updated successfully.', 
-            updatedInventory: [...mockData.inventoryItems] 
+            message: 'Item updated successfully.',
         };
     } catch (e) {
         console.error(e);
         return { success: false, message: 'An unexpected error occurred.' };
     }
 }
+
