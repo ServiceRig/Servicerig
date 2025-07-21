@@ -1081,7 +1081,6 @@ export async function addFieldPurchase(prevState: any, formData: FormData) {
     });
 
     if (!validatedFields.success) {
-        console.log(validatedFields.error.flatten())
         return { success: false, message: validatedFields.error.flatten().fieldErrors.parts?.[0] || 'Invalid field purchase data.' };
     }
 
@@ -1149,8 +1148,7 @@ export async function addFieldPurchase(prevState: any, formData: FormData) {
             }
         });
         
-        revalidatePath('/dashboard/inventory');
-        redirect(`/dashboard/inventory?role=${role || 'technician'}`);
+        return { success: true, message: 'Field purchase logged successfully.' };
 
     } catch (e: any) {
         console.error(e);

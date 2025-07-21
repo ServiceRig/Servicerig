@@ -1,8 +1,8 @@
 
 'use client';
 
-import { useState, useRef, useEffect, useActionState } from 'react';
-import { useFormStatus } from 'react-dom';
+import { useState, useRef, useEffect } from 'react';
+import { useActionState, useFormStatus } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -65,7 +65,6 @@ export function FieldPurchaseDialog({ jobs, onPurchaseLogged }: FieldPurchaseDia
     }
     
     useEffect(() => {
-        if (!isOpen) return; // Only process state changes when dialog is open
         if (state.message) {
              toast({
                 title: state.success ? 'Success' : 'Error',
@@ -73,12 +72,13 @@ export function FieldPurchaseDialog({ jobs, onPurchaseLogged }: FieldPurchaseDia
                 variant: state.success ? 'default' : 'destructive',
             });
             if(state.success) {
-                onPurchaseLogged({ inventoryItems: state.updatedInventory });
+                router.refresh();
                 setIsOpen(false);
                 resetForm();
             }
         }
-    }, [state, toast, isOpen, onPurchaseLogged]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [state]);
 
     const handleAddPart = () => {
         setParts(prev => [...prev, { 
@@ -168,7 +168,6 @@ export function FieldPurchaseDialog({ jobs, onPurchaseLogged }: FieldPurchaseDia
                                     <Label className="text-center">Part #</Label>
                                     <Label className="text-center">Model #</Label>
                                     <Label className="text-center">Quantity</Label>
-                                    <Label className="text-center">Unit Cost</Label>
                                     <div className="w-9"></div>
                                 </div>
                                 {parts.map((part, index) => (
@@ -178,7 +177,6 @@ export function FieldPurchaseDialog({ jobs, onPurchaseLogged }: FieldPurchaseDia
                                         <Input placeholder="Part #" value={part.partNumber} onChange={(e) => handlePartChange(index, 'partNumber', e.target.value)} />
                                         <Input placeholder="Model #" value={part.modelNumber} onChange={(e) => handlePartChange(index, 'modelNumber', e.target.value)} />
                                         <Input type="number" placeholder="Qty" value={part.qty} onChange={(e) => handlePartChange(index, 'qty', e.target.value)} />
-                                        <Input type="number" placeholder="Cost" value={part.unitCost} onChange={(e) => handlePartChange(index, 'unitCost', e.target.value)} />
                                         <Button type="button" variant="ghost" size="icon" onClick={() => handleRemovePart(index)}><Trash2 className="h-4 w-4" /></Button>
                                     </div>
                                 ))}
