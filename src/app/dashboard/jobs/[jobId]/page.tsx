@@ -67,7 +67,11 @@ export default async function JobDetailsPage({ params, searchParams }: { params:
         </div>
         <div className="flex gap-2">
             <Button variant="outline">Edit Job</Button>
-            <Button>Create Invoice</Button>
+            <Button asChild>
+              <Link href={`/dashboard/invoices/new?jobId=${job.id}&customerId=${customer.id}&role=${role}`}>
+                Create Invoice
+              </Link>
+            </Button>
         </div>
       </div>
       
