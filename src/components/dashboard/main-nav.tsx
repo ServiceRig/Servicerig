@@ -71,14 +71,12 @@ export function MainNav({ role }: { role: UserRole }) {
   const getHref = (baseHref: string) => `${baseHref}?role=${role}`;
   
   const isParentActive = (item: { href: string, subItems?: any[] }) => {
-    if (!item.subItems) {
-      return pathname === item.href;
+    // If an item has sub-items, it's considered active if the current path starts with its href.
+    if (item.subItems) {
+      return pathname.startsWith(item.href);
     }
-    // A parent is active if the current path starts with its href,
-    // but not if it's a sub-item that also happens to start with the same path.
-    // We check if any sub-item is a better match.
-    const isAnySubItemActive = item.subItems.some(sub => pathname.startsWith(sub.href));
-    return pathname.startsWith(item.href) && !isAnySubItemActive;
+    // Otherwise, it's active only on an exact match.
+    return pathname === item.href;
   };
 
   const renderNavMenu = (items: typeof navItems) => {
