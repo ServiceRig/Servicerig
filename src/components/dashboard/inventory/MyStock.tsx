@@ -7,10 +7,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { mockData } from '@/lib/mock-data';
-import type { InventoryItem, PartUsageLog } from '@/lib/types';
+import type { InventoryItem, PartUsageLog, Job } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Truck, Wrench } from 'lucide-react';
 import { LogPartUsageDialog } from './LogPartUsageDialog';
+import { FieldPurchaseDialog } from './FieldPurchaseDialog';
 
 const LOGGED_IN_TECHNICIAN_ID = 'tech1';
 
@@ -29,6 +30,11 @@ export function MyStock({ searchTerm }: { searchTerm: string }) {
             .filter((item): item is TruckStockItem => item !== null);
     });
     
+    // This is needed for the FieldPurchaseDialog
+    const technicianJobs = useMemo(() => {
+        return mockData.jobs.filter(job => job.technicianId === LOGGED_IN_TECHNICIAN_ID);
+    }, []);
+
     const handleRequestRestock = (item: TruckStockItem) => {
         const requestQty = item.reorderQtyDefault || 1;
         // In a real app, this would be a server action to create a part request.
@@ -66,9 +72,12 @@ export function MyStock({ searchTerm }: { searchTerm: string }) {
 
     return (
         <Card>
-            <CardHeader>
-                <CardTitle>My Truck Stock</CardTitle>
-                <CardDescription>A list of all parts currently assigned to your truck.</CardDescription>
+            <CardHeader className="flex flex-row items-start justify-between">
+                <div>
+                    <CardTitle>My Truck Stock</CardTitle>
+                    <CardDescription>A list of all parts currently assigned to your truck.</CardDescription>
+                </div>
+                <FieldPurchaseDialog jobs={technicianJobs} />
             </CardHeader>
             <CardContent>
                 <Table>

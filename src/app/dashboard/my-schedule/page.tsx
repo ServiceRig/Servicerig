@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import { Phone, MessageSquare, MapPin, MoreHorizontal, CheckCircle, Clock, ShoppingCart } from 'lucide-react';
+import { Phone, MessageSquare, MapPin, MoreHorizontal, CheckCircle, Clock } from 'lucide-react';
 import { mockJobs, mockCustomers, mockData } from '@/lib/mock-data';
 import type { Job, Customer } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -16,7 +16,7 @@ import { format } from 'date-fns';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import Link from 'next/link';
 import Image from 'next/image';
-import { FieldPurchase } from '@/components/dashboard/field-purchase';
+import { FieldPurchaseDialog } from '@/components/dashboard/inventory/FieldPurchaseDialog';
 
 type EnrichedJob = Job & {
   customer?: Customer;
@@ -170,7 +170,7 @@ export default function MySchedulePage() {
       </div>
       
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        <FieldPurchase jobs={jobs} />
+        <FieldPurchaseDialog jobs={jobs} />
       </div>
 
 
