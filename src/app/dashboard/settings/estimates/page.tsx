@@ -1,15 +1,30 @@
 
+'use client';
+
+import { Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { getEstimateTemplates } from "@/lib/firestore/templates";
+import { mockData } from "@/lib/mock-data";
+import type { EstimateTemplate } from '@/lib/types';
 import { Plus } from "lucide-react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
-export const revalidate = 0; // Don't cache this page
+function EstimateTemplatesPageContent() {
+    const searchParams = useSearchParams();
+    const role = searchParams.get('role');
+    const [templates, setTemplates] = useState<EstimateTemplate[]>([]);
 
-export default async function EstimateTemplatesPage() {
-    const templates = await getEstimateTemplates();
+    useEffect(() => {
+        // Simulating data fetch
+        setTemplates(mockData.estimateTemplates as EstimateTemplate[]);
+    }, []);
+
+    const getHref = (path: string) => {
+        return role ? `${path}?role=${role}` : path;
+    };
     
     return (
         <div className="space-y-6">
@@ -19,7 +34,7 @@ export default async function EstimateTemplatesPage() {
                     <p className="text-muted-foreground">Create and manage reusable templates for common jobs.</p>
                 </div>
                 <Button asChild>
-                    <Link href="/dashboard/settings/estimates/new">
+                    <Link href={getHref("/dashboard/settings/estimates/new")}>
                         <Plus className="mr-2 h-4 w-4" />
                         Create Template
                     </Link>
@@ -48,7 +63,7 @@ export default async function EstimateTemplatesPage() {
                                     <TableCell>{template.gbbTier ? 'Yes' : 'No'}</TableCell>
                                     <TableCell className="text-right">
                                         <Button variant="outline" size="sm" asChild>
-                                            <Link href={`/dashboard/settings/estimates/${template.id}/edit`}>Edit</Link>
+                                            <Link href={getHref(`/dashboard/settings/estimates/${template.id}/edit`)}>Edit</Link>
                                         </Button>
                                     </TableCell>
                                 </TableRow>
@@ -58,5 +73,13 @@ export default async function EstimateTemplatesPage() {
                 </CardContent>
             </Card>
         </div>
+    )
+}
+
+export default function EstimateTemplatesPage() {
+    return (
+        <Suspense fallback={<div>Loading templates...</div>}>
+            <EstimateTemplatesPageContent />
+        </Suspense>
     )
 }

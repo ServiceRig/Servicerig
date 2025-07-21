@@ -71,11 +71,12 @@ export function MainNav({ role }: { role: UserRole }) {
   const getHref = (baseHref: string) => `${baseHref}?role=${role}`;
   
   const isParentActive = (item: { href: string, subItems?: any[] }) => {
-    // If an item has sub-items, it's considered active if the current path starts with its href.
+    // A parent is active if the current path starts with its href.
+    // This handles nested routes correctly.
     if (item.subItems) {
       return pathname.startsWith(item.href);
     }
-    // Otherwise, it's active only on an exact match.
+    // For items without children, it's active only on an exact match.
     return pathname === item.href;
   };
 
