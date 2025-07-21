@@ -1,10 +1,9 @@
 
 'use client';
 
-import { useState, useRef, useEffect, useActionState, useTransition } from 'react';
+import { useState, useRef, useEffect, useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { useRouter } from 'next/navigation';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
@@ -15,7 +14,6 @@ import Image from 'next/image';
 import type { Job, InventoryItem } from '@/lib/types';
 import { addFieldPurchase } from '@/app/actions';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { useRole } from '@/hooks/use-role';
 
 type TempPart = {
     id: string;
@@ -29,7 +27,7 @@ type TempPart = {
 
 interface FieldPurchaseDialogProps {
     jobs: Job[];
-    onDataUpdate: () => void;
+    onPurchaseLogged: () => void;
 }
 
 function SubmitButton({ disabled }: { disabled: boolean }) {
@@ -42,7 +40,7 @@ function SubmitButton({ disabled }: { disabled: boolean }) {
     )
 }
 
-export function FieldPurchaseDialog({ jobs, onDataUpdate }: FieldPurchaseDialogProps) {
+export function FieldPurchaseDialog({ jobs, onPurchaseLogged }: FieldPurchaseDialogProps) {
     const [isOpen, setIsOpen] = useState(false);
     const { toast } = useToast();
     const [state, formAction] = useActionState(addFieldPurchase, { success: false, message: '' });
@@ -69,7 +67,7 @@ export function FieldPurchaseDialog({ jobs, onDataUpdate }: FieldPurchaseDialogP
                 variant: state.success ? 'default' : 'destructive',
             });
             if(state.success) {
-                onDataUpdate();
+                onPurchaseLogged();
                 setIsOpen(false);
                 resetForm();
             }
@@ -159,12 +157,12 @@ export function FieldPurchaseDialog({ jobs, onDataUpdate }: FieldPurchaseDialogP
                             <Label>Parts Purchased</Label>
                             <div className="space-y-2 rounded-md border p-2">
                                 {parts.map((part, index) => (
-                                    <div key={part.id} className="grid grid-cols-[2fr,1fr,1fr,1fr,0.5fr,auto] items-center gap-2">
+                                    <div key={part.id} className="grid grid-cols-[2fr,1fr,1fr,0.5fr,auto] items-center gap-2">
                                         <Input placeholder="Part name" value={part.name} onChange={(e) => handlePartChange(index, 'name', e.target.value)} />
                                         <Input placeholder="SKU" value={part.sku} onChange={(e) => handlePartChange(index, 'sku', e.target.value)} />
                                         <Input placeholder="Part #" value={part.partNumber} onChange={(e) => handlePartChange(index, 'partNumber', e.target.value)} />
-                                        <Input placeholder="Model #" value={part.modelNumber} onChange={(e) => handlePartChange(index, 'modelNumber', e.target.value)} />
                                         <Input type="number" placeholder="Qty" value={part.qty} onChange={(e) => handlePartChange(index, 'qty', e.target.value)} />
+                                        <Input type="number" placeholder="Unit Cost" value={part.unitCost} onChange={(e) => handlePartChange(index, 'unitCost', e.target.value)} />
                                         <Button type="button" variant="ghost" size="icon" onClick={() => handleRemovePart(index)}><Trash2 className="h-4 w-4" /></Button>
                                     </div>
                                 ))}
