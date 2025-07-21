@@ -1,4 +1,5 @@
 
+
 'use client';
 import { useActionState, useState, useTransition } from 'react';
 import { runGenerateTieredEstimates } from '@/app/actions';
@@ -28,9 +29,10 @@ export type TierData = {
 
 interface AITierGeneratorProps {
     onTiersFinalized: (tiers: TierData[]) => void;
+    initialTiers?: TierData[] | null;
 }
 
-export function AITierGenerator({ onTiersFinalized }: AITierGeneratorProps) {
+export function AITierGenerator({ onTiersFinalized, initialTiers }: AITierGeneratorProps) {
   const initialState = { message: null, errors: null, data: null };
   const [state, dispatch] = useActionState(runGenerateTieredEstimates, initialState);
   const { toast } = useToast();
@@ -39,6 +41,12 @@ export function AITierGenerator({ onTiersFinalized }: AITierGeneratorProps) {
   const [jobDetails, setJobDetails] = useState('');
 
   const [editableTiers, setEditableTiers] = useState<TierData[] | null>(null);
+
+  useEffect(() => {
+    if (initialTiers) {
+      setEditableTiers(initialTiers);
+    }
+  }, [initialTiers]);
 
   useEffect(() => {
     if (state.message) {

@@ -549,9 +549,9 @@ export const mockData: { [key: string]: any[] } = {
           total: 10614.40,
           notes: 'This estimate includes a 5-year parts and labor warranty. A 10-year extended warranty is available.',
           gbbTier: {
-              good: "Basic replacement with a standard efficiency unit. Includes essential installation services.",
-              better: "Upgraded, high-efficiency unit with a smart thermostat. Includes full system flush and balancing.",
-              best: "Top-of-the-line, variable-speed system with zoning capabilities, advanced air purification, and a 10-year extended warranty.",
+              good: { description: "Basic replacement with a standard efficiency unit. Includes essential installation services.", price: 8500 },
+              better: { description: "Upgraded, high-efficiency unit with a smart thermostat. Includes full system flush and balancing.", price: 10500 },
+              best: { description: "Top-of-the-line, variable-speed system with zoning capabilities, advanced air purification, and a 10-year extended warranty.", price: 14000 },
           },
           createdBy: 'user_admin_01',
           createdAt: new Date('2024-07-10T10:00:00Z'),
@@ -574,9 +574,9 @@ export const mockData: { [key: string]: any[] } = {
           total: 270,
           notes: 'Repair of existing Moen faucet in master bathroom.',
           gbbTier: {
-              good: "Replace the cartridge in the existing faucet to stop the leak.",
-              better: "Replace the entire faucet with a new, mid-grade Delta model.",
-              best: "Upgrade to a premium Kohler faucet with a lifetime warranty and new supply lines.",
+              good: { description: "Replace the cartridge in the existing faucet to stop the leak.", price: 270 },
+              better: { description: "Replace the entire faucet with a new, mid-grade Delta model.", price: 450 },
+              best: { description: "Upgrade to a premium Kohler faucet with a lifetime warranty and new supply lines.", price: 650 },
           },
           createdBy: 'tech1',
           createdAt: new Date('2024-07-15T09:00:00Z'),
@@ -594,9 +594,9 @@ export const mockData: { [key: string]: any[] } = {
               { description: 'Haul Away Old Unit', quantity: 1, unitPrice: 75 },
           ],
           gbbTier: {
-              good: 'Install a standard 50-gallon gas water heater with a 6-year warranty. Includes basic code compliance and haul-away of the old unit.',
-              better: 'Install a high-efficiency 50-gallon gas water heater with an 8-year warranty. Includes a new expansion tank and upgraded shut-off valve.',
-              best: 'Install a premium, condensing tankless water heater for endless hot water and maximum energy savings. Includes a 12-year warranty and a whole-home plumbing inspection.',
+              good: { description: 'Install a standard 50-gallon gas water heater with a 6-year warranty. Includes basic code compliance and haul-away of the old unit.', price: 2200 },
+              better: { description: 'Install a high-efficiency 50-gallon gas water heater with an 8-year warranty. Includes a new expansion tank and upgraded shut-off valve.', price: 2800 },
+              best: { description: 'Install a premium, condensing tankless water heater for endless hot water and maximum energy savings. Includes a 12-year warranty and a whole-home plumbing inspection.', price: 4500 },
           }
       },
       {
@@ -606,9 +606,9 @@ export const mockData: { [key: string]: any[] } = {
               { description: 'HVAC Diagnostic Fee', quantity: 1, unitPrice: 99 },
           ],
           gbbTier: {
-              good: 'Perform a full system diagnostic to identify the root cause of the issue. Provide a detailed report of findings and a quote for necessary repairs.',
-              better: 'Includes the diagnostic plus a basic refrigerant level check and top-off (up to 1lb of R-410A) and a standard filter replacement.',
-              best: 'Includes the diagnostic, refrigerant service, a new filter, and a comprehensive coil cleaning (indoor and outdoor) to restore system efficiency.',
+              good: { description: 'Perform a full system diagnostic to identify the root cause of the issue. Provide a detailed report of findings and a quote for necessary repairs.', price: 99 },
+              better: { description: 'Includes the diagnostic plus a basic refrigerant level check and top-off (up to 1lb of R-410A) and a standard filter replacement.', price: 249 },
+              best: { description: 'Includes the diagnostic, refrigerant service, a new filter, and a comprehensive coil cleaning (indoor and outdoor) to restore system efficiency.', price: 499 },
           }
       },
       {
@@ -621,9 +621,9 @@ export const mockData: { [key: string]: any[] } = {
               { description: 'Permits and Inspection', quantity: 1, unitPrice: 500 },
           ],
           gbbTier: {
-              good: 'Repipe the entire home with standard PEX-B tubing. Includes drywall access cuts and basic patching (not textured or painted).',
-              better: 'Repipe using superior PEX-A tubing and install new quarter-turn shut-off valves at all fixtures. Includes professional drywall repair with texture matching.',
-              best: 'Repipe with PEX-A, new valves, and include a new whole-home water filtration system and a pressure-reducing valve (PRV) for ultimate protection and water quality. Includes professional drywall repair, texture, and primer.',
+              good: { description: 'Repipe the entire home with standard PEX-B tubing. Includes drywall access cuts and basic patching (not textured or painted).', price: 8000 },
+              better: { description: 'Repipe using superior PEX-A tubing and install new quarter-turn shut-off valves at all fixtures. Includes professional drywall repair with texture matching.', price: 10500 },
+              best: { description: 'Repipe with PEX-A, new valves, and include a new whole-home water filtration system and a pressure-reducing valve (PRV) for ultimate protection and water quality. Includes professional drywall repair, texture, and primer.', price: 13500 },
           }
       },
   ] as EstimateTemplate[],

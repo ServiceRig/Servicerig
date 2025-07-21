@@ -1,4 +1,5 @@
 
+
 'use client';
 import { useState, useMemo, useEffect, Suspense, use, useActionState } from 'react';
 import { useRouter, notFound } from 'next/navigation';
@@ -10,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
 import { Trash2, PlusCircle, Loader2, Save } from 'lucide-react';
-import { LineItem, GbbTier, EstimateTemplate } from '@/lib/types';
+import { LineItem, GbbTier, EstimateTemplate, TierDetails } from '@/lib/types';
 import { updateEstimateTemplateAction } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { useRole } from '@/hooks/use-role';
@@ -40,7 +41,11 @@ function EditEstimateTemplatePageContent({ templateId }: { templateId: string })
 
     const [title, setTitle] = useState('');
     const [lineItems, setLineItems] = useState<LineItem[]>([{ description: '', quantity: 1, unitPrice: 0 }]);
-    const [gbbTier, setGbbTier] = useState<GbbTier>({ good: '', better: '', best: '' });
+    const [gbbTier, setGbbTier] = useState<GbbTier>({
+        good: { description: '', price: 0 },
+        better: { description: '', price: 0 },
+        best: { description: '', price: 0 }
+    });
 
     useEffect(() => {
         const fetchTemplate = async () => {
@@ -90,8 +95,14 @@ function EditEstimateTemplatePageContent({ templateId }: { templateId: string })
         setLineItems(newItems);
     };
 
-    const handleTierChange = (tier: keyof GbbTier, value: string) => {
-        setGbbTier(prev => ({...prev, [tier]: value}));
+    const handleTierChange = (tier: keyof GbbTier, field: keyof TierDetails, value: string | number) => {
+        setGbbTier(prev => ({
+            ...prev,
+            [tier]: {
+                ...prev[tier],
+                [field]: value
+            }
+        }));
     }
 
     const subtotal = useMemo(() => lineItems.reduce((acc, item) => acc + (item.quantity * item.unitPrice), 0), [lineItems]);
@@ -185,20 +196,23 @@ function EditEstimateTemplatePageContent({ templateId }: { templateId: string })
                         <Card>
                             <CardHeader>
                                 <CardTitle>Good/Better/Best Tiers</CardTitle>
-                                <CardDescription>Optional descriptive text for pricing tiers.</CardDescription>
+                                <CardDescription>Optional descriptive text and pricing for tiers.</CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                <div>
-                                    <Label htmlFor="good-tier">Good</Label>
-                                    <Textarea id="good-tier" value={gbbTier.good} onChange={(e) => handleTierChange('good', e.target.value)} placeholder="Basic service description..." />
+                                <div className="space-y-2">
+                                    <Label htmlFor="good-desc">Good</Label>
+                                    <Textarea id="good-desc" value={gbbTier.good.description} onChange={(e) => handleTierChange('good', 'description', e.target.value)} placeholder="Basic service description..." />
+                                    <Input type="number" value={gbbTier.good.price} onChange={(e) => handleTierChange('good', 'price', parseFloat(e.target.value) || 0)} placeholder="Price for Good tier" />
                                 </div>
-                                 <div>
-                                    <Label htmlFor="better-tier">Better</Label>
-                                    <Textarea id="better-tier" value={gbbTier.better} onChange={(e) => handleTierChange('better', e.target.value)} placeholder="Enhanced service description..." />
+                                 <div className="space-y-2">
+                                    <Label htmlFor="better-desc">Better</Label>
+                                    <Textarea id="better-desc" value={gbbTier.better.description} onChange={(e) => handleTierChange('better', 'description', e.target.value)} placeholder="Enhanced service description..." />
+                                     <Input type="number" value={gbbTier.better.price} onChange={(e) => handleTierChange('better', 'price', parseFloat(e.target.value) || 0)} placeholder="Price for Better tier" />
                                 </div>
-                                 <div>
-                                    <Label htmlFor="best-tier">Best</Label>
-                                    <Textarea id="best-tier" value={gbbTier.best} onChange={(e) => handleTierChange('best', e.target.value)} placeholder="Premium service description..." />
+                                 <div className="space-y-2">
+                                    <Label htmlFor="best-desc">Best</Label>
+                                    <Textarea id="best-desc" value={gbbTier.best.description} onChange={(e) => handleTierChange('best', 'description', e.target.value)} placeholder="Premium service description..." />
+                                     <Input type="number" value={gbbTier.best.price} onChange={(e) => handleTierChange('best', 'price', parseFloat(e.target.value) || 0)} placeholder="Price for Best tier" />
                                 </div>
                             </CardContent>
                         </Card>

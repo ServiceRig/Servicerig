@@ -125,10 +125,15 @@ export type LineItem = {
     };
 };
 
+export type TierDetails = {
+    description: string;
+    price: number;
+}
+
 export type GbbTier = {
-    good: string;
-    better: string;
-    best: string;
+    good: TierDetails;
+    better: TierDetails;
+    best: TierDetails;
 };
 
 export type TaxLine = {

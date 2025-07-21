@@ -12,7 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Trash2, PlusCircle, BookOpen } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { mockData } from '@/lib/mock-data';
-import type { Customer, Job, EstimateTemplate, LineItem, PricebookItem } from '@/lib/types';
+import type { Customer, Job, EstimateTemplate, LineItem, PricebookItem, TierDetails } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { AITierGenerator, TierData } from '@/components/dashboard/ai-tier-generator';
 import { CustomerPresentationView } from '@/components/dashboard/customer-presentation-view';
@@ -180,11 +180,12 @@ function NewEstimatePageContent() {
     setEstimateTitle(template.title);
     setLineItems(template.lineItems.map(item => ({ ...item, inventoryParts: item.inventoryParts || [] })));
     if (template.gbbTier) {
-      setGbbTiers([
-        { title: 'Good', description: template.gbbTier.good, price: undefined },
-        { title: 'Better', description: template.gbbTier.better, price: undefined },
-        { title: 'Best', description: template.gbbTier.best, price: undefined },
-      ]);
+      const tiers: TierData[] = [
+        { title: 'Good', description: template.gbbTier.good.description, price: template.gbbTier.good.price },
+        { title: 'Better', description: template.gbbTier.better.description, price: template.gbbTier.better.price },
+        { title: 'Best', description: template.gbbTier.best.description, price: template.gbbTier.best.price },
+      ];
+      setGbbTiers(tiers);
     } else {
       setGbbTiers(null);
     }
@@ -238,9 +239,9 @@ function NewEstimatePageContent() {
         <input type="hidden" name="role" value={role || ''} />
         <input type="hidden" name="lineItems" value={JSON.stringify(lineItems)} />
         <input type="hidden" name="gbbTier" value={gbbTiers ? JSON.stringify({
-            good: gbbTiers.find(t => t.title === 'Good')?.description || '',
-            better: gbbTiers.find(t => t.title === 'Better')?.description || '',
-            best: gbbTiers.find(t => t.title === 'Best')?.description || '',
+            good: { description: gbbTiers.find(t => t.title === 'Good')?.description || '', price: gbbTiers.find(t => t.title === 'Good')?.price || 0 },
+            better: { description: gbbTiers.find(t => t.title === 'Better')?.description || '', price: gbbTiers.find(t => t.title === 'Better')?.price || 0 },
+            best: { description: gbbTiers.find(t => t.title === 'Best')?.description || '', price: gbbTiers.find(t => t.title === 'Best')?.price || 0 },
         }) : 'null'} />
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-6">
@@ -375,7 +376,7 @@ function NewEstimatePageContent() {
                 </Card>
             </div>
             <div className="lg:col-span-1">
-                <AITierGenerator onTiersFinalized={handleTiersFinalized} />
+                <AITierGenerator onTiersFinalized={handleTiersFinalized} initialTiers={gbbTiers} />
             </div>
         </div>
       </form>
