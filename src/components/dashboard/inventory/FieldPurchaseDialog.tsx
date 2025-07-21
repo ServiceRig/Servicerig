@@ -156,8 +156,16 @@ export function FieldPurchaseDialog({ jobs, onPurchaseLogged }: FieldPurchaseDia
                         <div className="space-y-2">
                             <Label>Parts Purchased</Label>
                             <div className="space-y-2 rounded-md border p-2">
+                                <div className="grid grid-cols-[2fr,1fr,1fr,1fr,0.5fr,auto] items-center gap-2 px-1 text-xs text-muted-foreground">
+                                    <Label>Part Name</Label>
+                                    <Label>SKU</Label>
+                                    <Label>Model # / Part #</Label>
+                                    <Label>Quantity</Label>
+                                    <Label>Price / Unit</Label>
+                                    <span />
+                                </div>
                                 {parts.map((part, index) => (
-                                    <div key={part.id} className="grid grid-cols-[2fr,1fr,1fr,0.5fr,auto] items-center gap-2">
+                                    <div key={part.id} className="grid grid-cols-[2fr,1fr,1fr,1fr,0.5fr,auto] items-center gap-2">
                                         <Input placeholder="Part name" value={part.name} onChange={(e) => handlePartChange(index, 'name', e.target.value)} />
                                         <Input placeholder="SKU" value={part.sku} onChange={(e) => handlePartChange(index, 'sku', e.target.value)} />
                                         <Input placeholder="Part #" value={part.partNumber} onChange={(e) => handlePartChange(index, 'partNumber', e.target.value)} />
