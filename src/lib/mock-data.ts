@@ -1,6 +1,6 @@
 
 
-import { Customer, Invoice, Job, Technician, UserRole, Equipment, Estimate, EstimateTemplate, PricebookItem, InventoryItem, Payment, ServiceAgreement, Refund, TaxLine, PaymentPlan, Deposit, ChangeOrder, AuditLogEntry, TaxZone, PartRequest, ShoppingListItem, PurchaseOrder, PurchaseOrderPart, EquipmentLog, PartUsageLog, User } from './types';
+import { Customer, Invoice, Job, Technician, UserRole, Equipment, Estimate, EstimateTemplate, PricebookItem, InventoryItem, Payment, ServiceAgreement, Refund, TaxLine, PaymentPlan, Deposit, ChangeOrder, AuditLogEntry, TaxZone, PartRequest, ShoppingListItem, PurchaseOrder, PurchaseOrderPart, EquipmentLog, PartUsageLog, User, Vendor } from './types';
 
 const getDay = (day: number) => {
     const newDate = new Date();
@@ -13,6 +13,12 @@ const getDay = (day: number) => {
 // Wrapping our mock data in a single object makes it mutable across requests
 // in a Node.js development server environment. This simulates a persistent store.
 export const mockData: { [key: string]: any[] } = {
+  vendors: [
+    { id: 'vendor_fhd1', name: 'Ferguson Plumbing Supply', contactName: 'Amanda Rivera', phone: '555-123-4567', email: 'arivera@ferguson.com', website: 'ferguson.com', paymentTerms: 'Net 30', createdAt: new Date() },
+    { id: 'vendor_js1', name: 'Johnstone Supply', contactName: 'Bill Thompson', phone: '555-987-6543', email: 'bthompson@johnstone.com', website: 'johnstonesupply.com', paymentTerms: 'Net 30', createdAt: new Date() },
+    { id: 'vendor_rem1', name: 'RE Michel Company', contactName: 'Chris Green', phone: '555-555-1111', email: 'cgreen@remichel.com', website: 'remichel.com', paymentTerms: 'Net 30', createdAt: new Date() },
+    { id: 'vendor_hd1', name: 'Home Depot Pro', contactName: 'Pro Desk', phone: '800-466-3337', email: 'pro@homedepot.com', website: 'homedepot.com/pro', paymentTerms: 'Credit Card', createdAt: new Date() },
+  ] as Vendor[],
   users: [
       { id: 'admin1', name: 'Admin User', email: 'admin@servicerig.com', role: UserRole.Admin, active: true },
       { id: 'dispatch1', name: 'Dispatcher Dan', email: 'dan@servicerig.com', role: UserRole.Dispatcher, active: true },
@@ -39,6 +45,7 @@ export const mockData: { [key: string]: any[] } = {
   purchaseOrders: [
     {
         id: 'po1',
+        vendorId: 'vendor_js1',
         vendor: 'Johnstone Supply',
         parts: [{ partId: 'inv_part_001', qty: 20, unitCost: 12.50 }],
         total: 250,
@@ -52,6 +59,7 @@ export const mockData: { [key: string]: any[] } = {
     },
     {
         id: 'po2',
+        vendorId: 'vendor_fhd1',
         vendor: 'Ferguson',
         parts: [
             { partId: 'inv_part_002', qty: 10, unitCost: 45.00 },
@@ -67,11 +75,11 @@ export const mockData: { [key: string]: any[] } = {
         requestedBy: 'Admin User',
         receivedBy: 'admin1',
         receivedAt: new Date(new Date().setDate(new Date().getDate() - 3)),
-        deliveryLocation: 'Warehouse',
         deliveryNotes: 'All items received in good condition.'
     },
     {
         id: 'po_field_1',
+        vendorId: 'vendor_hd1',
         vendor: 'Home Depot',
         parts: [{ partId: 'inv_part_003', qty: 5, unitCost: 18.50 }],
         total: 92.50,
@@ -80,16 +88,16 @@ export const mockData: { [key: string]: any[] } = {
         orderDate: new Date(new Date().setDate(new Date().getDate() - 1)),
         isFieldPurchase: true,
         jobId: 'job1',
-        receiptImage: '/receipt-placeholder.png',
+        receiptImage: 'https://placehold.co/400x600.png',
         createdAt: new Date(),
         updatedAt: new Date(),
         requestedBy: 'John Doe',
         receivedBy: 'tech1',
         receivedAt: new Date(new Date().setDate(new Date().getDate() - 1)),
-        deliveryLocation: 'Truck - John Doe',
     },
     {
         id: 'po3',
+        vendorId: 'vendor_rem1',
         vendor: 'RE Michel',
         parts: [{ partId: 'inv_part_005', qty: 4, unitCost: 85.00 }],
         total: 340,
