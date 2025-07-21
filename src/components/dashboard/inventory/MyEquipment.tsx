@@ -33,7 +33,7 @@ const getConditionStyles = (condition: Equipment['condition']) => {
 interface MyEquipmentProps {
     searchTerm: string;
     equipment: Equipment[];
-    onDataUpdate: () => void;
+    onDataUpdate: (updates: { equipment: Equipment[], equipmentLogs: EquipmentLog[] }) => void;
 }
 
 export function MyEquipment({ searchTerm, equipment: initialEquipment, onDataUpdate }: MyEquipmentProps) {

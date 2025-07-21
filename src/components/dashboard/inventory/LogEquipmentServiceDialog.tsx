@@ -17,7 +17,7 @@ import type { Equipment, EquipmentLog } from '@/lib/types';
 interface LogEquipmentServiceDialogProps {
   equipment: Equipment;
   technicianId: string;
-  onUpdate: () => void;
+  onUpdate: (updates: { equipmentLogs: EquipmentLog[] }) => void;
 }
 
 function SubmitButton() {
@@ -33,21 +33,22 @@ function SubmitButton() {
 export function LogEquipmentServiceDialog({ equipment, technicianId, onUpdate }: LogEquipmentServiceDialogProps) {
     const [isOpen, setIsOpen] = useState(false);
     const { toast } = useToast();
-    const [state, formAction] = useActionState(addEquipmentLog, { success: false, message: '' });
+    const [state, formAction] = useActionState(addEquipmentLog, { success: false, message: '', equipmentLogs: [] });
 
     useEffect(() => {
+        if (!isOpen) return; // Only run effect if dialog is open
         if (state?.message) {
             toast({
                 title: state.success ? 'Success' : 'Error',
                 description: state.message,
                 variant: state.success ? 'default' : 'destructive',
             });
-            if (state.success) {
-                onUpdate();
+            if (state.success && state.equipmentLogs) {
+                onUpdate({ equipmentLogs: state.equipmentLogs });
                 setIsOpen(false);
             }
         }
-    }, [state, toast, onUpdate]);
+    }, [state, toast, onUpdate, isOpen]);
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>

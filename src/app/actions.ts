@@ -1,5 +1,6 @@
 
 
+
 'use server';
 
 import { generateTieredEstimates, type GenerateTieredEstimatesInput, type GenerateTieredEstimatesOutput } from "@/ai/flows/generate-tiered-estimates";
@@ -763,7 +764,13 @@ const addEquipmentLogSchema = z.object({
   notes: z.string().min(1, 'Notes are required.'),
 });
 
-export async function addEquipmentLog(prevState: any, formData: FormData) {
+type AddEquipmentLogState = {
+    success: boolean;
+    message: string;
+    equipmentLogs?: EquipmentLog[];
+}
+
+export async function addEquipmentLog(prevState: any, formData: FormData): Promise<AddEquipmentLogState> {
     const validatedFields = addEquipmentLogSchema.safeParse({
         equipmentId: formData.get('equipmentId'),
         technicianId: formData.get('technicianId'),
@@ -788,6 +795,7 @@ export async function addEquipmentLog(prevState: any, formData: FormData) {
         return { 
             success: true, 
             message: 'Service log added successfully.',
+            equipmentLogs: [...mockData.equipmentLogs],
         };
     } catch(e) {
         return { success: false, message: 'Failed to add service log.' };
@@ -1223,4 +1231,3 @@ export async function updateInventoryItem(prevState: any, formData: FormData) {
         return { success: false, message: 'An unexpected error occurred.' };
     }
 }
-
