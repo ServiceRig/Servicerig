@@ -1079,7 +1079,7 @@ const addFieldPurchaseSchema = z.object({
             return z.NEVER;
         }
     }),
-    receiptImage: z.string().url('A valid receipt image is required.'),
+    receiptImage: z.string().url('A valid receipt image is required.').or(z.literal('')),
 });
 
 type AddFieldPurchaseState = {
@@ -1117,7 +1117,7 @@ export async function addFieldPurchase(prevState: AddFieldPurchaseState, formDat
             orderDate: new Date(),
             isFieldPurchase: true,
             jobId: jobId || undefined,
-            receiptImage: receiptImage,
+            receiptImage: receiptImage || undefined,
             createdAt: new Date(),
             updatedAt: new Date(),
             requestedBy: loggedInTechId,
@@ -1179,3 +1179,5 @@ export async function addFieldPurchase(prevState: AddFieldPurchaseState, formDat
         return { success: false, message: e.message || 'An unexpected error occurred.' };
     }
 }
+
+    
