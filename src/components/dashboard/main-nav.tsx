@@ -1,5 +1,4 @@
 
-
 'use client';
 import {
   SidebarMenu,
@@ -75,7 +74,7 @@ export function MainNav({ role }: { role: UserRole }) {
         <SidebarMenu className="flex-1">
             {navItems.map((item) => (
                 <SidebarMenuItem key={item.href}>
-                    <SidebarMenuButton asChild isActive={pathname.startsWith(item.href) && !item.subItems?.some(si => pathname.includes(si.href))} tooltip={item.label}>
+                    <SidebarMenuButton asChild isActive={pathname.startsWith(item.href) && !item.subItems?.some(si => pathname.startsWith(si.href))} tooltip={item.label}>
                         <Link href={getHref(item.href)}>
                             <item.icon/>
                             <span>{item.label}</span>
@@ -102,7 +101,7 @@ export function MainNav({ role }: { role: UserRole }) {
         <SidebarMenu>
              {settingsItems.map((item) => (
                 <SidebarMenuItem key={item.href}>
-                    <SidebarMenuButton asChild isActive={pathname.startsWith(item.href)  && !item.subItems?.some(si => pathname.includes(si.href))} tooltip={item.label}>
+                    <SidebarMenuButton asChild isActive={pathname.startsWith(item.href) && (!item.subItems || pathname === item.href)} tooltip={item.label}>
                         <Link href={getHref(item.href)}>
                             <item.icon/>
                             <span>{item.label}</span>
