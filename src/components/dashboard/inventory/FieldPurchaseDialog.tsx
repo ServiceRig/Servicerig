@@ -63,7 +63,7 @@ export function FieldPurchaseDialog({ jobs, onPurchaseLogged }: FieldPurchaseDia
     }
     
     useEffect(() => {
-        if (state.message) {
+        if (state?.message) {
              toast({
                 title: state.success ? 'Success' : 'Error',
                 description: state.message,
@@ -71,6 +71,7 @@ export function FieldPurchaseDialog({ jobs, onPurchaseLogged }: FieldPurchaseDia
             });
             if(state.success) {
                 onPurchaseLogged();
+                router.refresh();
                 setIsOpen(false);
                 resetForm();
             }
@@ -211,3 +212,5 @@ export function FieldPurchaseDialog({ jobs, onPurchaseLogged }: FieldPurchaseDia
         </Dialog>
     );
 }
+
+  

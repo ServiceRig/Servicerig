@@ -1067,7 +1067,7 @@ const addFieldPurchaseSchema = z.object({
 export async function addFieldPurchase(
     prevState: any,
     formData: FormData
-): Promise<{ success: boolean; message: string; items?: InventoryItem[] }> {
+): Promise<{ success: boolean; message: string; }> {
     try {
         const validatedFields = addFieldPurchaseSchema.safeParse({
             jobId: formData.get('jobId'),
@@ -1146,7 +1146,8 @@ export async function addFieldPurchase(
             }
         });
         
-        return { success: true, message: 'Field purchase logged successfully.', items: mockData.inventoryItems };
+        revalidatePath('/dashboard/inventory');
+        return { success: true, message: 'Field purchase logged successfully.' };
 
     } catch (e: any) {
         console.error("Critical error in addFieldPurchase action:", e);
@@ -1199,3 +1200,6 @@ export async function updateInventoryItem(prevState: any, formData: FormData) {
 }
 
 
+
+
+  
