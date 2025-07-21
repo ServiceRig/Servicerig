@@ -16,6 +16,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 interface ReceivePoDialogProps {
   item: InventoryItem;
+  onUpdate: () => void;
 }
 
 function SubmitButton() {
@@ -28,7 +29,7 @@ function SubmitButton() {
     )
 }
 
-export function ReceivePoDialog({ item }: ReceivePoDialogProps) {
+export function ReceivePoDialog({ item, onUpdate }: ReceivePoDialogProps) {
     const [isOpen, setIsOpen] = useState(false);
     const { toast } = useToast();
     const [state, formAction] = useActionState(receivePurchaseOrder, { success: false, message: '' });
@@ -41,17 +42,18 @@ export function ReceivePoDialog({ item }: ReceivePoDialogProps) {
     }, [item.id]);
 
     useEffect(() => {
-        if (state?.message) {
+        if (state?.message && isOpen) {
             toast({
                 title: state.success ? 'Success' : 'Error',
                 description: state.message,
                 variant: state.success ? 'default' : 'destructive',
             });
             if (state.success) {
+                onUpdate();
                 setIsOpen(false);
             }
         }
-    }, [state, toast]);
+    }, [state, toast, onUpdate, isOpen]);
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>

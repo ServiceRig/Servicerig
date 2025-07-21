@@ -16,7 +16,7 @@ import { IssueToTechDialog } from './IssueToTechDialog';
 import { ReceivePoDialog } from './ReceivePoDialog';
 import { EditInventoryItemDialog } from './EditInventoryItemDialog';
 
-export function WarehouseStock({ searchTerm, inventoryItems, onDataUpdate }: { searchTerm: string, inventoryItems: InventoryItem[], onDataUpdate: (updates: { inventoryItems: InventoryItem[] }) => void }) {
+export function WarehouseStock({ searchTerm, inventoryItems, onDataUpdate }: { searchTerm: string, inventoryItems: InventoryItem[], onDataUpdate: () => void }) {
 
     const filteredStock = useMemo(() => {
         if (!searchTerm) return inventoryItems;
@@ -64,8 +64,8 @@ export function WarehouseStock({ searchTerm, inventoryItems, onDataUpdate }: { s
                                 <TableCell className="font-bold">{item.quantityOnHand}</TableCell>
                                 <TableCell>{item.warehouseLocation}</TableCell>
                                 <TableCell className="text-right space-x-2">
-                                     <IssueToTechDialog item={item} />
-                                     <ReceivePoDialog item={item} />
+                                     <IssueToTechDialog item={item} onUpdate={onDataUpdate} />
+                                     <ReceivePoDialog item={item} onUpdate={onDataUpdate} />
                                      <EditInventoryItemDialog item={item} onUpdate={onDataUpdate} />
                                 </TableCell>
                             </TableRow>

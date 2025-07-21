@@ -16,6 +16,7 @@ import { mockData } from '@/lib/mock-data';
 
 interface IssueToTechDialogProps {
   item: InventoryItem;
+  onUpdate: () => void;
 }
 
 function SubmitButton({ maxQuantity }: { maxQuantity: number }) {
@@ -28,23 +29,24 @@ function SubmitButton({ maxQuantity }: { maxQuantity: number }) {
     )
 }
 
-export function IssueToTechDialog({ item }: IssueToTechDialogProps) {
+export function IssueToTechDialog({ item, onUpdate }: IssueToTechDialogProps) {
     const [isOpen, setIsOpen] = useState(false);
     const { toast } = useToast();
     const [state, formAction] = useActionState(issueStockToTechnician, { success: false, message: '' });
     
     useEffect(() => {
-        if (state?.message) {
+        if (state?.message && isOpen) {
             toast({
                 title: state.success ? 'Success' : 'Error',
                 description: state.message,
                 variant: state.success ? 'default' : 'destructive',
             });
             if (state.success) {
+                onUpdate();
                 setIsOpen(false);
             }
         }
-    }, [state, toast]);
+    }, [state, toast, onUpdate, isOpen]);
 
     const technicians = mockData.technicians as Technician[];
 
