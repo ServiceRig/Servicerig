@@ -5,7 +5,7 @@ import { useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import type { InventoryItem, PartUsageLog, Job, PurchaseOrder } from '@/lib/types';
+import type { InventoryItem, Job } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Truck, Wrench } from 'lucide-react';
 import { LogPartUsageDialog } from './LogPartUsageDialog';

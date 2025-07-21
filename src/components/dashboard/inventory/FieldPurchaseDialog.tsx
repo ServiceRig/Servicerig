@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useRef, useEffect, useActionState, useTransition, use } from 'react';
+import { useState, useRef, useEffect, useActionState, useTransition } from 'react';
 import { useFormStatus } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
@@ -29,7 +29,7 @@ type TempPart = {
 
 interface FieldPurchaseDialogProps {
     jobs: Job[];
-    onPurchaseLogged: (updatedItems: InventoryItem[]) => void;
+    onPurchaseLogged: () => void;
 }
 
 function SubmitButton({ disabled }: { disabled: boolean }) {
@@ -46,7 +46,7 @@ export function FieldPurchaseDialog({ jobs, onPurchaseLogged }: FieldPurchaseDia
     const [isOpen, setIsOpen] = useState(false);
     const router = useRouter();
     const { toast } = useToast();
-    const [state, formAction] = useActionState(addFieldPurchase, { success: false, message: '', items: [] });
+    const [state, formAction] = useActionState(addFieldPurchase, { success: false, message: '' });
     
     const [selectedJobId, setSelectedJobId] = useState('');
     const [parts, setParts] = useState<TempPart[]>([]);
@@ -69,8 +69,8 @@ export function FieldPurchaseDialog({ jobs, onPurchaseLogged }: FieldPurchaseDia
                 description: state.message,
                 variant: state.success ? 'default' : 'destructive',
             });
-            if(state.success && state.items) {
-                onPurchaseLogged(state.items);
+            if(state.success) {
+                onPurchaseLogged();
                 setIsOpen(false);
                 resetForm();
             }
