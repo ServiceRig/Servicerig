@@ -12,10 +12,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Trash2, PlusCircle, BookOpen, Presentation } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { mockData } from '@/lib/mock-data';
-import type { Customer, Job, EstimateTemplate, LineItem, GbbTier, TierDetails } from '@/lib/types';
+import type { Customer, Job, EstimateTemplate, LineItem, GbbTier, TierDetails, PricebookItem } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { AITierGenerator, type TierData } from '@/components/dashboard/ai-tier-generator';
-import { CustomerPresentationView } from '@/components/dashboard/customer-presentation-view';
+import { CustomerPresentationButton } from '@/components/dashboard/customer-presentation-button';
 import { addEstimate } from '@/app/actions';
 import { SubmitButton } from './SubmitButton';
 import { useRole } from '@/hooks/use-role';
@@ -27,7 +27,7 @@ const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
 };
 
-const EditableTierCard = ({ tiers, onTiersChange, onDisplayToCustomer }: { tiers: TierData[], onTiersChange: (tiers: TierData[]) => void, onDisplayToCustomer: () => void }) => {
+const EditableTierCard = ({ tiers, onTiersChange, baseEstimateData }: { tiers: TierData[], onTiersChange: (tiers: TierData[]) => void, baseEstimateData: any }) => {
     const handleTierChange = (index: number, field: 'description' | 'price', value: string | number) => {
       const newTiers = [...tiers];
       if (field === 'price') {
@@ -68,10 +68,7 @@ const EditableTierCard = ({ tiers, onTiersChange, onDisplayToCustomer }: { tiers
                  ))}
             </CardContent>
             <CardFooter>
-                <Button onClick={onDisplayToCustomer} className="w-full bg-accent hover:bg-accent/90">
-                    <Presentation className="mr-2 h-4 w-4" />
-                    Display To Customer
-                </Button>
+                 <CustomerPresentationButton tiers={tiers} baseEstimateData={baseEstimateData} />
             </CardFooter>
         </Card>
     )
@@ -99,7 +96,6 @@ function NewEstimatePageContent() {
   const [taxRate, setTaxRate] = useState(0);
   const [discountRate, setDiscountRate] = useState(0);
   const [gbbTiers, setGbbTiers] = useState<TierData[] | null>(null);
-  const [showPresentation, setShowPresentation] = useState(false);
   const [isFormSubmittable, setIsFormSubmittable] = useState(false);
   const [isPricebookOpen, setIsPricebookOpen] = useState(false);
 
@@ -149,15 +145,15 @@ function NewEstimatePageContent() {
       description: item.title,
       quantity: 1,
       unitPrice: item.price,
-      inventoryParts: [{
-        partId: item.id,
-        quantity: 1, // Default to 1, can be adjusted by quantity of line item
-        snapshot: {
-          name: item.title,
-          unitCost: (item as any).unitCost || 0, // Assuming unitCost is on some items
-          ourPrice: item.price,
-        }
-      }]
+      inventoryParts: item.inventoryParts ? item.inventoryParts.map(p => ({
+            partId: p.partId,
+            quantity: p.quantity,
+            snapshot: {
+                name: item.title,
+                unitCost: mockData.inventoryItems.find((i: any) => i.id === p.partId)?.unitCost || 0,
+                ourPrice: item.price,
+            }
+      })) : [],
     };
     
     // If the first line item is empty, replace it. Otherwise, add a new one.
@@ -206,30 +202,6 @@ function NewEstimatePageContent() {
       setIsFormSubmittable(false);
     }
   }, [selectedCustomerId, estimateTitle]);
-  
-  const handleDisplayToCustomer = useCallback(() => {
-    if (!selectedCustomerId) {
-        toast({
-            variant: "destructive",
-            title: "Customer not selected",
-            description: "Please select a customer before presenting options.",
-        });
-        return;
-    }
-    if (!gbbTiers || gbbTiers.length === 0) {
-        toast({
-            variant: "destructive",
-            title: "No Tiers Available",
-            description: "Please generate or load tiers before presenting.",
-        });
-        return;
-    }
-    setShowPresentation(true);
-    toast({
-        title: "Displaying to Customer",
-        description: "Presentation mode activated.",
-    });
-  }, [selectedCustomerId, gbbTiers, toast]);
 
   const handleLoadTemplate = (templateId: string) => {
     const template = templates.find(t => t.id === templateId);
@@ -255,18 +227,6 @@ function NewEstimatePageContent() {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const hiddenRoleInput = document.createElement('input');
-    hiddenRoleInput.type = 'hidden';
-    hiddenRoleInput.name = 'role';
-    hiddenRoleInput.value = role || '';
-    e.currentTarget.appendChild(hiddenRoleInput);
-    formAction(formData);
-    e.currentTarget.removeChild(hiddenRoleInput);
-  }
-
   const getGbbTierForAction = (): GbbTier | null => {
       if (!gbbTiers || gbbTiers.length < 3) return null;
       return {
@@ -279,16 +239,6 @@ function NewEstimatePageContent() {
   return (
     <>
     <PricebookSelector open={isPricebookOpen} onOpenChange={setIsPricebookOpen} onItemSelected={handleAddFromPricebook} />
-    <CustomerPresentationView 
-        isOpen={showPresentation}
-        onOpenChange={setShowPresentation}
-        tiers={gbbTiers || []}
-        baseEstimateData={{
-          customerId: selectedCustomerId,
-          jobId: selectedJobId,
-          title: estimateTitle
-        }}
-    />
     <div className="space-y-6">
       
         <div className="flex items-center justify-between">
@@ -448,7 +398,11 @@ function NewEstimatePageContent() {
                     <EditableTierCard 
                         tiers={gbbTiers}
                         onTiersChange={setGbbTiers}
-                        onDisplayToCustomer={handleDisplayToCustomer}
+                        baseEstimateData={{
+                            customerId: selectedCustomerId,
+                            jobId: selectedJobId,
+                            title: estimateTitle,
+                        }}
                     />
                 )}
             </div>
