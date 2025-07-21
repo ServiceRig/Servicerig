@@ -3,6 +3,7 @@
 'use client';
 
 import { useState, useRef, useActionState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useFormStatus } from 'react-dom';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -35,6 +36,7 @@ function SubmitButton({ disabled }: { disabled: boolean }) {
 
 export function FieldPurchaseDialog({ jobs }: { jobs: Job[] }) {
     const [isOpen, setIsOpen] = useState(false);
+    const router = useRouter();
     const { toast } = useToast();
     const [state, formAction] = useActionState(addFieldPurchase, { success: false, message: '' });
 
@@ -63,9 +65,10 @@ export function FieldPurchaseDialog({ jobs }: { jobs: Job[] }) {
                 setVendorName('');
                 formRef.current?.reset();
                 setIsOpen(false);
+                router.refresh();
             }
         }
-    }, [state, toast]);
+    }, [state, toast, router]);
 
     const handleAddPart = () => {
         setParts(prev => [...prev, { id: `new_${Date.now()}`, name: '', qty: 1, unitCost: 0 }]);

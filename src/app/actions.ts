@@ -1117,38 +1117,35 @@ export async function addFieldPurchase(prevState: AddFieldPurchaseState, formDat
             const existingItemIndex = mockData.inventoryItems.findIndex((i: InventoryItem) => i.name.toLowerCase() === part.name.toLowerCase());
 
             if (existingItemIndex > -1) {
-                // Item exists in master inventory, update truck stock
-                const truckStockIndex = mockData.inventoryItems[existingItemIndex].truckLocations?.findIndex((loc: any) => loc.technicianId === loggedInTechId) ?? -1;
+                const inventoryItem = mockData.inventoryItems[existingItemIndex];
+                const truckStockIndex = inventoryItem.truckLocations?.findIndex((loc: any) => loc.technicianId === loggedInTechId) ?? -1;
 
                 if (truckStockIndex > -1) {
-                    // Tech already has this item on their truck, increase quantity
-                    mockData.inventoryItems[existingItemIndex].truckLocations![truckStockIndex].quantity += part.qty;
+                    inventoryItem.truckLocations![truckStockIndex].quantity += part.qty;
                 } else {
-                     // Tech does not have this item, add it to their truck stock
-                    if (!mockData.inventoryItems[existingItemIndex].truckLocations) {
-                        mockData.inventoryItems[existingItemIndex].truckLocations = [];
+                    if (!inventoryItem.truckLocations) {
+                        inventoryItem.truckLocations = [];
                     }
-                    mockData.inventoryItems[existingItemIndex].truckLocations!.push({ technicianId: loggedInTechId, quantity: part.qty });
+                    inventoryItem.truckLocations!.push({ technicianId: loggedInTechId, quantity: part.qty });
                 }
             } else {
-                // Item is brand new to the system, create it and add to truck stock
                 const newItem: InventoryItem = {
                     id: part.id,
                     name: part.name,
                     description: 'Field purchased item',
-                    sku: 'FIELD', // Use "FIELD" as requested
+                    sku: 'FIELD',
                     partNumber: 'N/A',
                     modelNumber: 'N/A',
                     warehouseLocation: '',
-                    quantityOnHand: 0, // This item goes straight to truck stock, not warehouse
+                    quantityOnHand: 0,
                     reorderThreshold: 0,
                     unitCost: part.unitCost,
-                    ourPrice: part.unitCost * 1.5, // Example pricing logic
+                    ourPrice: part.unitCost * 1.5,
                     vendor: vendor,
                     trade: 'General',
                     category: 'Field Purchase',
                     reorderQtyDefault: 1,
-                    truckLocations: [{ technicianId: loggedInTechId, quantity: part.qty }], // Add directly to truck
+                    truckLocations: [{ technicianId: loggedInTechId, quantity: part.qty }],
                     createdAt: new Date(),
                 };
                 mockData.inventoryItems.push(newItem);
