@@ -29,7 +29,7 @@ type TempPart = {
 
 interface FieldPurchaseDialogProps {
     jobs: Job[];
-    onPurchaseLogged: () => void;
+    onDataUpdate: () => void;
 }
 
 function SubmitButton({ disabled }: { disabled: boolean }) {
@@ -42,9 +42,8 @@ function SubmitButton({ disabled }: { disabled: boolean }) {
     )
 }
 
-export function FieldPurchaseDialog({ jobs, onPurchaseLogged }: FieldPurchaseDialogProps) {
+export function FieldPurchaseDialog({ jobs, onDataUpdate }: FieldPurchaseDialogProps) {
     const [isOpen, setIsOpen] = useState(false);
-    const router = useRouter();
     const { toast } = useToast();
     const [state, formAction] = useActionState(addFieldPurchase, { success: false, message: '' });
     
@@ -70,8 +69,7 @@ export function FieldPurchaseDialog({ jobs, onPurchaseLogged }: FieldPurchaseDia
                 variant: state.success ? 'default' : 'destructive',
             });
             if(state.success) {
-                onPurchaseLogged();
-                router.refresh();
+                onDataUpdate();
                 setIsOpen(false);
                 resetForm();
             }
@@ -160,14 +158,6 @@ export function FieldPurchaseDialog({ jobs, onPurchaseLogged }: FieldPurchaseDia
                         <div className="space-y-2">
                             <Label>Parts Purchased</Label>
                             <div className="space-y-2 rounded-md border p-2">
-                                <div className="grid grid-cols-[2fr,1fr,1fr,1fr,0.5fr,auto] items-center gap-2 px-1 pb-2">
-                                    <Label>Part Name</Label>
-                                    <Label className="text-center">SKU</Label>
-                                    <Label className="text-center">Part #</Label>
-                                    <Label className="text-center">Model #</Label>
-                                    <Label className="text-center">Quantity</Label>
-                                    <div className="w-9"></div>
-                                </div>
                                 {parts.map((part, index) => (
                                     <div key={part.id} className="grid grid-cols-[2fr,1fr,1fr,1fr,0.5fr,auto] items-center gap-2">
                                         <Input placeholder="Part name" value={part.name} onChange={(e) => handlePartChange(index, 'name', e.target.value)} />
@@ -212,5 +202,3 @@ export function FieldPurchaseDialog({ jobs, onPurchaseLogged }: FieldPurchaseDia
         </Dialog>
     );
 }
-
-  

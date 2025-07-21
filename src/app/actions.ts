@@ -892,7 +892,6 @@ export async function issueStockToTechnician(prevState: any, formData: FormData)
     
     mockData.inventoryItems[itemIndex] = item;
 
-    revalidatePath('/dashboard/inventory');
     return { success: true, message: `${quantity} x ${item.name} issued to technician.` };
 
   } catch (e) {
@@ -938,7 +937,6 @@ export async function receivePurchaseOrder(prevState: any, formData: FormData): 
     po.receivedBy = 'user_admin';
     mockData.purchaseOrders[poIndex] = po;
 
-    revalidatePath('/dashboard/inventory');
     return { success: true, message: `${poPart.qty} x ${mockData.inventoryItems[itemIndex].name} received from PO ${po.id}.` };
 
   } catch (e) {
@@ -1034,6 +1032,11 @@ export async function logPartUsage(
   }
 }
 
+type AddFieldPurchaseState = {
+    success: boolean;
+    message: string;
+    inventory?: InventoryItem[];
+}
 
 const addFieldPurchaseSchema = z.object({
     jobId: z.string().optional(),
@@ -1065,9 +1068,9 @@ const addFieldPurchaseSchema = z.object({
 });
 
 export async function addFieldPurchase(
-    prevState: any,
+    prevState: AddFieldPurchaseState,
     formData: FormData
-): Promise<{ success: boolean; message: string; }> {
+): Promise<AddFieldPurchaseState> {
     try {
         const validatedFields = addFieldPurchaseSchema.safeParse({
             jobId: formData.get('jobId'),
@@ -1146,8 +1149,7 @@ export async function addFieldPurchase(
             }
         });
         
-        revalidatePath('/dashboard/inventory');
-        return { success: true, message: 'Field purchase logged successfully.' };
+        return { success: true, message: 'Field purchase logged successfully.', inventory: mockData.inventoryItems };
 
     } catch (e: any) {
         console.error("Critical error in addFieldPurchase action:", e);

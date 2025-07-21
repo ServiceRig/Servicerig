@@ -42,7 +42,9 @@ export function ReceivePoDialog({ item, onUpdate }: ReceivePoDialogProps) {
     }, [item.id]);
 
     useEffect(() => {
-        if (state?.message && isOpen) {
+        if (!isOpen) return;
+
+        if (state?.message) {
             toast({
                 title: state.success ? 'Success' : 'Error',
                 description: state.message,

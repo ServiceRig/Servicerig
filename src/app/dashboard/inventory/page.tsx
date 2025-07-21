@@ -47,8 +47,8 @@ export default function InventoryPage() {
     const [jobs, setJobs] = useState<Job[]>([]);
 
     const onDataUpdate = useCallback(() => {
-        // Re-initialize state from the (potentially mutated) mockData source
-        // This ensures any changes made by server actions are reflected
+        // This function forces a re-read from the central mockData object,
+        // ensuring any server-side mutations are reflected in the client state.
         setInventoryItems([...mockData.inventoryItems as InventoryItem[]]);
         setEquipment([...mockData.equipment as Equipment[]]);
         setEquipmentLogs([...mockData.equipmentLogs as EquipmentLogType[]]);

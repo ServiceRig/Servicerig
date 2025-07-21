@@ -71,7 +71,7 @@ export function MyStock({ searchTerm, inventoryItems, jobs, onDataUpdate }: MySt
                     <CardTitle>My Truck Stock</CardTitle>
                     <CardDescription>A list of all parts currently assigned to your truck.</CardDescription>
                 </div>
-                <FieldPurchaseDialog jobs={technicianJobs} onPurchaseLogged={onDataUpdate} />
+                <FieldPurchaseDialog jobs={technicianJobs} onDataUpdate={onDataUpdate} />
             </CardHeader>
             <CardContent>
                 <Table>

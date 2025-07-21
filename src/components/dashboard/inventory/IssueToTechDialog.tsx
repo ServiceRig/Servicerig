@@ -35,7 +35,9 @@ export function IssueToTechDialog({ item, onUpdate }: IssueToTechDialogProps) {
     const [state, formAction] = useActionState(issueStockToTechnician, { success: false, message: '' });
     
     useEffect(() => {
-        if (state?.message && isOpen) {
+        if (!isOpen) return;
+
+        if (state?.message) {
             toast({
                 title: state.success ? 'Success' : 'Error',
                 description: state.message,
