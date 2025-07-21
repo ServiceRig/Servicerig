@@ -1157,6 +1157,6 @@ export async function addFieldPurchase(prevState: AddFieldPurchaseState, formDat
         return { success: false, message: e.message || 'An unexpected error occurred.' };
     }
     
-    // Redirect to force a full data refresh on the client
-    redirect('/dashboard/inventory');
+    revalidatePath('/dashboard/inventory');
+    return { success: true, message: 'Field purchase logged successfully.' };
 }

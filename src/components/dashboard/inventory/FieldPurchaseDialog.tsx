@@ -36,8 +36,8 @@ function SubmitButton({ disabled }: { disabled: boolean }) {
 export function FieldPurchaseDialog({ jobs }: { jobs: Job[] }) {
     const [isOpen, setIsOpen] = useState(false);
     const { toast } = useToast();
-    const [state, formAction] = useActionState(addFieldPurchase, { success: false, message: '' });
     const router = useRouter();
+    const [state, formAction] = useActionState(addFieldPurchase, { success: false, message: '' });
 
     const [selectedJobId, setSelectedJobId] = useState('');
     const [parts, setParts] = useState<TempPart[]>([]);
@@ -46,20 +46,19 @@ export function FieldPurchaseDialog({ jobs }: { jobs: Job[] }) {
     const [vendorName, setVendorName] = useState('');
     const formRef = useRef<HTMLFormElement>(null);
 
-     useEffect(() => {
+    useEffect(() => {
         if (state.message) {
             toast({
                 title: state.success ? 'Success' : 'Error',
                 description: state.message,
                 variant: state.success ? 'default' : 'destructive',
             });
-
             if (state.success) {
-                // The redirect in the action will take over, but this is good for client-side feedback
                 setIsOpen(false);
+                router.refresh();
             }
         }
-    }, [state, toast]);
+    }, [state, toast, router]);
 
     const handleAddPart = () => {
         setParts(prev => [...prev, { id: `new_${Date.now()}`, name: '', qty: 1, unitCost: 0 }]);
