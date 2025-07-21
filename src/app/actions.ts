@@ -1055,7 +1055,8 @@ const addFieldPurchaseSchema = z.object({
                 return z.NEVER;
             }
             return parsed;
-        } catch {
+        } catch(e) {
+            console.error('Part validation failed:', e);
             ctx.addIssue({ code: 'custom', message: 'Invalid parts data.' });
             return z.NEVER;
         }
@@ -1073,7 +1074,8 @@ export async function addFieldPurchase(prevState: any, formData: FormData) {
     });
 
     if (!validatedFields.success) {
-        return { success: false, message: 'Invalid field purchase data.' };
+        console.log(validatedFields.error.flatten())
+        return { success: false, message: validatedFields.error.flatten().fieldErrors.parts?.[0] || 'Invalid field purchase data.' };
     }
 
     try {
@@ -1145,8 +1147,7 @@ export async function addFieldPurchase(prevState: any, formData: FormData) {
         return { success: false, message: 'An unexpected error occurred while logging the purchase.' };
     }
     
-    revalidatePath('/dashboard/inventory');
-    redirect('/dashboard/inventory');
+    return { success: true, message: 'Field purchase logged successfully.' };
 }
 
 const updateInventoryItemSchema = z.object({

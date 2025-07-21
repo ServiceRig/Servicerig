@@ -3,6 +3,7 @@
 
 import { useState, useRef, useEffect, useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
+import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -11,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { PlusCircle, Trash2, Camera, UploadCloud, FilePlus, ShoppingCart, Loader2 } from 'lucide-react';
 import Image from 'next/image';
-import type { Job, InventoryItem, PurchaseOrder } from '@/lib/types';
+import type { Job } from '@/lib/types';
 import { addFieldPurchase } from '@/app/actions';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
@@ -25,7 +26,6 @@ type TempPart = {
 
 interface FieldPurchaseDialogProps {
     jobs: Job[];
-    onPurchaseLogged: (updates: { inventoryItems?: InventoryItem[], purchaseOrders?: PurchaseOrder[]}) => void;
 }
 
 function SubmitButton({ disabled }: { disabled: boolean }) {
@@ -38,8 +38,9 @@ function SubmitButton({ disabled }: { disabled: boolean }) {
     )
 }
 
-export function FieldPurchaseDialog({ jobs, onPurchaseLogged }: FieldPurchaseDialogProps) {
+export function FieldPurchaseDialog({ jobs }: FieldPurchaseDialogProps) {
     const [isOpen, setIsOpen] = useState(false);
+    const router = useRouter();
     const { toast } = useToast();
     
     const [state, formAction] = useActionState(addFieldPurchase, { success: false, message: '' });
@@ -59,15 +60,12 @@ export function FieldPurchaseDialog({ jobs, onPurchaseLogged }: FieldPurchaseDia
                 variant: state.success ? 'default' : 'destructive',
             });
             if (state.success) {
-                onPurchaseLogged({
-                    inventoryItems: state.inventoryItems,
-                    purchaseOrders: state.purchaseOrders,
-                });
                 resetForm();
                 setIsOpen(false);
+                router.refresh();
             }
         }
-    }, [state, toast, isOpen, onPurchaseLogged]);
+    }, [state, toast, isOpen, router]);
 
     const resetForm = () => {
         setSelectedJobId('');
