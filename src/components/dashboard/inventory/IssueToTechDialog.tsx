@@ -32,7 +32,7 @@ function SubmitButton({ maxQuantity }: { maxQuantity: number }) {
 export function IssueToTechDialog({ item, onUpdate }: IssueToTechDialogProps) {
     const [isOpen, setIsOpen] = useState(false);
     const { toast } = useToast();
-    const [state, formAction] = useActionState(issueStockToTechnician, { success: false, message: '' });
+    const [state, formAction] = useActionState(issueStockToTechnician, { success: false, message: '', inventory: [] });
     
     useEffect(() => {
         if (!isOpen) return;
