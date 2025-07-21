@@ -14,12 +14,12 @@ type TruckStockItem = InventoryItem & {
     truckQuantity: number;
 };
 
-export function TruckStock({ searchTerm }: { searchTerm: string }) {
+export function TruckStock({ inventoryItems, searchTerm }: { inventoryItems: InventoryItem[], searchTerm: string }) {
     const [technicians, setTechnicians] = useState<Technician[]>(mockData.technicians);
     const [selectedTech, setSelectedTech] = useState('all');
 
     const allTruckStock = useMemo(() => {
-        return mockData.inventoryItems.flatMap((item: InventoryItem) => 
+        return (inventoryItems || []).flatMap((item: InventoryItem) => 
             (item.truckLocations || []).map(loc => {
                 const tech = technicians.find(t => t.id === loc.technicianId);
                 return {
@@ -30,7 +30,7 @@ export function TruckStock({ searchTerm }: { searchTerm: string }) {
                 };
             })
         );
-    }, [technicians]);
+    }, [inventoryItems, technicians]);
     
     const filteredStock = useMemo(() => {
         return allTruckStock.filter(item => {
