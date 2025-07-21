@@ -1064,7 +1064,10 @@ const addFieldPurchaseSchema = z.object({
     receiptImage: z.string().url('A valid receipt image is required.').or(z.literal('')),
 });
 
-export async function addFieldPurchase(prevState: any, formData: FormData) {
+export async function addFieldPurchase(
+    prevState: any,
+    formData: FormData
+): Promise<{ success: boolean; message: string; items?: InventoryItem[] }> {
     try {
         const validatedFields = addFieldPurchaseSchema.safeParse({
             jobId: formData.get('jobId'),
@@ -1143,7 +1146,7 @@ export async function addFieldPurchase(prevState: any, formData: FormData) {
             }
         });
         
-        return { success: true, message: 'Field purchase logged successfully.' };
+        return { success: true, message: 'Field purchase logged successfully.', items: mockData.inventoryItems };
 
     } catch (e: any) {
         console.error("Critical error in addFieldPurchase action:", e);
@@ -1194,4 +1197,5 @@ export async function updateInventoryItem(prevState: any, formData: FormData) {
         return { success: false, message: 'An unexpected error occurred.' };
     }
 }
+
 

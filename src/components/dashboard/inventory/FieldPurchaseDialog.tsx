@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { PlusCircle, Trash2, Camera, UploadCloud, FilePlus, ShoppingCart, Loader2 } from 'lucide-react';
 import Image from 'next/image';
-import type { Job } from '@/lib/types';
+import type { Job, InventoryItem } from '@/lib/types';
 import { addFieldPurchase } from '@/app/actions';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useRole } from '@/hooks/use-role';
@@ -29,7 +29,7 @@ type TempPart = {
 
 interface FieldPurchaseDialogProps {
     jobs: Job[];
-    onPurchaseLogged: () => void;
+    onPurchaseLogged: (updatedItems: InventoryItem[]) => void;
 }
 
 function SubmitButton({ disabled }: { disabled: boolean }) {
@@ -46,7 +46,7 @@ export function FieldPurchaseDialog({ jobs, onPurchaseLogged }: FieldPurchaseDia
     const [isOpen, setIsOpen] = useState(false);
     const router = useRouter();
     const { toast } = useToast();
-    const [state, formAction] = useActionState(addFieldPurchase, { success: false, message: '' });
+    const [state, formAction] = useActionState(addFieldPurchase, { success: false, message: '', items: [] });
     
     const [selectedJobId, setSelectedJobId] = useState('');
     const [parts, setParts] = useState<TempPart[]>([]);
@@ -69,9 +69,8 @@ export function FieldPurchaseDialog({ jobs, onPurchaseLogged }: FieldPurchaseDia
                 description: state.message,
                 variant: state.success ? 'default' : 'destructive',
             });
-            if(state.success) {
-                onPurchaseLogged();
-                router.refresh();
+            if(state.success && state.items) {
+                onPurchaseLogged(state.items);
                 setIsOpen(false);
                 resetForm();
             }

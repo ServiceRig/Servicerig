@@ -53,10 +53,14 @@ export default function InventoryPage() {
         return allTabs.filter(tab => tab.roles.includes(role));
     }, [role]);
 
-    const handleDataUpdate = useCallback(() => {
+    const handleDataUpdate = useCallback((newInventory?: InventoryItem[]) => {
         // This function will re-fetch all data from the "database" (mockData)
         // This simulates a full data refresh after a mutation
-        setInventoryItems([...mockData.inventoryItems]);
+        if (newInventory) {
+             setInventoryItems([...newInventory]);
+        } else {
+             setInventoryItems([...mockData.inventoryItems]);
+        }
         setEquipment([...mockData.equipment]);
         setEquipmentLogs([...mockData.equipmentLogs]);
         setPurchaseOrders([...mockData.purchaseOrders]);
@@ -113,6 +117,11 @@ export default function InventoryPage() {
                         jobs,
                         onDataUpdate: handleDataUpdate,
                     };
+
+                    // Special prop mapping for WarehouseStock which expects onDataUpdate to handle a specific shape
+                    if (tab.id === 'warehouse') {
+                        componentProps.onDataUpdate = (updates: { inventoryItems: InventoryItem[] }) => handleDataUpdate(updates.inventoryItems);
+                    }
                     
                     return (
                         <TabsContent key={tab.id} value={tab.id} className="mt-4">
