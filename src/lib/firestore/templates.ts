@@ -23,6 +23,18 @@ export async function getEstimateTemplates(): Promise<EstimateTemplate[]> {
 }
 
 /**
+ * Fetches a single estimate template by its ID.
+ * @param id The template's ID.
+ * @returns An EstimateTemplate object or null if not found.
+ */
+export async function getEstimateTemplateById(id: string): Promise<EstimateTemplate | null> {
+    console.log(`Fetching estimate template with id: ${id}`);
+    const template = templates.find(t => t.id === id) || null;
+    await new Promise(resolve => setTimeout(resolve, 50));
+    return template;
+}
+
+/**
  * Adds a new estimate template.
  * In a real app, this would use addDoc.
  * @param templateData The data for the new template.
@@ -40,4 +52,20 @@ export async function addEstimateTemplate(templateData: { title: string, lineIte
     await new Promise(resolve => setTimeout(resolve, 500));
     console.log(`Added template with id: ${newId}`);
     return newId;
+}
+
+/**
+ * Updates an existing estimate template.
+ * @param updatedTemplate The template object with updated fields.
+ */
+export async function updateEstimateTemplate(updatedTemplate: EstimateTemplate): Promise<void> {
+    console.log("Updating estimate template in DB:", updatedTemplate.id);
+    const index = templates.findIndex(t => t.id === updatedTemplate.id);
+    if (index !== -1) {
+        templates[index] = updatedTemplate;
+    } else {
+        console.warn(`Template with id ${updatedTemplate.id} not found for update, adding it instead.`);
+        templates.unshift(updatedTemplate);
+    }
+    await new Promise(resolve => setTimeout(resolve, 100));
 }

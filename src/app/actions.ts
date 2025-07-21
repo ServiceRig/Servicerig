@@ -8,8 +8,8 @@ import { addEstimate as addEstimateToDb, getEstimateById, updateEstimate as upda
 import { addJob as addJobToDb, getJobById, updateJob } from "@/lib/firestore/jobs";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import type { Estimate, GbbTier, LineItem, PricebookItem, Job, Invoice, EquipmentLog, Equipment, PurchaseOrder, UsedPart, PurchaseOrderPart } from "@/lib/types";
-import { addEstimateTemplate } from "@/lib/firestore/templates";
+import type { Estimate, GbbTier, LineItem, PricebookItem, Job, Invoice, EquipmentLog, Equipment, PurchaseOrder, UsedPart, PurchaseOrderPart, EstimateTemplate } from "@/lib/types";
+import { addEstimateTemplate, updateEstimateTemplate } from "@/lib/firestore/templates";
 import { mockData } from "@/lib/mock-data";
 import { addPricebookItem } from "@/lib/firestore/pricebook";
 import { getCustomerById } from "@/lib/firestore/customers";
@@ -577,6 +577,42 @@ export async function createEstimateTemplateAction(prevState: CreateTemplateStat
     }
     
     return { success: true, message: 'Template created successfully.' };
+}
+
+const updateTemplateSchema = createTemplateSchema.extend({
+    templateId: z.string().min(1, 'Template ID is required.'),
+});
+
+export async function updateEstimateTemplateAction(prevState: CreateTemplateState, formData: FormData): Promise<CreateTemplateState> {
+     const validatedFields = updateTemplateSchema.safeParse({
+        templateId: formData.get('templateId'),
+        title: formData.get('title'),
+        lineItems: formData.get('lineItems'),
+        gbbTier: formData.get('gbbTier'),
+    });
+
+    if (!validatedFields.success) {
+        return {
+            success: false,
+            errors: validatedFields.error.flatten().fieldErrors,
+            message: 'Validation failed.',
+        };
+    }
+
+    try {
+        const { templateId, ...templateData } = validatedFields.data;
+        const updatedTemplate: EstimateTemplate = {
+            id: templateId,
+            ...templateData,
+        };
+        await updateEstimateTemplate(updatedTemplate);
+        revalidatePath('/dashboard/settings/estimates');
+    } catch (error) {
+        console.error(error);
+        return { success: false, message: 'Failed to update template.' };
+    }
+    
+    return { success: true, message: 'Template updated successfully.' };
 }
 
 
