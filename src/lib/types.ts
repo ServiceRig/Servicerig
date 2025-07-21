@@ -54,6 +54,18 @@ export type Customer = {
   recentTechnicians?: { id: string; name: string; avatarUrl?: string }[];
 };
 
+export type UsedPart = {
+    partId: string;
+    name: string;
+    sku: string;
+    quantity: number;
+    source: 'truck' | 'vendor'; // 'truck' for truck stock, 'vendor' for field purchase
+    technicianId: string;
+    unitCost: number;
+    ourPrice: number;
+    note?: string;
+    timestamp: Timestamp | Date;
+}
 
 // Job model from /jobs/{jobId}
 export type Job = {
@@ -73,6 +85,7 @@ export type Job = {
   invoiceId?: string;
   agreementId?: string;
   tags?: string[];
+  usedParts?: UsedPart[];
   color?: string;
   isAutoCreated?: boolean;
   // For UI enrichment

@@ -9,7 +9,8 @@ import { Button } from '@/components/ui/button';
 import { mockData } from '@/lib/mock-data';
 import type { InventoryItem, PartUsageLog } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { Truck, Package, Wrench } from 'lucide-react';
+import { Truck, Wrench } from 'lucide-react';
+import { LogPartUsageDialog } from './LogPartUsageDialog';
 
 const LOGGED_IN_TECHNICIAN_ID = 'tech1';
 
@@ -27,37 +28,6 @@ export function MyStock({ searchTerm }: { searchTerm: string }) {
             })
             .filter((item): item is TruckStockItem => item !== null);
     });
-    
-    const handleUsePart = (itemId: string, quantity: number = 1) => {
-        let usedItemName = '';
-        setTruckStock(prevStock => {
-            return prevStock.map(item => {
-                if (item.id === itemId && item.truckQuantity > 0) {
-                    usedItemName = item.name;
-                    return { ...item, truckQuantity: item.truckQuantity - quantity };
-                }
-                return item;
-            });
-        });
-
-        if (usedItemName) {
-            // In a real app, this would be a server action.
-             const usageLog: PartUsageLog = {
-                id: `pulog_${Date.now()}`,
-                partId: itemId,
-                quantity,
-                timestamp: new Date(),
-                technicianId: LOGGED_IN_TECHNICIAN_ID,
-                jobId: 'job_unknown', // In a real scenario, this would be selected from the current job
-            };
-            mockData.partUsageLogs.push(usageLog);
-
-            toast({
-                title: 'Part Used',
-                description: `${quantity} x ${usedItemName} has been logged.`,
-            });
-        }
-    }
     
     const handleRequestRestock = (item: TruckStockItem) => {
         const requestQty = item.reorderQtyDefault || 1;
@@ -117,9 +87,11 @@ export function MyStock({ searchTerm }: { searchTerm: string }) {
                                 <TableCell>{item.sku}</TableCell>
                                 <TableCell className="font-bold">{item.truckQuantity}</TableCell>
                                 <TableCell className="text-right space-x-2">
-                                     <Button variant="outline" size="sm" onClick={() => handleUsePart(item.id)} disabled={item.truckQuantity <= 0}>
-                                        <Wrench className="mr-2 h-4 w-4" /> Use Part
-                                    </Button>
+                                    <LogPartUsageDialog 
+                                        item={item} 
+                                        technicianId={LOGGED_IN_TECHNICIAN_ID} 
+                                        disabled={item.truckQuantity <= 0}
+                                    />
                                     <Button variant="secondary" size="sm" onClick={() => handleRequestRestock(item)}>
                                         <Truck className="mr-2 h-4 w-4" /> Restock
                                     </Button>

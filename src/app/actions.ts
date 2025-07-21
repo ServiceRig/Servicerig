@@ -1,4 +1,5 @@
 
+
 'use server';
 
 import { generateTieredEstimates, type GenerateTieredEstimatesInput, type GenerateTieredEstimatesOutput } from "@/ai/flows/generate-tiered-estimates";
@@ -7,7 +8,7 @@ import { addEstimate as addEstimateToDb, getEstimateById, updateEstimate as upda
 import { addJob as addJobToDb, getJobById, updateJob } from "@/lib/firestore/jobs";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import type { Estimate, GbbTier, LineItem, PricebookItem, Job, Invoice, EquipmentLog, Equipment, PurchaseOrder } from "@/lib/types";
+import type { Estimate, GbbTier, LineItem, PricebookItem, Job, Invoice, EquipmentLog, Equipment, PurchaseOrder, UsedPart } from "@/lib/types";
 import { addEstimateTemplate } from "@/lib/firestore/templates";
 import { mockData } from "@/lib/mock-data";
 import { addPricebookItem } from "@/lib/firestore/pricebook";
@@ -918,5 +919,95 @@ export async function receivePurchaseOrder(prevState: any, formData: FormData): 
   } catch (e) {
     console.error(e);
     return { success: false, message: 'An unexpected error occurred.' };
+  }
+}
+
+const logPartUsageSchema = z.object({
+  partId: z.string(),
+  jobId: z.string(),
+  technicianId: z.string(),
+  quantity: z.coerce.number().min(1, 'Quantity must be at least 1.'),
+  note: z.string().optional(),
+});
+
+type LogPartUsageState = {
+  success: boolean;
+  message: string;
+};
+
+export async function logPartUsage(
+  prevState: LogPartUsageState,
+  formData: FormData
+): Promise<LogPartUsageState> {
+  const validatedFields = logPartUsageSchema.safeParse({
+    partId: formData.get('partId'),
+    jobId: formData.get('jobId'),
+    technicianId: formData.get('technicianId'),
+    quantity: formData.get('quantity'),
+    note: formData.get('note'),
+  });
+
+  if (!validatedFields.success) {
+    return { success: false, message: 'Invalid data provided.' };
+  }
+
+  const { partId, jobId, technicianId, quantity, note } = validatedFields.data;
+
+  try {
+    // 1. Find the inventory item and technician's truck stock
+    const itemIndex = mockData.inventoryItems.findIndex(i => i.id === partId);
+    if (itemIndex === -1) {
+      return { success: false, message: 'Inventory item not found.' };
+    }
+    const item = mockData.inventoryItems[itemIndex];
+    
+    const truckLocationIndex = item.truckLocations?.findIndex(loc => loc.technicianId === technicianId);
+    if (truckLocationIndex === undefined || truckLocationIndex === -1) {
+      return { success: false, message: "Part not found in this technician's truck stock." };
+    }
+    
+    const truckStock = item.truckLocations![truckLocationIndex];
+    if (truckStock.quantity < quantity) {
+      return { success: false, message: `Not enough stock on truck. Only ${truckStock.quantity} available.` };
+    }
+
+    // 2. Find the job to log against
+    const jobIndex = mockData.jobs.findIndex(j => j.id === jobId);
+    if (jobIndex === -1) {
+      return { success: false, message: 'Job not found.' };
+    }
+    const job = mockData.jobs[jobIndex];
+    
+    // 3. Perform the updates
+    // Deduct from truck stock
+    truckStock.quantity -= quantity;
+    mockData.inventoryItems[itemIndex].truckLocations![truckLocationIndex] = truckStock;
+
+    // Add to job's usedParts log
+    const usedPartLog: UsedPart = {
+        partId: item.id,
+        name: item.name,
+        sku: item.sku,
+        quantity,
+        source: 'truck',
+        technicianId,
+        unitCost: item.unitCost,
+        ourPrice: item.ourPrice,
+        note,
+        timestamp: new Date(),
+    };
+
+    if (!job.usedParts) {
+        job.usedParts = [];
+    }
+    job.usedParts.push(usedPartLog);
+    mockData.jobs[jobIndex] = job;
+    
+    revalidatePath('/dashboard/inventory');
+    return { success: true, message: `${quantity} x ${item.name} logged to job ${job.title}.` };
+
+  } catch (e) {
+    console.error(e);
+    return { success: false, message: 'An unexpected error occurred while logging the part.' };
   }
 }
