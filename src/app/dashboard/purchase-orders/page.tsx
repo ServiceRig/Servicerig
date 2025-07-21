@@ -134,7 +134,7 @@ export default function PurchaseOrdersPage() {
                     </div>
                     <div className="flex items-center gap-2">
                         <Button asChild>
-                            <Link href="#">
+                            <Link href={getHref("/dashboard/purchase-orders/new")}>
                                 <Plus className="mr-2 h-4 w-4" />
                                 Create PO
                             </Link>
