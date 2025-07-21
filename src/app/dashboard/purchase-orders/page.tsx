@@ -9,15 +9,14 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { mockData } from '@/lib/mock-data';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import type { PurchaseOrder } from '@/lib/types';
+import type { PurchaseOrder, Vendor, Technician } from '@/lib/types';
 import { useRole } from '@/hooks/use-role';
-import { Plus, MoreHorizontal, ArrowUp, ArrowDown } from 'lucide-react';
-
-type SortableColumn = 'vendor' | 'orderDate' | 'status' | 'total';
-type SortDirection = 'asc' | 'desc';
+import { Plus, MoreHorizontal } from 'lucide-react';
+import { DateRangePicker } from '@/components/dashboard/date-range-picker';
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
@@ -28,96 +27,53 @@ const getStatusStyles = (status: PurchaseOrder['status']) => {
     case 'ordered': return 'bg-blue-500 text-white';
     case 'received': return 'bg-green-500 text-white';
     case 'delivered': return 'bg-purple-500 text-white';
-    case 'completed': return 'bg-green-600 text-white';
-    case 'field-purchased': return 'bg-orange-500 text-white';
+    case 'cancelled': return 'bg-red-500 text-white';
     case 'draft':
     default: return 'bg-gray-500 text-white';
   }
 };
 
-const SortableHeader = ({
-  column,
-  children,
-  sortColumn,
-  sortDirection,
-  onSort,
-}: {
-  column: SortableColumn;
-  children: React.ReactNode;
-  sortColumn: SortableColumn;
-  sortDirection: SortDirection;
-  onSort: (column: SortableColumn) => void;
-}) => {
-  const isSorted = sortColumn === column;
-  return (
-    <TableHead onClick={() => onSort(column)} className="cursor-pointer hover:bg-muted/50">
-      <div className="flex items-center gap-2">
-        {children}
-        {isSorted && (sortDirection === 'asc' ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />)}
-      </div>
-    </TableHead>
-  );
-};
-
 
 export default function PurchaseOrdersPage() {
     const { role } = useRole();
-    const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>(mockData.purchaseOrders);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
-    const [sortColumn, setSortColumn] = useState<SortableColumn>('orderDate');
-    const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+    const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>(() => {
+        return (mockData.purchaseOrders as PurchaseOrder[]).map(po => {
+            const vendor = (mockData.vendors as Vendor[]).find(v => v.id === po.vendorId);
+            let destinationName = 'Warehouse';
+            if (po.destination !== 'Warehouse') {
+                const tech = (mockData.technicians as Technician[]).find(t => t.id === po.destination);
+                destinationName = tech ? `Truck - ${tech.name}` : `Unknown (${po.destination})`;
+            }
+            return {
+                ...po,
+                vendorName: vendor?.name || 'Unknown Vendor',
+                destinationName,
+                itemCount: po.parts.length,
+                total: po.parts.reduce((sum, part) => sum + (part.qty * part.unitCost), 0),
+            };
+        });
+    });
 
-    const handleSort = (column: SortableColumn) => {
-        if (sortColumn === column) {
-            setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
-        } else {
-            setSortColumn(column);
-            setSortDirection('asc');
-        }
-    };
+    const [vendors, setVendors] = useState<Vendor[]>(mockData.vendors as Vendor[]);
+    const [technicians, setTechnicians] = useState<Technician[]>(mockData.technicians as Technician[]);
+    
+    const [searchTerm, setSearchTerm] = useState('');
+    const [statusFilter, setStatusFilter] = useState('all');
+    const [vendorFilter, setVendorFilter] = useState('all');
+    const [destinationFilter, setDestinationFilter] = useState('all');
 
     const filteredPOs = useMemo(() => {
-        let sortableItems = [...purchaseOrders];
-
-        if (searchTerm) {
-             sortableItems = sortableItems.filter(po =>
-                po.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                po.vendor.toLowerCase().includes(searchTerm.toLowerCase())
-            );
-        }
-
-        sortableItems.sort((a, b) => {
-            let aValue: any;
-            let bValue: any;
-
-            if (sortColumn === 'total') {
-                aValue = a.total || 0;
-                bValue = b.total || 0;
-            } else if (sortColumn === 'orderDate') {
-                aValue = new Date(a.orderDate);
-                bValue = new Date(b.orderDate);
-            } else {
-                aValue = a[sortColumn];
-                bValue = b[sortColumn];
-            }
-
-            if (aValue < bValue) {
-                return sortDirection === 'asc' ? -1 : 1;
-            }
-            if (aValue > bValue) {
-                return sortDirection === 'asc' ? 1 : -1;
-            }
-            return 0;
+        return purchaseOrders.filter(po => {
+            const matchesSearch = searchTerm ? 
+                (po.id.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                 po.vendorName?.toLowerCase().includes(searchTerm.toLowerCase()))
+                : true;
+            const matchesStatus = statusFilter === 'all' || po.status === statusFilter;
+            const matchesVendor = vendorFilter === 'all' || po.vendorId === vendorFilter;
+            const matchesDestination = destinationFilter === 'all' || po.destination === destinationFilter;
+            return matchesSearch && matchesStatus && matchesVendor && matchesDestination;
         });
-        
-        return sortableItems;
-
-    }, [purchaseOrders, searchTerm, sortColumn, sortDirection]);
-
-    const handleRowClick = (poId: string) => {
-        setExpandedRowId(prevId => prevId === poId ? null : poId);
-    };
+    }, [purchaseOrders, searchTerm, statusFilter, vendorFilter, destinationFilter]);
 
     const getHref = (path: string) => {
         let roleParam = role ? `role=${role}` : '';
@@ -141,13 +97,40 @@ export default function PurchaseOrdersPage() {
                         </Button>
                     </div>
                 </div>
-                 <div className="mt-4">
+                 <div className="mt-4 flex flex-col md:flex-row gap-2">
                     <Input 
-                        placeholder="Search by PO number or vendor..."
+                        placeholder="Search by PO # or vendor..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="max-w-sm"
                     />
+                     <Select value={statusFilter} onValueChange={setStatusFilter}>
+                        <SelectTrigger className="w-full md:w-[180px]"><SelectValue placeholder="Filter by status" /></SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Statuses</SelectItem>
+                            <SelectItem value="draft">Draft</SelectItem>
+                            <SelectItem value="ordered">Ordered</SelectItem>
+                            <SelectItem value="received">Received</SelectItem>
+                            <SelectItem value="delivered">Delivered</SelectItem>
+                            <SelectItem value="cancelled">Cancelled</SelectItem>
+                        </SelectContent>
+                    </Select>
+                     <Select value={vendorFilter} onValueChange={setVendorFilter}>
+                        <SelectTrigger className="w-full md:w-[180px]"><SelectValue placeholder="Filter by vendor" /></SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Vendors</SelectItem>
+                            {vendors.map(v => <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                     <Select value={destinationFilter} onValueChange={setDestinationFilter}>
+                        <SelectTrigger className="w-full md:w-[180px]"><SelectValue placeholder="Filter by destination" /></SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Destinations</SelectItem>
+                            <SelectItem value="Warehouse">Warehouse</SelectItem>
+                            {technicians.map(t => <SelectItem key={t.id} value={t.id}>{t.name}'s Truck</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                    <DateRangePicker />
                 </div>
             </CardHeader>
             <CardContent>
@@ -155,86 +138,50 @@ export default function PurchaseOrdersPage() {
                     <TableHeader>
                         <TableRow>
                             <TableHead>PO #</TableHead>
-                             <SortableHeader column="vendor" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort}>
-                                Vendor
-                            </SortableHeader>
-                            <SortableHeader column="orderDate" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort}>
-                                Order Date
-                            </SortableHeader>
-                            <SortableHeader column="status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort}>
-                                Status
-                            </SortableHeader>
-                            <SortableHeader column="total" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort}>
-                                <div className="text-right w-full">Total</div>
-                            </SortableHeader>
+                            <TableHead>Vendor</TableHead>
+                            <TableHead>Destination</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead>Items</TableHead>
+                            <TableHead>Order Date</TableHead>
+                            <TableHead>Expected</TableHead>
+                            <TableHead className="text-right">Total</TableHead>
                             <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {filteredPOs.length > 0 ? filteredPOs.map((po) => (
-                            <Fragment key={po.id}>
-                                <TableRow onClick={() => handleRowClick(po.id)} className="cursor-pointer">
-                                    <TableCell className="font-medium">{po.id.toUpperCase()}</TableCell>
-                                    <TableCell>{po.vendor}</TableCell>
-                                    <TableCell>{format(new Date(po.orderDate), 'MMM d, yyyy')}</TableCell>
-                                    <TableCell>
-                                        <Badge className={cn("capitalize", getStatusStyles(po.status))}>
-                                            {po.status.replace('-', ' ')}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell className="text-right font-semibold">{formatCurrency(po.total || 0)}</TableCell>
-                                    <TableCell className="text-right">
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button variant="ghost" size="icon" onClick={(e) => e.stopPropagation()}>
-                                                    <MoreHorizontal className="h-4 w-4" />
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent>
-                                                <DropdownMenuItem asChild>
-                                                    <Link href={getHref(`/dashboard/purchase-orders/${po.id}`)}>View Full Details</Link>
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem>Mark as Received</DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
-                                    </TableCell>
-                                </TableRow>
-                                {expandedRowId === po.id && (
-                                    <TableRow>
-                                        <TableCell colSpan={6} className="p-0">
-                                            <div className="p-4 bg-muted">
-                                                <h4 className="font-bold mb-2">Order Details</h4>
-                                                <Table>
-                                                    <TableHeader>
-                                                        <TableRow>
-                                                            <TableHead>Part Name</TableHead>
-                                                            <TableHead>Quantity</TableHead>
-                                                            <TableHead className="text-right">Unit Cost</TableHead>
-                                                            <TableHead className="text-right">Line Total</TableHead>
-                                                        </TableRow>
-                                                    </TableHeader>
-                                                    <TableBody>
-                                                        {po.parts.map(part => {
-                                                            const partDetails = mockData.inventoryItems.find(item => item.id === part.partId);
-                                                            return (
-                                                                <TableRow key={part.partId}>
-                                                                    <TableCell>{partDetails?.name || 'Unknown Part'}</TableCell>
-                                                                    <TableCell>{part.qty}</TableCell>
-                                                                    <TableCell className="text-right">{formatCurrency(part.unitCost)}</TableCell>
-                                                                    <TableCell className="text-right">{formatCurrency(part.qty * part.unitCost)}</TableCell>
-                                                                </TableRow>
-                                                            )
-                                                        })}
-                                                    </TableBody>
-                                                </Table>
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
-                                )}
-                            </Fragment>
+                            <TableRow key={po.id}>
+                                <TableCell className="font-medium">{po.id.toUpperCase()}</TableCell>
+                                <TableCell>{po.vendorName}</TableCell>
+                                <TableCell>{po.destinationName}</TableCell>
+                                <TableCell>
+                                    <Badge className={cn("capitalize", getStatusStyles(po.status))}>
+                                        {po.status}
+                                    </Badge>
+                                </TableCell>
+                                <TableCell>{po.itemCount}</TableCell>
+                                <TableCell>{format(new Date(po.orderDate), 'MMM d, yyyy')}</TableCell>
+                                <TableCell>{po.expectedDeliveryDate ? format(new Date(po.expectedDeliveryDate), 'MMM d, yyyy') : 'N/A'}</TableCell>
+                                <TableCell className="text-right font-semibold">{formatCurrency(po.total || 0)}</TableCell>
+                                <TableCell className="text-right">
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button variant="ghost" size="icon">
+                                                <MoreHorizontal className="h-4 w-4" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent>
+                                            <DropdownMenuItem asChild>
+                                                <Link href={getHref(`/dashboard/purchase-orders/${po.id}/edit`)}>View / Edit</Link>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem>Mark as Received</DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </TableCell>
+                            </TableRow>
                         )) : (
                              <TableRow>
-                                <TableCell colSpan={6} className="h-24 text-center">
+                                <TableCell colSpan={9} className="h-24 text-center">
                                     No purchase orders found.
                                 </TableCell>
                             </TableRow>

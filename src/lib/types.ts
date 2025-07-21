@@ -27,6 +27,20 @@ export interface User {
   avatarUrl?: string;
 }
 
+// Vendor model from /vendors/{vendorId}
+export type Vendor = {
+  id: string;
+  name: string;
+  contactName?: string;
+  phone?: string;
+  email?: string;
+  website?: string;
+  paymentTerms?: string;
+  notes?: string;
+  createdAt: Timestamp | Date;
+}
+
+
 // This is a simplified Technician type for UI purposes, distinct from the main User type
 export type Technician = {
   id: string;
@@ -376,24 +390,21 @@ export type PurchaseOrderPart = {
 // PurchaseOrder model from /purchaseOrders/{poId}
 export interface PurchaseOrder {
   id: string;
-  vendor: string;
+  vendorId: string;
   parts: PurchaseOrderPart[];
-  total: number;
-  status: 'draft' | 'pending' | 'approved' | 'ordered' | 'received' | 'delivered' | 'field-purchased' | 'completed';
+  status: 'draft' | 'ordered' | 'received' | 'delivered' | 'cancelled';
   destination: 'Warehouse' | string; // Warehouse or technicianId
-  expectedDeliveryDate?: Timestamp | Date;
-  orderDate: Timestamp | Date;
-  createdAt: Timestamp | Date;
-  updatedAt: Timestamp | Date;
-  requestedBy?: string; // For UI enrichment
-  isFieldPurchase?: boolean;
   jobId?: string;
-  receiptImage?: string;
-  // New optional fields
-  receivedBy?: string; // userId or techId
-  receivedAt?: Timestamp | Date;
-  deliveryLocation?: string;
-  deliveryNotes?: string;
+  receiptUrl?: string;
+  orderDate: Timestamp | Date;
+  expectedDeliveryDate?: Timestamp | Date;
+  createdBy: string; // userId
+  createdAt: Timestamp | Date;
+  // For UI enrichment
+  vendorName?: string;
+  destinationName?: string;
+  itemCount?: number;
+  total?: number;
 }
 
 // Pricebook model from /pricebook/{itemId}
@@ -418,7 +429,8 @@ export type InventoryItem = {
   sku: string;
   modelNumber: string;
   partNumber: string;
-  vendor?: string;
+  vendorId?: string; // Changed to vendorId
+  vendorName?: string; // For UI enrichment
   category: string;
   trade: 'Plumbing' | 'HVAC' | 'Electrical' | 'General';
   quantityOnHand: number;

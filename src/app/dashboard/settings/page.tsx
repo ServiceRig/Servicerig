@@ -1,7 +1,7 @@
 
 
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { FilePlus, Palette, Users, Link as LinkIcon, Bot, FileText, LandPlot } from "lucide-react";
+import { FilePlus, Palette, Users, Link as LinkIcon, Bot, FileText, LandPlot, Building } from "lucide-react";
 import Link from "next/link";
 
 const settingsLinks = [
@@ -10,6 +10,12 @@ const settingsLinks = [
         icon: FilePlus,
         title: 'Estimate Templates',
         description: 'Create and manage reusable estimate templates for common jobs.'
+    },
+    {
+        href: '/dashboard/settings/vendors',
+        icon: Building,
+        title: 'Vendor Catalog',
+        description: 'Manage your list of approved parts and materials suppliers.'
     },
     {
         href: '/dashboard/settings/integrations',

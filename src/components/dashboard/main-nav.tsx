@@ -1,4 +1,5 @@
 
+
 'use client';
 import {
   SidebarMenu,
@@ -9,7 +10,7 @@ import {
   SidebarMenuSubButton,
 } from "@/components/ui/sidebar";
 import { UserRole } from "@/lib/types";
-import { LayoutDashboard, Calendar, UserSquare, Users, BarChart3, Book, Warehouse, Calculator, FileText, FileDiff, FileSignature, ClipboardList, DollarSign, Clock, AppWindow, Settings, LifeBuoy, LogOut, FilePlus, Bot, ListChecks, UserCog, History, HardHat, ShoppingBasket, LandPlot, Palette, Link as LinkIcon } from "lucide-react";
+import { LayoutDashboard, Calendar, UserSquare, Users, BarChart3, Book, Warehouse, Calculator, FileText, FileDiff, FileSignature, ClipboardList, DollarSign, Clock, AppWindow, Settings, LifeBuoy, LogOut, FilePlus, Bot, ListChecks, UserCog, History, HardHat, ShoppingBasket, LandPlot, Palette, Link as LinkIcon, Building } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from 'next/navigation';
 
@@ -48,6 +49,7 @@ const settingsItems = [
     { href: "/dashboard/settings", icon: Settings, label: "Settings",
       subItems: [
         { href: "/dashboard/settings/users", icon: Users, label: "User Management" },
+        { href: "/dashboard/settings/vendors", icon: Building, label: "Vendor Catalog" },
         { href: "/dashboard/settings/estimates", icon: FilePlus, label: "Estimate Templates" },
         { href: "/dashboard/settings/automations", icon: Bot, label: "Automations" },
         { href: "/dashboard/settings/billing", icon: FileText, label: "Billing" },
