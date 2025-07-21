@@ -236,16 +236,16 @@ function EstimateDetailsPageContent({ estimateId }: { estimateId: string }) {
                             </TabsList>
                             <div className="print:space-y-4">
                                <TabsContent value="good" className="pt-4 border rounded-md p-4 mt-2 print:border-none print:p-0 print:mt-2">
-                                    <h4 className="font-bold hidden print:block mb-1">Good Option</h4>
-                                    <p className="text-sm text-muted-foreground">{estimate.gbbTier.good}</p>
+                                    <h4 className="font-bold mb-2">Good Option - {formatCurrency(estimate.gbbTier.good.price)}</h4>
+                                    <p className="text-sm text-muted-foreground">{estimate.gbbTier.good.description}</p>
                                 </TabsContent>
                                 <TabsContent value="better" className="pt-4 border rounded-md p-4 mt-2 print:border-none print:p-0 print:mt-2">
-                                     <h4 className="font-bold hidden print:block mb-1">Better Option</h4>
-                                    <p className="text-sm text-muted-foreground">{estimate.gbbTier.better}</p>
+                                     <h4 className="font-bold mb-2">Better Option - {formatCurrency(estimate.gbbTier.better.price)}</h4>
+                                    <p className="text-sm text-muted-foreground">{estimate.gbbTier.better.description}</p>
                                 </TabsContent>
                                 <TabsContent value="best" className="pt-4 border rounded-md p-4 mt-2 print:border-none print:p-0 print:mt-2">
-                                     <h4 className="font-bold hidden print:block mb-1">Best Option</h4>
-                                    <p className="text-sm text-muted-foreground">{estimate.gbbTier.best}</p>
+                                     <h4 className="font-bold mb-2">Best Option - {formatCurrency(estimate.gbbTier.best.price)}</h4>
+                                    <p className="text-sm text-muted-foreground">{estimate.gbbTier.best.description}</p>
                                 </TabsContent>
                             </div>
                         </Tabs>
