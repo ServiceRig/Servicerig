@@ -69,61 +69,54 @@ export function MainNav({ role }: { role: UserRole }) {
   }
 
   const getHref = (baseHref: string) => `${baseHref}?role=${role}`;
+  
+  const isParentActive = (item: { href: string, subItems?: any[] }) => {
+    if (!item.subItems) {
+      return pathname === item.href;
+    }
+    // A parent is active if the current path starts with its href,
+    // but not if it's a sub-item that also happens to start with the same path.
+    // We check if any sub-item is a better match.
+    const isAnySubItemActive = item.subItems.some(sub => pathname.startsWith(sub.href));
+    return pathname.startsWith(item.href) && !isAnySubItemActive;
+  };
+
+  const renderNavMenu = (items: typeof navItems) => {
+    return items.map((item) => (
+      <SidebarMenuItem key={item.href}>
+          <SidebarMenuButton asChild isActive={isParentActive(item)} tooltip={item.label}>
+              <Link href={getHref(item.href)}>
+                  <item.icon/>
+                  <span>{item.label}</span>
+              </Link>
+          </SidebarMenuButton>
+           {item.subItems && (
+              <SidebarMenuSub>
+                  {item.subItems.map(subItem => (
+                      <SidebarMenuItem key={subItem.href}>
+                          <SidebarMenuSubButton asChild isActive={pathname.startsWith(subItem.href)}>
+                               <Link href={getHref(subItem.href)}>
+                                  <subItem.icon />
+                                  <span>{subItem.label}</span>
+                              </Link>
+                          </SidebarMenuSubButton>
+                      </SidebarMenuItem>
+                  ))}
+              </SidebarMenuSub>
+           )}
+      </SidebarMenuItem>
+    ));
+  }
+
 
   return (
     <>
         <SidebarMenu className="flex-1">
-            {navItems.map((item) => (
-                <SidebarMenuItem key={item.href}>
-                    <SidebarMenuButton asChild isActive={pathname.startsWith(item.href) && !item.subItems?.some(si => pathname.startsWith(si.href))} tooltip={item.label}>
-                        <Link href={getHref(item.href)}>
-                            <item.icon/>
-                            <span>{item.label}</span>
-                        </Link>
-                    </SidebarMenuButton>
-                     {item.subItems && (
-                        <SidebarMenuSub>
-                            {item.subItems.map(subItem => (
-                                <SidebarMenuItem key={subItem.href}>
-                                    <SidebarMenuSubButton asChild isActive={pathname.startsWith(subItem.href)}>
-                                         <Link href={getHref(subItem.href)}>
-                                            <subItem.icon />
-                                            <span>{subItem.label}</span>
-                                        </Link>
-                                    </SidebarMenuSubButton>
-                                </SidebarMenuItem>
-                            ))}
-                        </SidebarMenuSub>
-                     )}
-                </SidebarMenuItem>
-            ))}
+            {renderNavMenu(navItems)}
         </SidebarMenu>
         <SidebarSeparator />
         <SidebarMenu>
-             {settingsItems.map((item) => (
-                <SidebarMenuItem key={item.href}>
-                    <SidebarMenuButton asChild isActive={pathname.startsWith(item.href) && (!item.subItems || pathname === item.href)} tooltip={item.label}>
-                        <Link href={getHref(item.href)}>
-                            <item.icon/>
-                            <span>{item.label}</span>
-                        </Link>
-                    </SidebarMenuButton>
-                     {item.subItems && (
-                        <SidebarMenuSub>
-                            {item.subItems.map(subItem => (
-                                <SidebarMenuItem key={subItem.href}>
-                                    <SidebarMenuSubButton asChild isActive={pathname.startsWith(subItem.href)}>
-                                         <Link href={getHref(subItem.href)}>
-                                            <subItem.icon />
-                                            <span>{subItem.label}</span>
-                                        </Link>
-                                    </SidebarMenuSubButton>
-                                </SidebarMenuItem>
-                            ))}
-                        </SidebarMenuSub>
-                     )}
-                </SidebarMenuItem>
-            ))}
+             {renderNavMenu(settingsItems)}
              <SidebarSeparator />
              <SidebarMenuItem>
                 <SidebarMenuButton onClick={handleSignOut} tooltip="Logout">
@@ -135,4 +128,3 @@ export function MainNav({ role }: { role: UserRole }) {
     </>
   );
 }
-
