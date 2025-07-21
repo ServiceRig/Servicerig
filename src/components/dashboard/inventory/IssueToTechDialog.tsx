@@ -16,7 +16,7 @@ import { mockData } from '@/lib/mock-data';
 
 interface IssueToTechDialogProps {
   item: InventoryItem;
-  onUpdate: () => void;
+  onUpdate: (updatedInventory: InventoryItem[]) => void;
 }
 
 function SubmitButton({ maxQuantity }: { maxQuantity: number }) {
@@ -43,8 +43,8 @@ export function IssueToTechDialog({ item, onUpdate }: IssueToTechDialogProps) {
                 description: state.message,
                 variant: state.success ? 'default' : 'destructive',
             });
-            if (state.success) {
-                onUpdate();
+            if (state.success && state.inventory) {
+                onUpdate(state.inventory);
                 setIsOpen(false);
             }
         }
