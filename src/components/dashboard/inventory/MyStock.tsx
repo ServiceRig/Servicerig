@@ -22,7 +22,7 @@ interface MyStockProps {
     searchTerm: string;
     inventoryItems: InventoryItem[];
     jobs: Job[];
-    onDataUpdate: () => void;
+    onDataUpdate: (newItems: InventoryItem[]) => void;
 }
 
 export function MyStock({ searchTerm, inventoryItems, jobs, onDataUpdate }: MyStockProps) {
@@ -71,7 +71,7 @@ export function MyStock({ searchTerm, inventoryItems, jobs, onDataUpdate }: MySt
                     <CardTitle>My Truck Stock</CardTitle>
                     <CardDescription>A list of all parts currently assigned to your truck.</CardDescription>
                 </div>
-                <FieldPurchaseDialog jobs={technicianJobs} onDataUpdate={onDataUpdate} />
+                <FieldPurchaseDialog jobs={technicianJobs} onPurchaseLogged={onDataUpdate} />
             </CardHeader>
             <CardContent>
                 <Table>
@@ -100,12 +100,12 @@ export function MyStock({ searchTerm, inventoryItems, jobs, onDataUpdate }: MySt
                                         item={item} 
                                         technicianId={LOGGED_IN_TECHNICIAN_ID} 
                                         disabled={item.truckQuantity <= 0}
-                                        onPartLogged={onDataUpdate}
+                                        onPartLogged={() => onDataUpdate(inventoryItems)}
                                     />
                                     <Button variant="secondary" size="sm" onClick={() => handleRequestRestock(item)}>
                                         <Truck className="mr-2 h-4 w-4" /> Restock
                                     </Button>
-                                     <EditInventoryItemDialog item={item} onUpdate={onDataUpdate} />
+                                     <EditInventoryItemDialog item={item} onUpdate={() => onDataUpdate(inventoryItems)} />
                                 </TableCell>
                             </TableRow>
                         )) : (
