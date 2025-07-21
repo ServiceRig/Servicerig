@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -12,10 +13,21 @@ import { format } from 'date-fns';
 
 const getLogTypeStyles = (type: EquipmentLogType['type']) => {
   switch (type) {
-    case 'inspection': return 'bg-blue-500 text-white';
-    case 'repair': return 'bg-yellow-500 text-white';
-    case 'usage': return 'bg-green-500 text-white';
-    default: return 'bg-gray-500 text-white';
+    case 'inspection':
+        return 'bg-blue-500 text-white';
+    case 'repair':
+        return 'bg-yellow-500 text-white';
+    case 'usage':
+    case 'good':
+    case 'new':
+        return 'bg-green-500 text-white';
+    case 'fair':
+        return 'bg-orange-500 text-white';
+    case 'poor':
+    case 'decommissioned':
+        return 'bg-red-500 text-white';
+    default:
+        return 'bg-gray-500 text-white';
   }
 };
 

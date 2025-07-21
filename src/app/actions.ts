@@ -1,6 +1,7 @@
 
 
 
+
 'use server';
 
 import { generateTieredEstimates, type GenerateTieredEstimatesInput, type GenerateTieredEstimatesOutput } from "@/ai/flows/generate-tiered-estimates";
@@ -848,7 +849,7 @@ export async function updateEquipmentCondition(prevState: any, formData: FormDat
             id: `log_${Date.now()}`,
             equipmentId,
             technicianId,
-            type: 'note',
+            type: newCondition,
             notes: `Condition changed from '${oldCondition}' to '${newCondition}'. Reason: ${notes}`,
             timestamp: new Date(),
         };

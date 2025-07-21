@@ -332,7 +332,7 @@ export type EquipmentLog = {
     timestamp: Timestamp | Date;
     technicianId: string;
     notes: string;
-    type: 'usage' | 'repair' | 'inspection' | 'note';
+    type: 'usage' | 'repair' | 'inspection' | 'note' | 'new' | 'good' | 'fair' | 'poor' | 'decommissioned';
     // For UI Enrichment
     equipmentName?: string;
     technicianName?: string;
