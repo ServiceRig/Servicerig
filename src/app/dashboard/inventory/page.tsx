@@ -40,28 +40,32 @@ export default function InventoryPage() {
     const { role } = useRole();
     const [searchTerm, setSearchTerm] = useState('');
 
-    // Centralized state management for all inventory data
-    const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>(mockData.inventoryItems as InventoryItem[]);
-    const [equipment, setEquipment] = useState<Equipment[]>(mockData.equipment as Equipment[]);
-    const [equipmentLogs, setEquipmentLogs] = useState<EquipmentLogType[]>(mockData.equipmentLogs as EquipmentLogType[]);
-    const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>(mockData.purchaseOrders as PurchaseOrder[]);
-    const [jobs, setJobs] = useState<Job[]>(mockData.jobs as Job[]);
+    const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
+    const [equipment, setEquipment] = useState<Equipment[]>([]);
+    const [equipmentLogs, setEquipmentLogs] = useState<EquipmentLogType[]>([]);
+    const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([]);
+    const [jobs, setJobs] = useState<Job[]>([]);
+
+    const onDataUpdate = useCallback(() => {
+        // Re-initialize state from the (potentially mutated) mockData source
+        // This ensures any changes made by server actions are reflected
+        setInventoryItems([...mockData.inventoryItems as InventoryItem[]]);
+        setEquipment([...mockData.equipment as Equipment[]]);
+        setEquipmentLogs([...mockData.equipmentLogs as EquipmentLogType[]]);
+        setPurchaseOrders([...mockData.purchaseOrders as PurchaseOrder[]]);
+        setJobs([...mockData.jobs as Job[]]);
+    }, []);
+
+    useEffect(() => {
+        // Initial data load
+        onDataUpdate();
+    }, [onDataUpdate]);
 
     const visibleTabs = useMemo(() => {
         if (!role) return [];
         if (role === UserRole.Admin) return allTabs;
         return allTabs.filter(tab => tab.roles.includes(role));
     }, [role]);
-
-    const handleDataUpdate = useCallback(() => {
-        // This function will re-fetch all data from the "database" (mockData)
-        // This simulates a full data refresh after a mutation
-        setInventoryItems([...mockData.inventoryItems]);
-        setEquipment([...mockData.equipment]);
-        setEquipmentLogs([...mockData.equipmentLogs]);
-        setPurchaseOrders([...mockData.purchaseOrders]);
-        setJobs([...mockData.jobs]);
-    }, []);
 
     if (!role || visibleTabs.length === 0) {
         return (
@@ -111,7 +115,7 @@ export default function InventoryPage() {
                         equipmentLogs,
                         purchaseOrders,
                         jobs,
-                        onDataUpdate: handleDataUpdate,
+                        onDataUpdate,
                     };
 
                     return (
