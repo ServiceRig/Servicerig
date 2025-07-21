@@ -136,9 +136,8 @@ type AddEstimateState = {
     message: string | null;
 }
 
-export async function addEstimate(prevState: AddEstimateState, formData: FormData): Promise<AddEstimateState> {
-    let newEstimate: Estimate;
-    let role = '';
+export async function addEstimate(prevState: AddEstimateState, formData: FormData) {
+    const role = formData.get('role') as string;
     try {
         const validatedFields = addEstimateSchema.safeParse({
             customerId: formData.get('customerId'),
@@ -146,7 +145,6 @@ export async function addEstimate(prevState: AddEstimateState, formData: FormDat
             jobId: formData.get('jobId'),
             lineItems: formData.get('lineItems'),
             gbbTier: formData.get('gbbTier'),
-            role: formData.get('role'),
         });
         
         if (!validatedFields.success) {
@@ -155,7 +153,6 @@ export async function addEstimate(prevState: AddEstimateState, formData: FormDat
         }
 
         let { customerId, title, jobId, lineItems, gbbTier } = validatedFields.data;
-        role = validatedFields.data.role || '';
         
         const customer = await getCustomerById(customerId);
         if (!customer) {
@@ -195,7 +192,7 @@ export async function addEstimate(prevState: AddEstimateState, formData: FormDat
         
         const newEstimateId = `est_${Math.random().toString(36).substring(2, 9)}`;
 
-        newEstimate = {
+        const newEstimate: Estimate = {
             id: newEstimateId,
             estimateNumber: `EST-${Math.floor(Math.random() * 9000) + 1000}`,
             customerId,
@@ -214,15 +211,14 @@ export async function addEstimate(prevState: AddEstimateState, formData: FormDat
         };
 
         await addEstimateToDb(newEstimate);
+        revalidatePath('/dashboard/estimates');
+        const newEstimateData = encodeURIComponent(JSON.stringify(newEstimate));
+        redirect(`/dashboard/estimates/${newEstimate.id}?role=${role}&newEstimateData=${newEstimateData}`);
 
     } catch (error) {
         console.error("Error in addEstimate action:", error);
-        return { success: false, message: 'Failed to create estimate.' };
+        redirect(`/dashboard/estimates/new?role=${role}&error=Failed to create estimate.`);
     }
-    
-    revalidatePath('/dashboard/estimates');
-    const newEstimateData = encodeURIComponent(JSON.stringify(newEstimate));
-    redirect(`/dashboard/estimates/${newEstimate.id}?role=${role}&newEstimateData=${newEstimateData}`);
 }
 
 const addInvoiceSchema = z.object({
@@ -1118,14 +1114,17 @@ export async function addFieldPurchase(prevState: AddFieldPurchaseState, formDat
         mockData.purchaseOrders.unshift(newPO);
 
         parts.forEach(part => {
-            const existingItem = mockData.inventoryItems.find((i: any) => i.name.toLowerCase() === part.name.toLowerCase());
-            if (existingItem) {
-                const truckStock = existingItem.truckLocations?.find(loc => loc.technicianId === loggedInTechId);
-                if (truckStock) {
-                    truckStock.quantity += part.qty;
+            const existingItemIndex = mockData.inventoryItems.findIndex((i: any) => i.name.toLowerCase() === part.name.toLowerCase());
+            if (existingItemIndex > -1) {
+                const truckStockIndex = mockData.inventoryItems[existingItemIndex].truckLocations?.findIndex(loc => loc.technicianId === loggedInTechId) ?? -1;
+
+                if (truckStockIndex > -1) {
+                    mockData.inventoryItems[existingItemIndex].truckLocations![truckStockIndex].quantity += part.qty;
                 } else {
-                    if (!existingItem.truckLocations) existingItem.truckLocations = [];
-                    existingItem.truckLocations.push({ technicianId: loggedInTechId, quantity: part.qty });
+                    if (!mockData.inventoryItems[existingItemIndex].truckLocations) {
+                        mockData.inventoryItems[existingItemIndex].truckLocations = [];
+                    }
+                    mockData.inventoryItems[existingItemIndex].truckLocations!.push({ technicianId: loggedInTechId, quantity: part.qty });
                 }
             } else {
                 const newItem = {
