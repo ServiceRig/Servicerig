@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useRef, useEffect, useActionState } from 'react';
+import { useState, useRef, useEffect, useActionState, useTransition } from 'react';
 import { useFormStatus } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
@@ -46,10 +46,8 @@ export function FieldPurchaseDialog({ jobs, onPurchaseLogged }: FieldPurchaseDia
     const [isOpen, setIsOpen] = useState(false);
     const router = useRouter();
     const { toast } = useToast();
-    const { role } = useRole();
-    
     const [state, formAction] = useActionState(addFieldPurchase, { success: false, message: '' });
-
+    
     const [selectedJobId, setSelectedJobId] = useState('');
     const [parts, setParts] = useState<TempPart[]>([]);
     const [receiptImage, setReceiptImage] = useState<string | null>(null);
@@ -141,7 +139,6 @@ export function FieldPurchaseDialog({ jobs, onPurchaseLogged }: FieldPurchaseDia
                 <form action={formAction}>
                     <input type="hidden" name="parts" value={JSON.stringify(parts)} />
                     <input type="hidden" name="receiptImage" value={receiptImage || ''} />
-                    <input type="hidden" name="role" value={role || ''} />
 
                     <div className="space-y-4 py-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

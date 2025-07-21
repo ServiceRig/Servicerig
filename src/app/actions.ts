@@ -1067,25 +1067,25 @@ const addFieldPurchaseSchema = z.object({
         }
     }),
     receiptImage: z.string().url('A valid receipt image is required.').or(z.literal('')),
-    role: z.string().optional(),
 });
 
 export async function addFieldPurchase(prevState: any, formData: FormData) {
-    const validatedFields = addFieldPurchaseSchema.safeParse({
-        jobId: formData.get('jobId'),
-        vendor: formData.get('vendor'),
-        total: formData.get('total'),
-        parts: formData.get('parts'),
-        receiptImage: formData.get('receiptImage'),
-        role: formData.get('role'),
-    });
-
-    if (!validatedFields.success) {
-        return { success: false, message: validatedFields.error.flatten().fieldErrors.parts?.[0] || 'Invalid field purchase data.' };
-    }
-
     try {
-        const { jobId, vendor, total, parts, receiptImage, role } = validatedFields.data;
+        const validatedFields = addFieldPurchaseSchema.safeParse({
+            jobId: formData.get('jobId'),
+            vendor: formData.get('vendor'),
+            total: formData.get('total'),
+            parts: formData.get('parts'),
+            receiptImage: formData.get('receiptImage'),
+        });
+
+        if (!validatedFields.success) {
+            console.error("Field purchase validation failed:", validatedFields.error.flatten().fieldErrors);
+            const errorMessage = validatedFields.error.flatten().fieldErrors.parts?.[0] || 'Invalid field purchase data.';
+            return { success: false, message: errorMessage };
+        }
+
+        const { jobId, vendor, total, parts, receiptImage } = validatedFields.data;
         const loggedInTechId = 'tech1'; // This should come from auth context
 
         const newPO: PurchaseOrder = {
@@ -1151,15 +1151,15 @@ export async function addFieldPurchase(prevState: any, formData: FormData) {
         return { success: true, message: 'Field purchase logged successfully.' };
 
     } catch (e: any) {
-        console.error(e);
-        return { success: false, message: 'An unexpected error occurred while logging the purchase.' };
+        console.error("Critical error in addFieldPurchase action:", e);
+        return { success: false, message: 'An unexpected server error occurred while logging the purchase.' };
     }
 }
 
 const updateInventoryItemSchema = z.object({
   itemId: z.string(),
   name: z.string().min(1, 'Name is required.'),
-  sku: z.string().min(1, 'SKU is required.'),
+  sku: z.string(),
   partNumber: z.string(),
   modelNumber: z.string(),
 });
