@@ -121,7 +121,7 @@ function NewPurchaseOrderContent() {
                             </TableHeader>
                             <TableBody>
                                 {items.map(item => (
-                                    <TableRow key={item.partId}>
+                                    <TableRow key={`${index}-${item.partId}`}>
                                         <TableCell className="font-medium">{item.itemName}</TableCell>
                                         <TableCell><Input type="number" value={item.qty} onChange={(e) => handleQtyChange(item.partId, parseInt(e.target.value) || 0)}/></TableCell>
                                         <TableCell className="text-right">{formatCurrency(item.unitCost)}</TableCell>
