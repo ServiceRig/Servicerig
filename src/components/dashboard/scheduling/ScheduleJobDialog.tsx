@@ -122,7 +122,7 @@ export function ScheduleJobDialog() {
 
         // In a real app, this would be a server action
         mockData.customers.unshift(newCustomer);
-        setAllCustomers(prev => [newCustomer, ...prev]);
+        setAllCustomers([...mockData.customers]); // Update local state from the single source of truth
 
         toast({ title: 'Customer Created', description: `${newCustomer.primaryContact.name} has been added.`});
         
