@@ -14,10 +14,81 @@ const getDay = (day: number) => {
 // in a Node.js development server environment. This simulates a persistent store.
 export const mockData: { [key: string]: any[] } = {
   vendors: [
-    { id: 'vendor_fhd1', name: 'Ferguson Plumbing Supply', contactName: 'Amanda Rivera', phone: '555-123-4567', email: 'arivera@ferguson.com', website: 'ferguson.com', paymentTerms: 'Net 30', createdAt: new Date(), preferred: true, trades: ['Plumbing', 'HVAC'], deliveryOptions: ['Warehouse'], portalUrl: 'https://www.ferguson.com/' },
-    { id: 'vendor_js1', name: 'Johnstone Supply', contactName: 'Bill Thompson', phone: '555-987-6543', email: 'bthompson@johnstone.com', website: 'johnstonesupply.com', paymentTerms: 'Net 30', createdAt: new Date(), preferred: true, trades: ['HVAC'], deliveryOptions: ['Warehouse', 'Tech Truck'], portalUrl: 'https://www.johnstonesupply.com/' },
-    { id: 'vendor_rem1', name: 'RE Michel Company', contactName: 'Chris Green', phone: '555-555-1111', email: 'cgreen@remichel.com', website: 'remichel.com', paymentTerms: 'Net 30', createdAt: new Date(), preferred: false, trades: ['HVAC'], deliveryOptions: ['Warehouse'], portalUrl: 'https://www.remichel.com/' },
-    { id: 'vendor_hd1', name: 'Home Depot Pro', contactName: 'Pro Desk', phone: '800-466-3337', email: 'pro@homedepot.com', website: 'homedepot.com/pro', paymentTerms: 'Credit Card', createdAt: new Date(), preferred: false, trades: ['Plumbing', 'Electrical', 'General'], deliveryOptions: ['Tech Truck'], portalUrl: 'https://www.homedepot.com/c/pro' },
+    { 
+      id: 'vendor_fhd1', 
+      name: 'Ferguson Plumbing Supply', 
+      contactName: 'Amanda Rivera', 
+      phone: '555-123-4567', 
+      email: 'arivera@ferguson.com', 
+      website: 'ferguson.com', 
+      paymentTerms: 'Net 30', 
+      createdAt: new Date(), 
+      preferred: true, 
+      trades: ['Plumbing', 'HVAC'],
+      categories: ['Fittings', 'Tools', 'Water Heaters'],
+      locations: [
+        { address: '456 Warehouse Rd, Dallas, TX', region: 'DFW' },
+        { address: '123 Main St, Fort Worth, TX', region: 'Fort Worth' }
+      ],
+      portalUrl: 'https://www.ferguson.com/',
+      deliveryOptions: ['Warehouse'],
+      addedBy: 'admin_001'
+    },
+    { 
+      id: 'vendor_js1', 
+      name: 'Johnstone Supply', 
+      contactName: 'Bill Thompson', 
+      phone: '555-987-6543', 
+      email: 'bthompson@johnstone.com', 
+      website: 'johnstonesupply.com', 
+      paymentTerms: 'Net 30', 
+      createdAt: new Date(), 
+      preferred: true, 
+      trades: ['HVAC'],
+      categories: ['Capacitors', 'Control Boards', 'Refrigerant'],
+      locations: [
+        { address: '789 Industrial Blvd, Plano, TX', region: 'DFW' }
+      ],
+      portalUrl: 'https://www.johnstonesupply.com/',
+      deliveryOptions: ['Warehouse', 'Tech Truck'],
+      addedBy: 'admin_001'
+    },
+    { 
+      id: 'vendor_rem1', 
+      name: 'RE Michel Company', 
+      contactName: 'Chris Green', 
+      phone: '555-555-1111', 
+      email: 'cgreen@remichel.com', 
+      website: 'remichel.com', 
+      paymentTerms: 'Net 30', 
+      createdAt: new Date(), 
+      preferred: false, 
+      trades: ['HVAC'],
+      categories: ['Control Boards', 'Furnace Parts'],
+      locations: [],
+      portalUrl: 'https://www.remichel.com/',
+      deliveryOptions: ['Warehouse'],
+      addedBy: 'admin_001'
+    },
+    { 
+      id: 'vendor_hd1', 
+      name: 'Home Depot Pro', 
+      contactName: 'Pro Desk', 
+      phone: '800-466-3337', 
+      email: 'pro@homedepot.com', 
+      website: 'homedepot.com/pro', 
+      paymentTerms: 'Credit Card', 
+      createdAt: new Date(), 
+      preferred: false, 
+      trades: ['Plumbing', 'Electrical', 'General'],
+      categories: ['Outlets', 'Tools', 'General Supplies'],
+      locations: [
+         { address: '111 W Carpenter Fwy, Irving, TX', region: 'DFW' }
+      ],
+      portalUrl: 'https://www.homedepot.com/c/pro',
+      deliveryOptions: ['Tech Truck'],
+      addedBy: 'admin_001'
+    },
   ] as Vendor[],
   users: [
       { id: 'admin1', name: 'Admin User', email: 'admin@servicerig.com', role: UserRole.Admin, active: true },

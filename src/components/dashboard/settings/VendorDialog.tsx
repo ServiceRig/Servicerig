@@ -52,11 +52,11 @@ export function VendorDialog({ isOpen, onOpenChange, vendor, onSave }: VendorDia
         }
     }, [vendor, isOpen]);
 
-    const handleInputChange = (field: keyof Omit<Vendor, 'trades' | 'deliveryOptions' | 'preferred'>, value: string) => {
+    const handleInputChange = (field: keyof Omit<Vendor, 'trades' | 'deliveryOptions' | 'preferred' | 'locations'>, value: string) => {
         setFormData(prev => ({ ...prev, [field]: value }));
     };
 
-    const handleCheckboxGroupChange = (field: 'trades' | 'deliveryOptions', value: string, checked: boolean) => {
+    const handleCheckboxGroupChange = (field: 'trades' | 'deliveryOptions' | 'categories', value: string, checked: boolean) => {
         setFormData(prev => {
             const currentValues = (prev[field] as string[] | undefined) || [];
             if (checked) {

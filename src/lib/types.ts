@@ -27,6 +27,12 @@ export interface User {
   avatarUrl?: string;
 }
 
+export type VendorLocation = {
+    address: string;
+    coordinates?: { lat: number; lng: number };
+    region?: string;
+};
+
 // Vendor model from /vendors/{vendorId}
 export type Vendor = {
   id: string;
@@ -40,9 +46,11 @@ export type Vendor = {
   createdAt: Timestamp | Date;
   preferred: boolean;
   trades: ('Plumbing' | 'HVAC' | 'Electrical' | 'General')[];
-  locations?: string[];
+  categories?: string[];
+  locations: VendorLocation[];
   portalUrl?: string;
   deliveryOptions: ('Warehouse' | 'Tech Truck')[];
+  addedBy?: string;
 }
 
 
