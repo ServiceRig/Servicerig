@@ -175,22 +175,7 @@ const WeeklyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDa
                                     </React.Fragment>
                                 ))}
                                 {jobs.filter(job => isSameDay(job.schedule.start, day))
-                                    .map(job => {
-                                      const techIndex = (technicians ?? []).findIndex(t => t.id === job.technicianId);
-                                      if (techIndex === -1) return null;
-                                      return (
-                                        <div
-                                            key={job.id}
-                                            className="absolute w-full"
-                                            style={{
-                                                left: `${techIndex * 100 / (technicians ?? []).length}%`,
-                                                width: `${100 / (technicians ?? []).length}%`,
-                                            }}
-                                        >
-                                            <DraggableJob job={job} onStatusChange={onJobStatusChange} isCompact />
-                                        </div>
-                                      );
-                                })}
+                                    .map(job => <DraggableJob key={job.id} job={job} onStatusChange={onJobStatusChange} isCompact />)}
                             </div>
                         </div>
                     ))}
