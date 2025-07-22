@@ -29,7 +29,7 @@ interface DraggableJobProps {
 export const DraggableJob: React.FC<DraggableJobProps> = ({ job, children, onStatusChange, isCompact }) => {
     const [{ isDragging }, drag] = useDrag(() => ({
         type: ItemTypes.JOB,
-        item: { id: job.id, status: job.status },
+        item: { ...job }, // <-- **THE FIX**: Pass the entire job object
         collect: (monitor) => ({
             isDragging: !!monitor.isDragging(),
         }),
