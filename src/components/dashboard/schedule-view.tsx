@@ -17,6 +17,7 @@ import { Calendar } from '../ui/calendar';
 import { format, addDays, startOfWeek, isSameDay } from 'date-fns';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 import { useScheduleView } from '@/app/dashboard/scheduling/page';
+import { useRole } from '@/hooks/use-role';
 
 interface ScheduleViewProps {
     jobs: Job[];
@@ -160,11 +161,9 @@ const WeeklyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDa
                              <div className="relative min-h-[calc(16*60px)]">
                                 {hours.map(h => <div key={h} className="h-[60px] border-t border-dashed border-gray-300" />)}
                                 {jobs.filter(job => isSameDay(new Date(job.schedule.start), day))
-                                    .map(job => {
-                                        return (
-                                            <DraggableJob key={job.id} job={job} onStatusChange={onJobStatusChange} isCompact />
-                                        )
-                                    })
+                                    .map(job => (
+                                        <DraggableJob key={job.id} job={job} onStatusChange={onJobStatusChange} isCompact />
+                                    ))
                                 }
                             </div>
                         </div>
@@ -239,12 +238,17 @@ export function ScheduleView({
   activeView,
   onActiveViewChange,
 }: ScheduleViewProps) {
+    const { role } = useRole();
+    
+    const getHref = (path: string) => {
+        return role ? `${path}?role=${role}` : path;
+    };
     
   return (
     <div className="flex flex-col md:flex-row gap-4 h-full">
        <div className="w-full md:w-64 flex flex-col gap-4">
         <Button asChild>
-            <Link href="/dashboard/estimates/new">
+            <Link href={getHref("/dashboard/estimates/new")}>
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Schedule Job
             </Link>
