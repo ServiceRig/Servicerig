@@ -5,17 +5,20 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import type { Vendor } from '@/lib/types';
-import { Pencil, Star, Link as LinkIcon } from 'lucide-react';
+import { Pencil, Star, Link as LinkIcon, Trash2 } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { MoreHorizontal } from "lucide-react";
 
 interface VendorTableProps {
     vendors: Vendor[];
     onEdit: (vendor: Vendor) => void;
+    onDelete: (vendor: Vendor) => void;
 }
 
-export function VendorTable({ vendors, onEdit }: VendorTableProps) {
+export function VendorTable({ vendors, onEdit, onDelete }: VendorTableProps) {
     return (
         <TooltipProvider>
             <Table>
@@ -64,9 +67,21 @@ export function VendorTable({ vendors, onEdit }: VendorTableProps) {
                                 )}
                             </TableCell>
                             <TableCell className="text-right">
-                                <Button variant="ghost" size="icon" onClick={() => onEdit(vendor)}>
-                                    <Pencil className="h-4 w-4" />
-                                </Button>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="icon">
+                                            <MoreHorizontal className="h-4 w-4" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent>
+                                        <DropdownMenuItem onSelect={() => onEdit(vendor)}>
+                                            <Pencil className="mr-2 h-4 w-4" /> Edit
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onSelect={() => onDelete(vendor)} className="text-destructive">
+                                             <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
                             </TableCell>
                         </TableRow>
                     ))}

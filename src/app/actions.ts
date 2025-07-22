@@ -13,6 +13,7 @@ import { addPricebookItem } from "@/lib/firestore/pricebook";
 import { getCustomerById } from "@/lib/firestore/customers";
 import { analyzeInvoice } from "@/ai/flows/analyze-invoice";
 import { addInvoice as addInvoiceToDb, updateInvoice as updateInvoiceInDb } from "@/lib/firestore/invoices";
+import { findVendors } from "@/ai/flows/find-vendors";
 
 const tieredEstimatesSchema = z.object({
   jobDetails: z.string().min(10, "Job details must be at least 10 characters long."),
@@ -1245,5 +1246,96 @@ export async function updateInventoryItem(prevState: any, formData: FormData) {
     } catch (e) {
         console.error(e);
         return { success: false, message: 'An unexpected error occurred.' };
+    }
+}
+
+const findVendorsInputSchema = z.object({
+  query: z.string().describe('The user\'s search query, e.g., "plumbing suppliers in Austin, TX" or "Johnstone Supply".'),
+});
+
+type FindVendorsState = {
+    vendors?: any[];
+    error?: string;
+    message?: string;
+}
+
+export async function findVendorsAction(prevState: FindVendorsState, formData: FormData): Promise<FindVendorsState> {
+    const validatedFields = findVendorsInputSchema.safeParse({
+        query: formData.get('query'),
+    });
+
+    if (!validatedFields.success) {
+        return { error: validatedFields.error.flatten().fieldErrors.query?.[0] || 'Invalid query.' };
+    }
+    
+    try {
+        const result = await findVendors(validatedFields.data);
+        return { vendors: result.vendors };
+    } catch(e: any) {
+        console.error("Error finding vendors:", e);
+        return { error: 'An unexpected error occurred during the AI search.' };
+    }
+}
+
+const addVendorSchema = z.object({
+  vendorData: z.string(),
+});
+
+type AddVendorState = {
+    success: boolean;
+    message: string;
+}
+
+export async function addVendor(prevState: AddVendorState, formData: FormData): Promise<AddVendorState> {
+    const validatedFields = addVendorSchema.safeParse({
+        vendorData: formData.get('vendorData'),
+    });
+
+    if (!validatedFields.success) {
+        return { success: false, message: 'Invalid vendor data provided.' };
+    }
+    
+    try {
+        const vendor: Omit<Vendor, 'id' | 'createdAt'> = JSON.parse(validatedFields.data.vendorData);
+        
+        const newVendor: Vendor = {
+            ...vendor,
+            id: `vendor_${Date.now()}`,
+            createdAt: new Date(),
+        };
+
+        mockData.vendors.unshift(newVendor);
+        
+        return { success: true, message: `Successfully added "${newVendor.name}" to your catalog.` };
+    } catch (e) {
+        console.error("Failed to add vendor:", e);
+        return { success: false, message: 'An error occurred while adding the vendor.' };
+    }
+}
+
+type DeleteVendorState = {
+    success: boolean;
+    message: string;
+}
+
+export async function deleteVendor(prevState: DeleteVendorState, formData: FormData): Promise<DeleteVendorState> {
+    const vendorId = formData.get('vendorId') as string;
+    if (!vendorId) {
+        return { success: false, message: 'Vendor ID is required.' };
+    }
+
+    try {
+        const initialLength = mockData.vendors.length;
+        mockData.vendors = mockData.vendors.filter(v => v.id !== vendorId);
+
+        if (mockData.vendors.length === initialLength) {
+             return { success: false, message: `Vendor with ID ${vendorId} not found.` };
+        }
+
+        revalidatePath('/dashboard/settings/vendors');
+        return { success: true, message: 'Vendor successfully deleted.' };
+    } catch (e: any) {
+        console.error("Error deleting vendor:", e);
+        return { success: false, message: `An unexpected error occurred: ${e.message}` };
     }
 }

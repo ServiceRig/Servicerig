@@ -13,6 +13,7 @@ import { VendorTable } from '@/components/dashboard/settings/VendorTable';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
+import { DeleteVendorDialog } from '@/components/dashboard/settings/DeleteVendorDialog';
 
 const allTrades = ['Plumbing', 'HVAC', 'Electrical', 'General'];
 
@@ -20,6 +21,7 @@ export default function VendorsPage() {
     const [vendors, setVendors] = useState<Vendor[]>(mockData.vendors as Vendor[]);
     const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
     const [searchTerm, setSearchTerm] = useState('');
     const [tradeFilter, setTradeFilter] = useState('all');
@@ -45,6 +47,15 @@ export default function VendorsPage() {
         setSelectedVendor(vendor);
         setIsDialogOpen(true);
     };
+
+    const handleDelete = (vendor: Vendor) => {
+        setSelectedVendor(vendor);
+        setIsDeleteDialogOpen(true);
+    }
+    
+    const onVendorDeleted = (vendorId: string) => {
+        setVendors(prev => prev.filter(v => v.id !== vendorId));
+    }
 
     const filteredVendors = useMemo(() => {
         return vendors.filter(vendor => {
@@ -107,7 +118,7 @@ export default function VendorsPage() {
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <VendorTable vendors={filteredVendors} onEdit={handleEdit} />
+                    <VendorTable vendors={filteredVendors} onEdit={handleEdit} onDelete={handleDelete} />
                 </CardContent>
             </Card>
 
@@ -117,6 +128,14 @@ export default function VendorsPage() {
                 vendor={selectedVendor}
                 onSave={handleSaveVendor}
             />
+            {selectedVendor && (
+                 <DeleteVendorDialog
+                    isOpen={isDeleteDialogOpen}
+                    onOpenChange={setIsDeleteDialogOpen}
+                    vendor={selectedVendor}
+                    onVendorDeleted={onVendorDeleted}
+                />
+            )}
         </div>
     );
 }
