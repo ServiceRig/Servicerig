@@ -167,7 +167,7 @@ const WeeklyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDa
                             <div className="text-center font-semibold py-2 border-b sticky top-0 bg-background z-10">
                                 {format(day, 'EEE')} <span className="text-muted-foreground">{format(day, 'd')}</span>
                             </div>
-                            <div className="grid grid-cols-1 h-full" style={{ gridTemplateColumns: `repeat(${technicians.length}, minmax(0, 1fr))`}}>
+                            <div className="grid h-full" style={{ gridTemplateColumns: `repeat(${technicians.length}, minmax(0, 1fr))`}}>
                                 {technicians.map((tech, techIndex) => (
                                     <div key={tech.id} className={cn("relative h-full", techIndex > 0 && "border-l border-dashed")}>
                                         {/* Apply tech-specific background color */}
@@ -188,7 +188,7 @@ const WeeklyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDa
                                                 )
                                             })
                                         ))}
-
+                                        
                                         {/* Horizontal time lines */}
                                         {hours.map(h => <div key={h} style={{top: `${(h-7)*60}px`}} className="absolute w-full h-[60px] border-t border-dashed border-gray-300" />)}
                                         
@@ -247,19 +247,12 @@ const TechnicianView = ({ jobs, technicians, onJobDrop, onJobStatusChange, curre
                                 <div key={dayIndex} className="relative bg-muted/20 border-l min-h-[96px] p-1 space-y-1">
                                     {/* Drop targets */}
                                     {hours.map(hour => (
-                                        [0, 15, 30, 45].map(minute => {
-                                            const slotTime = new Date(day);
-                                            slotTime.setHours(hour, minute, 0, 0);
-                                            return (
-                                                <div key={`${hour}-${minute}`} className="h-[15px] relative">
-                                                    <TimeSlot 
-                                                        technicianId={tech.id} 
-                                                        startTime={slotTime} 
-                                                        onDrop={onJobDrop} 
-                                                    />
-                                                </div>
-                                            )
-                                        })
+                                        <TimeSlot 
+                                            key={`${hour}-full`} 
+                                            technicianId={tech.id} 
+                                            startTime={new Date(day.setHours(hour,0,0,0))} 
+                                            onDrop={onJobDrop} 
+                                        />
                                     ))}
 
                                     {/* Render jobs */}
