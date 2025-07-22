@@ -181,11 +181,11 @@ const WeeklyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDa
             <ScrollArea className="flex-grow" viewportClassName="h-full">
                 <div className={cn("grid grid-cols-7 h-full", isFitToScreen ? "w-full" : "min-w-[2000px]")}>
                     {weekDays.map((day) => (
-                        <div key={day.toISOString()} className="border-l flex flex-col">
+                        <div key={day.toISOString()} className="border-l flex flex-col relative">
                             <div className="text-center font-semibold py-2 border-b sticky top-0 bg-background z-10">
                                 {format(day, 'EEE')} <span className="text-muted-foreground">{format(day, 'd')}</span>
                             </div>
-                            <div className="grid h-full" style={{ gridTemplateColumns: `repeat(${allTechsAndUnassigned.length}, 1fr)` }}>
+                             <div className="grid h-full" style={{ gridTemplateColumns: `repeat(${allTechsAndUnassigned.length}, 1fr)` }}>
                                 {allTechsAndUnassigned.map((tech, techIndex) => (
                                     <div key={tech.id} className={cn("relative h-full", techIndex > 0 && "border-l border-dashed")}>
                                         <div className="sticky top-[49px] bg-background z-10 text-center text-xs py-1 border-b font-semibold" style={{ color: tech.color }}>
@@ -207,7 +207,6 @@ const WeeklyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDa
                                                     );
                                                 })
                                             ))}
-                                            {hours.slice(1).map(h => <div key={h} className="h-[60px] border-t border-dashed border-gray-300" style={{top: `${(h-startHour)*60}px`, position: 'absolute', width: '100%'}} />)}
                                             {jobs
                                                 .filter(job => {
                                                     const techMatch = tech.id === 'unassigned' ? !job.technicianId || job.technicianId === 'unassigned' : job.technicianId === tech.id;
@@ -218,6 +217,16 @@ const WeeklyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDa
                                                 ))}
                                         </div>
                                     </div>
+                                ))}
+                            </div>
+                             {/* Render dashed lines on top of the tech columns */}
+                            <div className="absolute top-[78px] left-0 right-0 mt-[29px]" style={{ height: `${hours.length * 60}px`}}>
+                                {hours.slice(1).map(h => (
+                                    <div 
+                                        key={h} 
+                                        className="h-[60px] border-t border-dashed border-gray-300 pointer-events-none" 
+                                        style={{ top: `${(h - startHour) * 60}px`, position: 'absolute', width: '100%' }} 
+                                    />
                                 ))}
                             </div>
                         </div>
@@ -325,3 +334,4 @@ export function ScheduleView({
     </div>
   );
 }
+
