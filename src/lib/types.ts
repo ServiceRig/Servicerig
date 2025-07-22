@@ -59,6 +59,7 @@ export type Technician = {
   id: string;
   name: string;
   role: UserRole.Technician;
+  color?: string;
 }
 
 export type TaxZone = {

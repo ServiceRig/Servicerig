@@ -93,10 +93,10 @@ export const mockData: { [key: string]: any[] } = {
   users: [
       { id: 'admin1', name: 'Admin User', email: 'admin@servicerig.com', role: UserRole.Admin, active: true },
       { id: 'dispatch1', name: 'Dispatcher Dan', email: 'dan@servicerig.com', role: UserRole.Dispatcher, active: true },
-      { id: 'tech1', name: 'John Doe', email: 'john@servicerig.com', role: UserRole.Technician, active: true },
-      { id: 'tech2', name: 'Jane Smith', email: 'jane@servicerig.com', role: UserRole.Technician, active: true },
-      { id: 'tech3', name: 'Mike Johnson', email: 'mike@servicerig.com', role: UserRole.Technician, active: true },
-      { id: 'tech4', name: 'Emily Brown', email: 'emily@servicerig.com', role: UserRole.Technician, active: false },
+      { id: 'tech1', name: 'John Doe', email: 'john@servicerig.com', role: UserRole.Technician, active: true, color: 'hsl(210 80% 80%)' },
+      { id: 'tech2', name: 'Jane Smith', email: 'jane@servicerig.com', role: UserRole.Technician, active: true, color: 'hsl(150 80% 80%)' },
+      { id: 'tech3', name: 'Mike Johnson', email: 'mike@servicerig.com', role: UserRole.Technician, active: true, color: 'hsl(40 80% 80%)' },
+      { id: 'tech4', name: 'Emily Brown', email: 'emily@servicerig.com', role: UserRole.Technician, active: false, color: 'hsl(300 80% 80%)' },
   ] as User[],
   partUsageLogs: [
       { id: 'pulog1', partId: 'inv_part_001', quantity: 1, timestamp: new Date(new Date().setDate(new Date().getDate() - 1)), technicianId: 'tech1', jobId: 'job1' },
@@ -286,10 +286,10 @@ export const mockData: { [key: string]: any[] } = {
     { id: 'inv_part_005', name: 'Ignition Control Board', description: 'Universal ignition control board for furnaces.', sku: 'HVAC-ICB-UNIV', partNumber: 'ICM282A', modelNumber: 'ICM282', vendor: 'RE Michel', category: 'Control Boards', trade: 'HVAC', quantityOnHand: 8, reorderThreshold: 2, reorderQtyDefault: 4, warehouseLocation: 'Aisle 3, Bin 8', unitCost: 85.00, ourPrice: 210.00, truckLocations: [{technicianId: 'tech1', quantity: 1}], createdAt: new Date() },
   ] as InventoryItem[],
   technicians: [
-    { id: 'tech1', name: 'John Doe', role: UserRole.Technician },
-    { id: 'tech2', name: 'Jane Smith', role: UserRole.Technician },
-    { id: 'tech3', name: 'Mike Johnson', role: UserRole.Technician },
-    { id: 'tech4', name: 'Emily Brown', role: UserRole.Technician },
+    { id: 'tech1', name: 'John Doe', role: UserRole.Technician, color: 'hsl(210 80% 80%)' },
+    { id: 'tech2', name: 'Jane Smith', role: UserRole.Technician, color: 'hsl(150 80% 80%)' },
+    { id: 'tech3', name: 'Mike Johnson', role: UserRole.Technician, color: 'hsl(40 80% 80%)' },
+    { id: 'tech4', name: 'Emily Brown', role: UserRole.Technician, color: 'hsl(300 80% 80%)' },
   ] as Technician[],
   customers: [
     {
