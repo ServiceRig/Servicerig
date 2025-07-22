@@ -6,8 +6,34 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import { ScheduleView } from "@/components/dashboard/schedule-view";
 import { mockData } from "@/lib/mock-data";
 import { Job, Customer, Technician } from "@/lib/types";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, createContext, useContext } from "react";
 import { addDays } from 'date-fns';
+
+// Create a context for schedule view state
+interface ScheduleViewContextType {
+  isFitToScreen: boolean;
+  setIsFitToScreen: (value: boolean) => void;
+}
+
+const ScheduleViewContext = createContext<ScheduleViewContextType | null>(null);
+
+export const useScheduleView = () => {
+    const context = useContext(ScheduleViewContext);
+    if (!context) {
+        throw new Error('useScheduleView must be used within a ScheduleViewProvider');
+    }
+    return context;
+};
+
+const ScheduleViewProvider = ({ children }: { children: React.ReactNode }) => {
+    const [isFitToScreen, setIsFitToScreen] = useState(false);
+    return (
+        <ScheduleViewContext.Provider value={{ isFitToScreen, setIsFitToScreen }}>
+            {children}
+        </ScheduleViewContext.Provider>
+    );
+};
+
 
 // This is a placeholder for a real Firestore hook
 const useMockFirestore = () => {
@@ -87,7 +113,7 @@ const useMockFirestore = () => {
   };
 };
 
-export default function SchedulingPage({ isFitToScreen }: { isFitToScreen?: boolean }) {
+function SchedulingPageContent() {
   const { jobs, customers, technicians, loading, moveJob, updateJobStatus } = useMockFirestore();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [activeView, setActiveView] = useState('week');
@@ -130,9 +156,17 @@ export default function SchedulingPage({ isFitToScreen }: { isFitToScreen?: bool
               onNext={() => handleDateNavigation('next')}
               activeView={activeView}
               onActiveViewChange={setActiveView}
-              isFitToScreen={!!isFitToScreen}
           />
       </div>
     </DndProvider>
   );
+}
+
+
+export default function SchedulingPage() {
+    return (
+        <ScheduleViewProvider>
+            <SchedulingPageContent />
+        </ScheduleViewProvider>
+    )
 }

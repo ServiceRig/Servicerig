@@ -15,6 +15,7 @@ import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Maximize } from 'l
 import { Calendar } from '../ui/calendar';
 import { format, addDays, startOfWeek, isSameDay } from 'date-fns';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
+import { useScheduleView } from '@/app/dashboard/scheduling/page';
 
 interface ScheduleViewProps {
     jobs: Job[];
@@ -28,7 +29,6 @@ interface ScheduleViewProps {
     onNext: () => void;
     activeView: string;
     onActiveViewChange: (view: string) => void;
-    isFitToScreen: boolean;
 }
 
 const hours = Array.from({ length: 16 }, (_, i) => i + 7); // 7 AM to 10 PM
@@ -141,7 +141,8 @@ const DailyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDat
     );
 };
 
-const WeeklyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDate, isFitToScreen }: { jobs: Job[], technicians: Technician[], onJobDrop: (jobId: string, techId: string, startTime: Date) => void, onJobStatusChange: (jobId: string, status: Job['status']) => void, currentDate: Date, isFitToScreen: boolean }) => {
+const WeeklyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDate }: { jobs: Job[], technicians: Technician[], onJobDrop: (jobId: string, techId: string, startTime: Date) => void, onJobStatusChange: (jobId: string, status: Job['status']) => void, currentDate: Date }) => {
+    const { isFitToScreen } = useScheduleView();
     const weekStartsOn = startOfWeek(currentDate, { weekStartsOn: 1 }); // Monday
     const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStartsOn, i));
 
@@ -162,9 +163,7 @@ const WeeklyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDa
                                         const techIndex = technicians.findIndex(t => t.id === job.technicianId);
                                         const totalTechs = technicians.length;
                                         return (
-                                        <div key={job.id} className="absolute" style={{
-                                            left: `${(techIndex / totalTechs) * 100}%`,
-                                            width: `${100 / totalTechs}%`,
+                                        <div key={job.id} className="absolute inset-x-0" style={{
                                             top: `${(new Date(job.schedule.start).getHours() - 7 + new Date(job.schedule.start).getMinutes() / 60) * 60}px`,
                                             height: `${(new Date(job.schedule.end).getTime() - new Date(job.schedule.start).getTime()) / (1000 * 60)}px`
                                         }}>
@@ -244,7 +243,6 @@ export function ScheduleView({
   onNext,
   activeView,
   onActiveViewChange,
-  isFitToScreen,
 }: ScheduleViewProps) {
     
   return (
@@ -313,7 +311,7 @@ export function ScheduleView({
               <DailyView jobs={jobs} technicians={technicians} onJobDrop={onJobDrop} onJobStatusChange={onJobStatusChange} currentDate={currentDate} />
             </TabsContent>
             <TabsContent value="week" className="h-full mt-0">
-              <WeeklyView jobs={jobs} technicians={technicians} onJobDrop={onJobDrop} onJobStatusChange={onJobStatusChange} currentDate={currentDate} isFitToScreen={isFitToScreen} />
+              <WeeklyView jobs={jobs} technicians={technicians} onJobDrop={onJobDrop} onJobStatusChange={onJobStatusChange} currentDate={currentDate} />
             </TabsContent>
             <TabsContent value="technician" className="h-full mt-0">
               <TechnicianView jobs={jobs} technicians={technicians} onJobDrop={onJobDrop} onJobStatusChange={onJobStatusChange} currentDate={currentDate} />

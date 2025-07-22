@@ -11,12 +11,30 @@ import { Flame, Maximize } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
+import { useScheduleView } from './scheduling/page';
+
+
+function FitToScreenButton() {
+    const { isFitToScreen, setIsFitToScreen } = useScheduleView();
+    return (
+         <TooltipProvider>
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <Button variant="outline" size="icon" onClick={() => setIsFitToScreen(!isFitToScreen)} className={cn("h-7 w-7", isFitToScreen && "bg-accent text-accent-foreground")}>
+                        <Maximize className="h-4 w-4" />
+                        <span className="sr-only">Fit to Screen</span>
+                    </Button>
+                </TooltipTrigger>
+                <TooltipContent><p>Fit to Screen</p></TooltipContent>
+            </Tooltip>
+        </TooltipProvider>
+    )
+}
 
 function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const { role, isLoading } = useRole();
-  const [isFitToScreen, setIsFitToScreen] = useState(false);
 
   React.useEffect(() => {
     if (!isLoading && !role) {
@@ -72,21 +90,11 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
               <div className="flex items-center gap-2">
                 <SidebarTrigger />
                 {isSchedulingPage && (
-                    <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button variant="outline" size="icon" onClick={() => setIsFitToScreen(!isFitToScreen)} className={cn("h-7 w-7", isFitToScreen && "bg-accent text-accent-foreground")}>
-                                    <Maximize className="h-4 w-4" />
-                                    <span className="sr-only">Fit to Screen</span>
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent><p>Fit to Screen</p></TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
+                   <FitToScreenButton />
                 )}
               </div>
            </div>
-          {React.cloneElement(children as React.ReactElement, { isFitToScreen })}
+          {children}
         </div>
       </SidebarInset>
     </SidebarProvider>
