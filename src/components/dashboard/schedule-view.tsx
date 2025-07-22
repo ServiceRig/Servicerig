@@ -153,13 +153,13 @@ const WeeklyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDa
          <div className="flex h-full">
             <TimeAxis />
             <ScrollArea className="flex-grow" viewportClassName="h-full">
-                <div className={cn("flex", isFitToScreen && "w-full")}>
+                <div className={cn("grid grid-cols-7", isFitToScreen ? "w-full" : "min-w-[1400px]")}>
                     {weekDays.map((day, dayIndex) => (
-                        <div key={dayIndex} className={cn("border-l", isFitToScreen ? "flex-1 min-w-0" : "min-w-[200px] lg:min-w-[250px]")}>
+                        <div key={dayIndex} className="border-l">
                             <div className="text-center font-semibold py-2 border-b sticky top-0 bg-background z-10">
                                 {format(day, 'EEE')} <span className="text-muted-foreground">{format(day, 'd')}</span>
                             </div>
-                             <div className="relative min-h-[calc(16*60px)]">
+                             <div className="relative min-h-[calc(16*60px)] bg-muted/20">
                                 {hours.map(h => <div key={h} className="h-[60px] border-t border-dashed border-gray-300" />)}
                                 {jobs.filter(job => isSameDay(new Date(job.schedule.start), day))
                                     .map(job => (
@@ -194,10 +194,10 @@ const TechnicianView = ({ jobs, technicians, onJobDrop, onJobStatusChange, curre
             <ScrollArea className="flex-grow pr-4" viewportClassName="h-full">
                 {technicians.map(tech => (
                     <div key={tech.id} className="flex border-b">
-                        <div className="w-40 px-2 py-2 font-semibold border-r">{tech.name}</div>
+                        <div className="w-40 px-2 py-2 font-semibold border-r flex items-center">{tech.name}</div>
                          <div className="flex-grow grid grid-cols-7">
                             {weekDays.map((day, dayIndex) => (
-                                <div key={dayIndex} className="relative bg-muted/20 border-l min-h-24">
+                                <div key={dayIndex} className="relative bg-muted/20 border-l min-h-[96px]">
                                      {hours.map(hour => (
                                         [0, 15, 30, 45].map(minute => {
                                             const slotTime = new Date(day);
@@ -212,7 +212,7 @@ const TechnicianView = ({ jobs, technicians, onJobDrop, onJobStatusChange, curre
                                             )
                                         })
                                     ))}
-                                    {jobs.filter(j => j.technicianId === tech.id && isSameDay(j.schedule.start, day))
+                                    {jobs.filter(j => j.technicianId === tech.id && isSameDay(new Date(j.schedule.start), day))
                                         .map(job => <DraggableJob key={job.id} job={job} onStatusChange={onJobStatusChange} isCompact/>)
                                     }
                                 </div>
