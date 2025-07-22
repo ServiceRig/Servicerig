@@ -51,11 +51,6 @@ const UnscheduledJobCard = ({ job }: { job: Job }) => (
 );
 
 const UnscheduledJobsPanel = ({ jobs, technicians }: { jobs: Job[], technicians: Technician[] }) => {
-    const { role } = useRole();
-    const getHref = (path: string) => {
-        return role ? `${path}?role=${role}` : path;
-    };
-    
     return (
         <Card className="w-full flex-grow flex flex-col">
             <CardHeader>
