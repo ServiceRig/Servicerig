@@ -14,7 +14,7 @@ const getDay = (day: number) => {
 // in a Node.js development server environment. This simulates a persistent store.
 export const mockData: { [key: string]: any } = {
   scheduleSettings: {
-    startHour: 8,
+    startHour: 5,
     endHour: 19,
   },
   vendors: [
