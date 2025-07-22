@@ -177,29 +177,20 @@ const WeeklyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDa
                             <div className="grid h-full" style={{ gridTemplateColumns: `repeat(${technicians.length}, minmax(0, 1fr))`}}>
                                 {technicians.map((tech, techIndex) => (
                                     <div key={tech.id} className={cn("relative h-full", techIndex > 0 && "border-l border-dashed")}>
-                                        {/* Apply tech-specific background color */}
                                         <div className="absolute inset-0" style={{ backgroundColor: tech.color || 'transparent', opacity: 0.1 }}></div>
-                                        
-                                        {/* Time Slots for dropping */}
-                                        {hours.map(hour => (
-                                            [0, 15, 30, 45].map(minute => {
-                                                const slotTime = new Date(day);
-                                                slotTime.setHours(hour, minute, 0, 0);
-                                                return (
-                                                    <TimeSlot 
-                                                        key={`${hour}-${minute}`} 
-                                                        technicianId={tech.id} 
-                                                        startTime={slotTime} 
-                                                        onDrop={onJobDrop} 
-                                                    />
-                                                )
-                                            })
-                                        ))}
-                                        
-                                        {/* Horizontal time lines */}
+                                        {hours.map(hour => {
+                                            const slotTime = new Date(day);
+                                            slotTime.setHours(hour, 0, 0, 0);
+                                            return (
+                                                <TimeSlot 
+                                                    key={`${hour}-full`} 
+                                                    technicianId={tech.id} 
+                                                    startTime={slotTime} 
+                                                    onDrop={onJobDrop} 
+                                                />
+                                            )
+                                        })}
                                         {hours.map(h => <div key={h} style={{top: `${(h-7)*60}px`}} className="absolute w-full h-[60px] border-t border-dashed border-gray-300" />)}
-                                        
-                                        {/* Render jobs for this tech on this day */}
                                         {jobs.filter(job => job.technicianId === tech.id && isSameDay(new Date(job.schedule.start), day))
                                             .map(job => {
                                                 const durationMinutes = (new Date(job.schedule.end).getTime() - new Date(job.schedule.start).getTime()) / (1000 * 60);
@@ -229,69 +220,6 @@ const WeeklyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDa
     );
 };
 
-const TechnicianView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDate }: { jobs: Job[], technicians: Technician[], onJobDrop: (jobId: string, techId: string, startTime: Date) => void, onJobStatusChange: (jobId: string, status: Job['status']) => void, currentDate: Date }) => {
-    const weekStartsOn = startOfWeek(currentDate, { weekStartsOn: 1 }); // Monday
-    const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStartsOn, i));
-
-    return (
-        <div className="h-full flex flex-col">
-            <div className="flex border-b sticky top-0 bg-background z-10">
-                <div className="w-40 px-2 py-2 font-semibold border-r">Technician</div>
-                 <div className="flex-grow grid grid-cols-7">
-                    {weekDays.map((day, dayIndex) => (
-                        <div key={dayIndex} className="text-center font-semibold py-2 border-l">
-                            {format(day, 'EEE')} <span className="text-muted-foreground">{format(day, 'd')}</span>
-                        </div>
-                    ))}
-                </div>
-            </div>
-            <ScrollArea className="flex-grow pr-4" viewportClassName="h-full">
-                {technicians.map(tech => (
-                    <div key={tech.id} className="flex border-b">
-                        <div className="w-40 px-2 py-2 font-semibold border-r flex items-center">{tech.name}</div>
-                         <div className="flex-grow grid grid-cols-7">
-                            {weekDays.map((day, dayIndex) => (
-                                <div key={dayIndex} className="relative bg-muted/20 border-l min-h-[96px] p-1 space-y-1">
-                                    {/* Drop targets */}
-                                    {hours.map(hour => (
-                                        <TimeSlot 
-                                            key={`${hour}-full`} 
-                                            technicianId={tech.id} 
-                                            startTime={new Date(day.setHours(hour,0,0,0))} 
-                                            onDrop={onJobDrop} 
-                                        />
-                                    ))}
-
-                                    {/* Render jobs */}
-                                    {jobs.filter(j => j.technicianId === tech.id && isSameDay(new Date(j.schedule.start), day))
-                                        .map(job => {
-                                            const durationMinutes = (new Date(job.schedule.end).getTime() - new Date(job.schedule.start).getTime()) / (1000 * 60);
-                                            const topPosition = (new Date(job.schedule.start).getHours() - 7 + new Date(job.schedule.start).getMinutes() / 60) * 60;
-                                            return (
-                                                 <div
-                                                    key={job.id}
-                                                    className="absolute w-full left-0"
-                                                    style={{
-                                                        top: `${topPosition}px`,
-                                                        height: `${durationMinutes}px`,
-                                                    }}
-                                                >
-                                                    <DraggableJob job={job} onStatusChange={onJobStatusChange} isCompact/>
-                                                </div>
-                                            )
-                                        })
-                                    }
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                ))}
-            </ScrollArea>
-        </div>
-    );
-};
-
-
 export function ScheduleView({
   jobs,
   unscheduledJobs,
@@ -306,11 +234,6 @@ export function ScheduleView({
   onActiveViewChange,
 }: ScheduleViewProps) {
     const { role } = useRole();
-    const [isScheduling, setIsScheduling] = React.useState(false);
-    
-    const getHref = (path: string) => {
-        return role ? `${path}?role=${role}` : path;
-    };
     
   return (
     <div className="flex flex-col md:flex-row gap-4 h-full">
@@ -372,7 +295,6 @@ export function ScheduleView({
                 <TabsList>
                   <TabsTrigger value="day">Daily</TabsTrigger>
                   <TabsTrigger value="week">Weekly</TabsTrigger>
-                  <TabsTrigger value="technician">By Technician</TabsTrigger>
                 </TabsList>
             </div>
           </CardHeader>
@@ -382,9 +304,6 @@ export function ScheduleView({
             </TabsContent>
             <TabsContent value="week" className="h-full mt-0">
               <WeeklyView jobs={jobs} technicians={technicians} onJobDrop={onJobDrop} onJobStatusChange={onJobStatusChange} currentDate={currentDate} />
-            </TabsContent>
-            <TabsContent value="technician" className="h-full mt-0">
-              <TechnicianView jobs={jobs} technicians={technicians} onJobDrop={onJobDrop} onJobStatusChange={onJobStatusChange} currentDate={currentDate} />
             </TabsContent>
           </CardContent>
         </Tabs>
