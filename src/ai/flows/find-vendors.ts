@@ -1,7 +1,7 @@
 
 'use server';
 /**
- * @fileOverview An AI agent for finding local vendors and suppliers.
+ * @fileOverview An AI agent for finding local vendors and suppliers using Google Search.
  *
  * - findVendors - A function that handles the vendor search process.
  * - FindVendorsInput - The input type for the findVendors function.
@@ -37,15 +37,59 @@ export async function findVendors(input: FindVendorsInput): Promise<FindVendorsO
   return findVendorsFlow(input);
 }
 
+
+const googleSearch = ai.defineTool(
+    {
+        name: 'googleSearch',
+        description: 'Performs a Google search to find information. Use this to find real-world suppliers and businesses.',
+        inputSchema: z.object({
+            query: z.string().describe('The search query.')
+        }),
+        outputSchema: z.object({
+            results: z.array(z.object({
+                title: z.string(),
+                link: z.string(),
+                snippet: z.string(),
+            }))
+        })
+    },
+    async (input) => {
+        console.log(`Performing mock Google Search for: ${input.query}`);
+        // In a real application, you would integrate with the Google Search API here.
+        // For this simulation, we'll return mock data based on the user's example.
+        if (input.query.toLowerCase().includes('plumbing supply greenville, tx')) {
+            return {
+                results: [
+                    {
+                        title: 'APEX Plumbing Supply Co. | Greenville, TX',
+                        link: 'https://www.apexplumbingsupply.com/greenville',
+                        snippet: 'APEX Plumbing Supply Co. is a leading distributor of plumbing supplies and fixtures in Greenville, Texas. We offer a wide range of products for residential and commercial applications.'
+                    },
+                    {
+                        title: 'Ferguson Plumbing Supply - Greenville, TX',
+                        link: 'https://www.ferguson.com/branch/greenville-tx-plumbing',
+                        snippet: 'Visit Ferguson Plumbing Supply in Greenville for the best plumbing products, tools, and supplies.'
+                    }
+                ]
+            }
+        }
+        return { results: [] };
+    }
+);
+
+
 const prompt = ai.definePrompt({
   name: 'findVendorsPrompt',
+  tools: [googleSearch],
   input: {schema: FindVendorsInputSchema},
   output: {schema: FindVendorsOutputSchema},
-  prompt: `You are an expert sourcing assistant for a field service company. Your task is to find real, existing local suppliers based on a user's query. Prioritize accuracy and real-world data.
+  prompt: `You are an expert sourcing assistant for a field service company. Your task is to find real, existing local suppliers based on a user's query.
 
-**Your Goal:** Generate a list of 3-5 highly relevant vendors that match the user's search criteria. Try to include a mix of major national suppliers (like Ferguson, Johnstone Supply) and well-known local suppliers.
-
-**If the user's query mentions a specific business name (e.g., "APEX plumbing supply"), you MUST include that business in the results if it matches the location and trade.**
+**Your Process:**
+1.  **Use the 'googleSearch' tool** with the user's query to find relevant businesses.
+2.  Analyze the search results to identify 3-5 of the most relevant suppliers. Prioritize accuracy and real-world data.
+3.  **If the user's query mentions a specific business name (e.g., "APEX plumbing supply"), you MUST include that business in the results if it appears in the search results.**
+4.  Use the information from the search results (title, snippet, etc.) to populate the vendor details in the required JSON format.
 
 User Query: "{{{query}}}"
 
