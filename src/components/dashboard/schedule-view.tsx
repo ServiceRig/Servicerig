@@ -91,7 +91,7 @@ const UnscheduledJobsPanel = ({ jobs, onJobStatusChange }: { jobs: Job[], onJobS
 const TimeAxis = ({ startHour, endHour }: { startHour: number, endHour: number }) => {
     const hours = Array.from({ length: endHour - startHour + 1 }, (_, i) => i + startHour);
     return (
-        <div className="relative w-20 text-right pr-2">
+        <div className="relative w-20 text-right pr-2 mt-[78px]">
             {hours.map(hour => (
                 <div key={hour} className="h-[60px] relative">
                     <span className="absolute -top-3 right-2 text-xs text-muted-foreground bg-background px-1">
@@ -148,6 +148,7 @@ const DailyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDat
                                                     technicianId={tech.id} 
                                                     startTime={slotTime} 
                                                     onDrop={onJobDrop} 
+                                                    startHour={startHour}
                                                 />
                                             )
                                         })
@@ -190,7 +191,7 @@ const WeeklyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDa
                                         <div className="sticky top-[49px] bg-background z-10 text-center text-xs py-1 border-b font-semibold" style={{ color: tech.color }}>
                                             {getInitials(tech.name)}
                                         </div>
-                                        <div className="relative" style={{ height: `${hours.length * 60}px`}}>
+                                        <div className="relative mt-[29px]" style={{ height: `${hours.length * 60}px`}}>
                                             {hours.map(hour => (
                                                 [0, 15, 30, 45].map(minute => {
                                                     const slotTime = new Date(day);
@@ -201,6 +202,7 @@ const WeeklyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDa
                                                             technicianId={tech.id === 'unassigned' ? '' : tech.id}
                                                             startTime={slotTime}
                                                             onDrop={onJobDrop}
+                                                            startHour={startHour}
                                                         />
                                                     );
                                                 })
