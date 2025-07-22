@@ -1,6 +1,6 @@
 
 'use client';
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -200,16 +200,20 @@ const WeeklyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDa
                                                 const startMinute = new Date(job.schedule.start).getMinutes();
                                                 const topPosition = ((startHour - 7) * 60) + startMinute;
                                                 return (
-                                                    <div
+                                                    <DraggableJob
                                                         key={job.id}
-                                                        className="absolute w-full"
-                                                        style={{
-                                                            top: `${topPosition}px`,
-                                                            height: `${durationMinutes}px`,
-                                                        }}
+                                                        job={job}
+                                                        onStatusChange={onJobStatusChange}
+                                                        isCompact
                                                     >
-                                                        <DraggableJob job={job} onStatusChange={onJobStatusChange} isCompact />
-                                                    </div>
+                                                         <div
+                                                            className="absolute w-full"
+                                                            style={{
+                                                                top: `${topPosition}px`,
+                                                                height: `${durationMinutes}px`,
+                                                            }}
+                                                        />
+                                                    </DraggableJob>
                                                 )
                                             })
                                         }
@@ -238,6 +242,10 @@ export function ScheduleView({
   onActiveViewChange,
 }: ScheduleViewProps) {
     const { role } = useRole();
+    const getHref = (path: string) => {
+        let roleParam = role ? `role=${role}` : '';
+        return `${path}?${roleParam}`;
+    }
     
   return (
     <div className="flex flex-col md:flex-row gap-4 h-full">

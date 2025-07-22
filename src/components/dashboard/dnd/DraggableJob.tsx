@@ -29,7 +29,7 @@ interface DraggableJobProps {
 export const DraggableJob: React.FC<DraggableJobProps> = ({ job, children, onStatusChange, isCompact }) => {
     const [{ isDragging }, drag] = useDrag(() => ({
         type: ItemTypes.JOB,
-        item: { ...job }, // <-- **THE FIX**: Pass the entire job object
+        item: { ...job },
         collect: (monitor) => ({
             isDragging: !!monitor.isDragging(),
         }),
@@ -47,7 +47,7 @@ export const DraggableJob: React.FC<DraggableJobProps> = ({ job, children, onSta
         }
     }
 
-    // If children are provided, it's an unscheduled job card
+    // This is for the unscheduled job cards in the side panel
     if (children) {
         return (
             <div ref={drag} style={{ opacity: isDragging ? 0.5 : 1 }}>
@@ -56,18 +56,25 @@ export const DraggableJob: React.FC<DraggableJobProps> = ({ job, children, onSta
         );
     }
     
-    const durationMinutes = (job.schedule.end.getTime() - job.schedule.start.getTime()) / (1000 * 60);
-    const topPosition = (job.schedule.start.getHours() - 7 + job.schedule.start.getMinutes() / 60) * 60;
+    const durationMinutes = (new Date(job.schedule.end).getTime() - new Date(job.schedule.start).getTime()) / (1000 * 60);
+    const startHour = new Date(job.schedule.start).getHours();
+    const startMinute = new Date(job.schedule.start).getMinutes();
+    const topPosition = ((startHour - 7) * 60) + startMinute;
 
     if (isCompact) {
          return (
-            <div ref={drag} className={cn("absolute inset-y-1 left-1 right-1 rounded p-1 text-[10px] cursor-grab active:cursor-grabbing overflow-hidden", getStatusColor(job.status))}>
+            <div
+                ref={drag}
+                className={cn("absolute inset-y-1 left-1 right-1 rounded p-1 text-[10px] cursor-grab active:cursor-grabbing overflow-hidden", getStatusColor(job.status))}
+                style={{ opacity: isDragging ? 0.5 : 1 }}
+            >
                 <p className="font-bold truncate">{job.title}</p>
                 <p className="truncate">{job.customerName}</p>
             </div>
          )
     }
 
+    // This is for the job cards on the daily view
     return (
         <div
             ref={drag}
