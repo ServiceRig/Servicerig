@@ -20,7 +20,7 @@ interface LogPartUsageDialogProps {
   item: InventoryItem & { truckQuantity: number };
   technicianId: string;
   disabled?: boolean;
-  onPartLogged: () => void;
+  onPartLogged: (updates: { inventory: InventoryItem[], jobs: Job[] }) => void;
 }
 
 function SubmitButton() {
@@ -36,7 +36,7 @@ function SubmitButton() {
 export function LogPartUsageDialog({ item, technicianId, disabled, onPartLogged }: LogPartUsageDialogProps) {
     const [isOpen, setIsOpen] = useState(false);
     const { toast } = useToast();
-    const [state, formAction] = useActionState(logPartUsage, { success: false, message: '' });
+    const [state, formAction] = useActionState(logPartUsage, { success: false, message: '', inventory: [], jobs: [] });
 
     const technicianJobs = useMemo(() => {
         return mockData.jobs.filter(job => job.technicianId === technicianId && job.status !== 'complete');
@@ -50,8 +50,8 @@ export function LogPartUsageDialog({ item, technicianId, disabled, onPartLogged 
                 description: state.message,
                 variant: state.success ? 'default' : 'destructive',
             });
-            if (state.success) {
-                onPartLogged();
+            if (state.success && state.inventory && state.jobs) {
+                onPartLogged({ inventory: state.inventory, jobs: state.jobs });
                 setIsOpen(false);
             }
         }

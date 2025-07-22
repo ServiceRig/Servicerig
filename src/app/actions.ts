@@ -3,6 +3,7 @@
 
 
 
+
 'use server';
 
 import { generateTieredEstimates, type GenerateTieredEstimatesInput, type GenerateTieredEstimatesOutput } from "@/ai/flows/generate-tiered-estimates";
@@ -762,7 +763,7 @@ export async function updateInvoice(prevState: UpdateInvoiceState, formData: For
 const addEquipmentLogSchema = z.object({
   equipmentId: z.string(),
   technicianId: z.string(),
-  logType: z.enum(['usage', 'repair', 'inspection', 'note']),
+  logType: z.enum(['usage', 'repair', 'inspection', 'note', 'new', 'good', 'fair', 'poor', 'decommissioned']),
   notes: z.string().min(1, 'Notes are required.'),
 });
 
@@ -995,10 +996,17 @@ const logPartUsageSchema = z.object({
   note: z.string().optional(),
 });
 
+type LogPartUsageState = {
+    success: boolean;
+    message: string;
+    inventory?: InventoryItem[];
+    jobs?: Job[];
+}
+
 export async function logPartUsage(
   prevState: any,
   formData: FormData
-) {
+): Promise<LogPartUsageState> {
   const validatedFields = logPartUsageSchema.safeParse({
     partId: formData.get('partId'),
     jobId: formData.get('jobId'),
@@ -1066,6 +1074,8 @@ export async function logPartUsage(
     return { 
         success: true, 
         message: `${quantity} x ${item.name} logged to job ${job.title}.`,
+        inventory: [...mockData.inventoryItems],
+        jobs: [...mockData.jobs]
     };
 
   } catch (e) {
