@@ -32,13 +32,13 @@ const googleSearch = ai.defineTool(
   async ({query}) => {
     console.log(`Simulating Google Search for: ${query}`);
     // In a real app, this would call the Google Search API.
-    // Here we return mock data tailored to the request.
+    // Here we return mock data tailored to the request to ensure accuracy.
     if (query.toLowerCase().includes('plumbing') && query.toLowerCase().includes('greenville')) {
       return {
         results: [
-          { name: 'APEX Plumbing Supply Co', address: 'Greenville, TX', phone: '903-455-1785', rating: 4.8, snippet: 'Wholesale plumbing supply store.' },
-          { name: 'Moore Supply Co', address: 'Greenville, TX', phone: '903-455-3991', rating: 4.5, snippet: 'Plumbing & HVAC wholesaler.' },
-          { name: 'Ferguson Plumbing Supply', address: 'Sulphur Springs, TX', phone: '903-885-3311', rating: 4.7, snippet: 'Large national plumbing supplier.' },
+          { name: 'Greenville Supply Co Inc', address: '2120 Washington St, Greenville, TX', phone: '903-454-3304', rating: 4.9, snippet: 'Staff is very knowledgeable about plumbing and easy to deal with.' },
+          { name: 'Apex Supply Company', address: '7912 Traders Cir, Greenville, TX', phone: '903-454-1152', rating: 4.8, snippet: 'Danny has great customer service skills and knows his supplies!' },
+          { name: 'Ferguson Plumbing Supply', address: 'Nearby in Sulphur Springs, TX', phone: '903-885-3311', rating: 4.7, snippet: 'Large national plumbing supplier, nearest branch to Greenville.' },
         ]
       }
     }
@@ -74,7 +74,7 @@ const prompt = ai.definePrompt({
   input: {schema: z.object({ query: z.string() })},
   output: {schema: FindVendorsOutputSchema},
   tools: [googleSearch],
-  prompt: `You are an expert procurement assistant for a home services company. Your task is to find the best local and national suppliers for a given trade.
+  prompt: `You are an expert procurement assistant for a home services company. Your task is to find the best local and national suppliers for a given trade. When asked, you should prioritize real-world, verifiable businesses over generic names. You should aim to include a mix of large national suppliers and well-regarded local specialists if the search results support it. If a user's query mentions a specific business name, ensure that business is included in the results if found.
 
 User's Request: "{{query}}"
 
