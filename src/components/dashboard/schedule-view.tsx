@@ -28,6 +28,7 @@ interface ScheduleViewProps {
     onNext: () => void;
     activeView: string;
     onActiveViewChange: (view: string) => void;
+    isFitToScreen: boolean;
 }
 
 const hours = Array.from({ length: 16 }, (_, i) => i + 7); // 7 AM to 10 PM
@@ -156,26 +157,21 @@ const WeeklyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDa
                             </div>
                              <div className="relative min-h-[calc(16*60px)]">
                                 {hours.map(h => <div key={h} className="h-[60px] border-t border-dashed border-gray-300" />)}
-                                {(technicians ?? []).map(tech => (
-                                    <React.Fragment key={tech.id}>
-                                        {hours.map(hour => (
-                                            [0, 15, 30, 45].map(minute => {
-                                                const slotTime = new Date(day);
-                                                slotTime.setHours(hour, minute, 0, 0);
-                                                return (
-                                                    <TimeSlot
-                                                        key={`${hour}-${minute}`}
-                                                        technicianId={tech.id}
-                                                        startTime={slotTime}
-                                                        onDrop={(jobId, _, startTime) => onJobDrop(jobId, tech.id, startTime)}
-                                                    />
-                                                );
-                                            })
-                                        ))}
-                                    </React.Fragment>
-                                ))}
-                                {jobs.filter(job => isSameDay(job.schedule.start, day))
-                                    .map(job => <DraggableJob key={job.id} job={job} onStatusChange={onJobStatusChange} isCompact />)}
+                                {jobs.filter(job => isSameDay(new Date(job.schedule.start), day))
+                                    .map(job => {
+                                        const techIndex = technicians.findIndex(t => t.id === job.technicianId);
+                                        const totalTechs = technicians.length;
+                                        return (
+                                        <div key={job.id} className="absolute" style={{
+                                            left: `${(techIndex / totalTechs) * 100}%`,
+                                            width: `${100 / totalTechs}%`,
+                                            top: `${(new Date(job.schedule.start).getHours() - 7 + new Date(job.schedule.start).getMinutes() / 60) * 60}px`,
+                                            height: `${(new Date(job.schedule.end).getTime() - new Date(job.schedule.start).getTime()) / (1000 * 60)}px`
+                                        }}>
+                                             <DraggableJob job={job} onStatusChange={onJobStatusChange} isCompact />
+                                        </div>
+                                    )})
+                                }
                             </div>
                         </div>
                     ))}
@@ -248,8 +244,8 @@ export function ScheduleView({
   onNext,
   activeView,
   onActiveViewChange,
+  isFitToScreen,
 }: ScheduleViewProps) {
-  const [isFitToScreen, setIsFitToScreen] = React.useState(false);
     
   return (
     <div className="flex flex-col md:flex-row gap-4 h-full">
@@ -310,19 +306,6 @@ export function ScheduleView({
                   <TabsTrigger value="week">Weekly</TabsTrigger>
                   <TabsTrigger value="technician">By Technician</TabsTrigger>
                 </TabsList>
-                 {activeView === 'week' && (
-                  <TooltipProvider>
-                    <Tooltip>
-                       <TooltipTrigger asChild>
-                          <Button variant="outline" size="icon" onClick={() => setIsFitToScreen(!isFitToScreen)} className={cn(isFitToScreen && "bg-accent text-accent-foreground")}>
-                              <Maximize className="h-4 w-4" />
-                              <span className="sr-only">Fit to Screen</span>
-                          </Button>
-                      </TooltipTrigger>
-                      <TooltipContent><p>Fit to Screen</p></TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                )}
             </div>
           </CardHeader>
           <CardContent className="flex-grow overflow-auto p-0">

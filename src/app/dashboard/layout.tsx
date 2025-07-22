@@ -1,23 +1,30 @@
 
 'use client'
-import React, { Suspense } from 'react';
+import React, { Suspense, useState } from 'react';
 import Image from 'next/image';
 import { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarFooter, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainNav } from '@/components/dashboard/main-nav';
 import { Logo } from '@/components/logo';
 import { useRole } from '@/hooks/use-role';
-import { useRouter } from 'next/navigation';
-import { Flame } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { Flame, Maximize } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
 
 function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
   const { role, isLoading } = useRole();
+  const [isFitToScreen, setIsFitToScreen] = useState(false);
 
   React.useEffect(() => {
     if (!isLoading && !role) {
       router.push('/');
     }
   }, [isLoading, role, router]);
+
+  const isSchedulingPage = pathname.includes('/dashboard/scheduling');
 
   if (isLoading || !role) {
     return (
@@ -62,9 +69,24 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
       <SidebarInset>
         <div className="p-4 md:p-6">
            <div className="flex items-center justify-between mb-4">
-              <SidebarTrigger />
+              <div className="flex items-center gap-2">
+                <SidebarTrigger />
+                {isSchedulingPage && (
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button variant="outline" size="icon" onClick={() => setIsFitToScreen(!isFitToScreen)} className={cn("h-7 w-7", isFitToScreen && "bg-accent text-accent-foreground")}>
+                                    <Maximize className="h-4 w-4" />
+                                    <span className="sr-only">Fit to Screen</span>
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent><p>Fit to Screen</p></TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                )}
+              </div>
            </div>
-          {children}
+          {React.cloneElement(children as React.ReactElement, { isFitToScreen })}
         </div>
       </SidebarInset>
     </SidebarProvider>
