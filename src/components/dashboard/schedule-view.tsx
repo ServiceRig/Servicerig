@@ -1,6 +1,7 @@
 
-'use client'
+'use client';
 import React from 'react';
+import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -11,7 +12,7 @@ import { DraggableJob } from './dnd/DraggableJob';
 import { TimeSlot } from './dnd/TimeSlot';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Button } from '../ui/button';
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Maximize } from 'lucide-react';
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Maximize, PlusCircle } from 'lucide-react';
 import { Calendar } from '../ui/calendar';
 import { format, addDays, startOfWeek, isSameDay } from 'date-fns';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
@@ -48,7 +49,7 @@ const UnscheduledJobCard = ({ job }: { job: Job }) => (
 );
 
 const UnscheduledJobsPanel = ({ jobs }: { jobs: Job[] }) => (
-    <Card className="w-full md:w-64 h-full flex flex-col">
+    <Card className="w-full flex-grow flex flex-col">
         <CardHeader>
             <CardTitle>Unscheduled Jobs</CardTitle>
             <CardDescription>{jobs.length} jobs waiting</CardDescription>
@@ -160,16 +161,10 @@ const WeeklyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDa
                                 {hours.map(h => <div key={h} className="h-[60px] border-t border-dashed border-gray-300" />)}
                                 {jobs.filter(job => isSameDay(new Date(job.schedule.start), day))
                                     .map(job => {
-                                        const techIndex = technicians.findIndex(t => t.id === job.technicianId);
-                                        const totalTechs = technicians.length;
                                         return (
-                                        <div key={job.id} className="absolute inset-x-0" style={{
-                                            top: `${(new Date(job.schedule.start).getHours() - 7 + new Date(job.schedule.start).getMinutes() / 60) * 60}px`,
-                                            height: `${(new Date(job.schedule.end).getTime() - new Date(job.schedule.start).getTime()) / (1000 * 60)}px`
-                                        }}>
-                                             <DraggableJob job={job} onStatusChange={onJobStatusChange} isCompact />
-                                        </div>
-                                    )})
+                                            <DraggableJob key={job.id} job={job} onStatusChange={onJobStatusChange} isCompact />
+                                        )
+                                    })
                                 }
                             </div>
                         </div>
@@ -247,7 +242,15 @@ export function ScheduleView({
     
   return (
     <div className="flex flex-col md:flex-row gap-4 h-full">
-      <UnscheduledJobsPanel jobs={unscheduledJobs} />
+       <div className="w-full md:w-64 flex flex-col gap-4">
+        <Button asChild>
+            <Link href="/dashboard/estimates/new">
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Schedule Job
+            </Link>
+        </Button>
+        <UnscheduledJobsPanel jobs={unscheduledJobs} />
+      </div>
       <Card className="flex-grow h-full flex flex-col">
         <Tabs value={activeView} onValueChange={onActiveViewChange} className="h-full flex flex-col">
           <CardHeader className="flex-row items-center justify-between border-b">
