@@ -100,10 +100,15 @@ export type Job = {
   id: string;
   customerId: string;
   technicianId: string;
+  additionalTechnicians?: string[];
+  equipmentId?: string;
   status: 'unscheduled' | 'scheduled' | 'in_progress' | 'complete';
   schedule: {
     start: Date;
     end: Date;
+    arrivalWindow?: string;
+    multiDay: boolean;
+    unscheduled: boolean;
   };
   duration: number;
   title: string;
@@ -111,6 +116,7 @@ export type Job = {
   createdAt: Timestamp | Date;
   updatedAt: Timestamp | Date;
   invoiceId?: string;
+  estimateId?: string;
   agreementId?: string;
   tags?: string[];
   usedParts?: UsedPart[];
@@ -121,6 +127,8 @@ export type Job = {
   technicianName?: string;
   details: {
     serviceType: string;
+    trade: 'Plumbing' | 'HVAC' | 'Electrical' | 'Other';
+    category: string;
   };
 };
 

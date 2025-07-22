@@ -18,6 +18,7 @@ import { format, addDays, startOfWeek, isSameDay } from 'date-fns';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 import { useScheduleView } from '@/app/dashboard/scheduling/page';
 import { useRole } from '@/hooks/use-role';
+import { ScheduleJobDialog } from './scheduling/ScheduleJobDialog';
 
 interface ScheduleViewProps {
     jobs: Job[];
@@ -49,7 +50,7 @@ const UnscheduledJobCard = ({ job }: { job: Job }) => (
     </DraggableJob>
 );
 
-const UnscheduledJobsPanel = ({ jobs }: { jobs: Job[] }) => (
+const UnscheduledJobsPanel = ({ jobs, technicians }: { jobs: Job[], technicians: Technician[] }) => (
     <Card className="w-full flex-grow flex flex-col">
         <CardHeader>
             <CardTitle>Unscheduled Jobs</CardTitle>
@@ -239,6 +240,7 @@ export function ScheduleView({
   onActiveViewChange,
 }: ScheduleViewProps) {
     const { role } = useRole();
+    const [isScheduling, setIsScheduling] = React.useState(false);
     
     const getHref = (path: string) => {
         return role ? `${path}?role=${role}` : path;
@@ -247,13 +249,8 @@ export function ScheduleView({
   return (
     <div className="flex flex-col md:flex-row gap-4 h-full">
        <div className="w-full md:w-64 flex flex-col gap-4">
-        <Button asChild>
-            <Link href={getHref("/dashboard/estimates/new")}>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Schedule Job
-            </Link>
-        </Button>
-        <UnscheduledJobsPanel jobs={unscheduledJobs} />
+        <ScheduleJobDialog />
+        <UnscheduledJobsPanel jobs={unscheduledJobs} technicians={technicians} />
       </div>
       <Card className="flex-grow h-full flex flex-col">
         <Tabs value={activeView} onValueChange={onActiveViewChange} className="h-full flex flex-col">
