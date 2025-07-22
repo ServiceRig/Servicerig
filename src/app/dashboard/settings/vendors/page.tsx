@@ -12,9 +12,7 @@ import { VendorDialog } from '@/components/dashboard/settings/VendorDialog';
 import { VendorTable } from '@/components/dashboard/settings/VendorTable';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
 import { DeleteVendorDialog } from '@/components/dashboard/settings/DeleteVendorDialog';
-import { AiVendorFinder } from '@/components/dashboard/settings/AiVendorFinder';
 
 const allTrades = ['Plumbing', 'HVAC', 'Electrical', 'General'];
 
@@ -81,10 +79,6 @@ export default function VendorsPage() {
 
     return (
         <div className="space-y-6">
-            <AiVendorFinder onVendorAdded={handleSaveVendor} />
-
-            <Separator />
-
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-bold">Vendor Catalog</h1>
