@@ -48,7 +48,7 @@ export const DraggableJob: React.FC<DraggableJobProps> = ({ job, children, onSta
     }
 
     // This is for the unscheduled job cards in the side panel
-    if (children) {
+    if (children && !isCompact) {
         return (
             <div ref={drag} style={{ opacity: isDragging ? 0.5 : 1 }}>
                 {children}
@@ -62,16 +62,28 @@ export const DraggableJob: React.FC<DraggableJobProps> = ({ job, children, onSta
     const topPosition = ((startHour - 7) * 60) + startMinute;
 
     if (isCompact) {
-         return (
+        return (
             <div
                 ref={drag}
-                className={cn("absolute inset-y-1 left-1 right-1 rounded p-1 text-[10px] cursor-grab active:cursor-grabbing overflow-hidden", getStatusColor(job.status))}
-                style={{ opacity: isDragging ? 0.5 : 1 }}
+                className="absolute inset-x-1"
+                style={{
+                    top: `${topPosition}px`,
+                    height: `${durationMinutes}px`,
+                    opacity: isDragging ? 0.5 : 1,
+                }}
             >
-                <p className="font-bold truncate">{job.title}</p>
-                <p className="truncate">{job.customerName}</p>
+                <div
+                    className={cn(
+                        "h-full w-full rounded p-1 text-[10px] cursor-grab active:cursor-grabbing overflow-hidden",
+                        "text-white"
+                    )}
+                    style={{ backgroundColor: job.color, textShadow: '0 1px 2px rgba(0,0,0,0.4)' }}
+                >
+                    <p className="font-bold truncate">{job.title}</p>
+                    <p className="truncate">{job.customerName}</p>
+                </div>
             </div>
-         )
+        );
     }
 
     // This is for the job cards on the daily view

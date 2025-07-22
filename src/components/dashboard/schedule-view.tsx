@@ -1,3 +1,4 @@
+
 'use client';
 import React, { useState, useCallback } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
@@ -128,7 +129,7 @@ const DailyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDat
                         {visibleTechnicians.map(tech => (
                             <div key={tech.id} className="min-w-[200px]">
                                 <h3 className="font-semibold text-center mb-2">{tech.name}</h3>
-                                <div className="relative bg-muted/40 rounded-lg min-h-[calc(16*60px)]">
+                                <div className="relative bg-muted/40 rounded-lg min-h-[calc(13*60px)]">
                                     {hours.map(hour => (
                                         [0, 15, 30, 45].map(minute => {
                                             const slotTime = new Date(currentDate);
@@ -145,7 +146,7 @@ const DailyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDat
                                     ))}
                                     {hours.map(h => <div key={h} className="h-[60px] border-t border-dashed border-gray-300" />)}
                                     {filteredJobs.filter(j => j.technicianId === tech.id).map(job => (
-                                        <DraggableJob key={job.id} job={job} onStatusChange={onJobStatusChange} />
+                                         <DraggableJob key={job.id} job={job} onStatusChange={onJobStatusChange} />
                                     ))}
                                 </div>
                             </div>
@@ -156,6 +157,11 @@ const DailyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDat
         </div>
     );
 };
+
+const getInitials = (name: string) => {
+    if (!name) return '';
+    return name.split(' ').map(n => n[0]).join('');
+}
 
 const WeeklyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDate }: { jobs: Job[], technicians: Technician[], onJobDrop: (jobId: string, techId: string, startTime: Date) => void, onJobStatusChange: (jobId: string, status: Job['status']) => void, currentDate: Date }) => {
     const { isFitToScreen } = useScheduleView();
@@ -177,9 +183,9 @@ const WeeklyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDa
                                 {allTechsAndUnassigned.map((tech, techIndex) => (
                                     <div key={tech.id} className={cn("relative h-full", techIndex > 0 && "border-l border-dashed")}>
                                         <div className="sticky top-[49px] bg-background z-10 text-center text-xs py-1 border-b font-semibold" style={{ color: tech.color }}>
-                                            {tech.name}
+                                            {getInitials(tech.name)}
                                         </div>
-                                        <div className="relative h-[calc(12*60px)]">
+                                        <div className="relative h-[calc(13*60px)]">
                                             {hours.map(hour => (
                                                 [0, 15, 30, 45].map(minute => {
                                                     const slotTime = new Date(day);
@@ -201,7 +207,9 @@ const WeeklyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDa
                                                     return techMatch && isSameDay(new Date(job.schedule.start), day);
                                                 })
                                                 .map(job => (
-                                                    <DraggableJob key={job.id} job={job} onStatusChange={onJobStatusChange} isCompact />
+                                                     <DraggableJob key={job.id} job={job} onStatusChange={onJobStatusChange} isCompact>
+                                                        <div className="h-full w-full" style={{ backgroundColor: job.color }}></div>
+                                                    </DraggableJob>
                                                 ))}
                                         </div>
                                     </div>
