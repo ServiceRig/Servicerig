@@ -87,11 +87,10 @@ const useMockFirestore = () => {
   };
 };
 
-export default function SchedulingPage() {
+export default function SchedulingPage({ isFitToScreen }: { isFitToScreen?: boolean }) {
   const { jobs, customers, technicians, loading, moveJob, updateJobStatus } = useMockFirestore();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [activeView, setActiveView] = useState('week');
-  const [isFitToScreen, setIsFitToScreen] = useState(false);
 
   const handleDateNavigation = (direction: 'prev' | 'next') => {
     const increment = activeView === 'day' ? 1 : 7;
@@ -131,7 +130,7 @@ export default function SchedulingPage() {
               onNext={() => handleDateNavigation('next')}
               activeView={activeView}
               onActiveViewChange={setActiveView}
-              isFitToScreen={isFitToScreen}
+              isFitToScreen={!!isFitToScreen}
           />
       </div>
     </DndProvider>
