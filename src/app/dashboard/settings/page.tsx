@@ -1,7 +1,7 @@
 
 
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { FilePlus, Palette, Users, Link as LinkIcon, Bot, FileText, LandPlot, Building } from "lucide-react";
+import { FilePlus, Palette, Users, Link as LinkIcon, Bot, FileText, LandPlot, Building, Clock } from "lucide-react";
 import Link from "next/link";
 
 const settingsLinks = [
@@ -40,6 +40,12 @@ const settingsLinks = [
         icon: LandPlot,
         title: 'Tax Settings',
         description: 'Manage tax zones, rates, and rules for different regions.'
+    },
+     {
+        href: '/dashboard/settings/scheduling',
+        icon: Clock,
+        title: 'Scheduling Settings',
+        description: 'Set default work hours and other calendar preferences.'
     },
     {
         href: '/dashboard/settings/users',

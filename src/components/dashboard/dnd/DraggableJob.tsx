@@ -24,9 +24,10 @@ interface DraggableJobProps {
     children?: React.ReactNode;
     onStatusChange?: (jobId: string, status: Job['status']) => void;
     isCompact?: boolean;
+    startHour?: number;
 }
 
-export const DraggableJob: React.FC<DraggableJobProps> = ({ job, children, onStatusChange, isCompact }) => {
+export const DraggableJob: React.FC<DraggableJobProps> = ({ job, children, onStatusChange, isCompact, startHour = 7 }) => {
     const [{ isDragging }, drag] = useDrag(() => ({
         type: ItemTypes.JOB,
         item: { ...job },
@@ -57,9 +58,9 @@ export const DraggableJob: React.FC<DraggableJobProps> = ({ job, children, onSta
     }
     
     const durationMinutes = (new Date(job.schedule.end).getTime() - new Date(job.schedule.start).getTime()) / (1000 * 60);
-    const startHour = new Date(job.schedule.start).getHours();
-    const startMinute = new Date(job.schedule.start).getMinutes();
-    const topPosition = ((startHour - 7) * 60) + startMinute;
+    const jobStartHour = new Date(job.schedule.start).getHours();
+    const jobStartMinute = new Date(job.schedule.start).getMinutes();
+    const topPosition = ((jobStartHour - startHour) * 60) + jobStartMinute;
 
     if (isCompact) {
         return (
@@ -104,11 +105,12 @@ export const DraggableJob: React.FC<DraggableJobProps> = ({ job, children, onSta
                             "h-full w-full p-2 rounded-md border text-xs cursor-pointer overflow-hidden",
                             getStatusColor(job.status)
                         )}
+                         style={{ backgroundColor: job.color, textShadow: '0 1px 2px rgba(0,0,0,0.4)' }}
                     >
-                        <p className="font-bold truncate">{job.title}</p>
-                        <p className="truncate">{job.customerName}</p>
-                        <p className="truncate text-gray-600">{job.technicianName}</p>
-                        <MoreHorizontal className="absolute top-1 right-1 h-4 w-4" />
+                        <p className="font-bold truncate text-white">{job.title}</p>
+                        <p className="truncate text-white">{job.customerName}</p>
+                        <p className="truncate text-white/80">{job.technicianName}</p>
+                        <MoreHorizontal className="absolute top-1 right-1 h-4 w-4 text-white" />
                     </div>
                 </PopoverTrigger>
                 <PopoverContent className="w-48 p-0">

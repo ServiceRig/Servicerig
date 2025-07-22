@@ -20,6 +20,7 @@ import { useRole } from '@/hooks/use-role';
 import { ScheduleJobDialog } from './scheduling/ScheduleJobDialog';
 import { useDrop } from 'react-dnd';
 import { ItemTypes } from '@/lib/constants';
+import { mockData } from '@/lib/mock-data';
 
 interface ScheduleViewProps {
     jobs: Job[];
@@ -35,7 +36,10 @@ interface ScheduleViewProps {
     onActiveViewChange: (view: string) => void;
 }
 
-const hours = Array.from({ length: 13 }, (_, i) => i + 7); // 7 AM to 7 PM
+const getInitials = (name: string) => {
+    if (!name) return '';
+    return name.split(' ').map(n => n[0]).join('');
+}
 
 const UnscheduledJobCard = ({ job }: { job: Job }) => (
     <DraggableJob job={job}>
@@ -84,20 +88,23 @@ const UnscheduledJobsPanel = ({ jobs, onJobStatusChange }: { jobs: Job[], onJobS
 };
 
 
-const TimeAxis = () => (
-    <div className="relative w-16 text-right pr-2">
-        {hours.map(hour => (
-            <div key={hour} className="h-[60px] relative">
-                <span className="absolute -top-2.5 right-2 text-xs text-muted-foreground bg-background px-1">
-                    {hour % 12 === 0 ? 12 : hour % 12}:00 {hour < 12 || hour === 24 ? 'AM' : 'PM'}
-                </span>
-            </div>
-        ))}
-    </div>
-);
+const TimeAxis = ({ startHour, endHour }: { startHour: number, endHour: number }) => {
+    const hours = Array.from({ length: endHour - startHour + 1 }, (_, i) => i + startHour);
+    return (
+        <div className="relative w-20 text-right pr-2">
+            {hours.map(hour => (
+                <div key={hour} className="h-[60px] relative">
+                    <span className="absolute -top-3 right-2 text-xs text-muted-foreground bg-background px-1">
+                        {hour % 12 === 0 ? 12 : hour % 12}:00 {hour < 12 || hour === 24 ? 'AM' : 'PM'}
+                    </span>
+                </div>
+            ))}
+        </div>
+    );
+};
 
 
-const DailyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDate }: { jobs: Job[], technicians: Technician[], onJobDrop: (jobId: string, techId: string, startTime: Date) => void, onJobStatusChange: (jobId: string, status: Job['status']) => void, currentDate: Date }) => {
+const DailyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDate, startHour, endHour }: { jobs: Job[], technicians: Technician[], onJobDrop: (jobId: string, techId: string, startTime: Date) => void, onJobStatusChange: (jobId: string, status: Job['status']) => void, currentDate: Date, startHour: number, endHour: number }) => {
     const [selectedTech, setSelectedTech] = React.useState<string | 'all'>('all');
     
     const filteredJobs = jobs.filter(j => 
@@ -106,6 +113,7 @@ const DailyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDat
     );
     
     const visibleTechnicians = selectedTech === 'all' ? technicians : technicians.filter(t => t.id === selectedTech);
+    const hours = Array.from({ length: endHour - startHour + 1 }, (_, i) => i + startHour);
 
     return (
         <div className="flex flex-col h-full">
@@ -124,12 +132,12 @@ const DailyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDat
             </div>
             <ScrollArea className="flex-grow">
                  <div className="flex">
-                    <TimeAxis />
+                    <TimeAxis startHour={startHour} endHour={endHour} />
                     <div className="flex-grow grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                         {visibleTechnicians.map(tech => (
                             <div key={tech.id} className="min-w-[200px]">
                                 <h3 className="font-semibold text-center mb-2">{tech.name}</h3>
-                                <div className="relative bg-muted/40 rounded-lg min-h-[calc(13*60px)]">
+                                <div className="relative bg-muted/40 rounded-lg" style={{ minHeight: `${hours.length * 60}px`}}>
                                     {hours.map(hour => (
                                         [0, 15, 30, 45].map(minute => {
                                             const slotTime = new Date(currentDate);
@@ -144,9 +152,9 @@ const DailyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDat
                                             )
                                         })
                                     ))}
-                                    {hours.map(h => <div key={h} className="h-[60px] border-t border-dashed border-gray-300" />)}
+                                    {hours.slice(1).map(h => <div key={h} className="h-[60px] border-t border-dashed border-gray-300" style={{top: `${(h-startHour)*60}px`, position: 'absolute', width: '100%'}} />)}
                                     {filteredJobs.filter(j => j.technicianId === tech.id).map(job => (
-                                         <DraggableJob key={job.id} job={job} onStatusChange={onJobStatusChange} />
+                                         <DraggableJob key={job.id} job={job} onStatusChange={onJobStatusChange} startHour={startHour}/>
                                     ))}
                                 </div>
                             </div>
@@ -158,20 +166,17 @@ const DailyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDat
     );
 };
 
-const getInitials = (name: string) => {
-    if (!name) return '';
-    return name.split(' ').map(n => n[0]).join('');
-}
 
-const WeeklyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDate }: { jobs: Job[], technicians: Technician[], onJobDrop: (jobId: string, techId: string, startTime: Date) => void, onJobStatusChange: (jobId: string, status: Job['status']) => void, currentDate: Date }) => {
+const WeeklyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDate, startHour, endHour }: { jobs: Job[], technicians: Technician[], onJobDrop: (jobId: string, techId: string, startTime: Date) => void, onJobStatusChange: (jobId: string, status: Job['status']) => void, currentDate: Date, startHour: number, endHour: number }) => {
     const { isFitToScreen } = useScheduleView();
     const weekStartsOn = startOfWeek(currentDate, { weekStartsOn: 1 }); // Monday
     const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStartsOn, i));
     const allTechsAndUnassigned = [...technicians, { id: 'unassigned', name: 'Unassigned', color: '#888888' }];
+    const hours = Array.from({ length: endHour - startHour + 1 }, (_, i) => i + startHour);
 
     return (
         <div className="flex h-full">
-            <TimeAxis />
+            <TimeAxis startHour={startHour} endHour={endHour}/>
             <ScrollArea className="flex-grow" viewportClassName="h-full">
                 <div className={cn("grid grid-cols-7 h-full", isFitToScreen ? "w-full" : "min-w-[2000px]")}>
                     {weekDays.map((day) => (
@@ -185,7 +190,7 @@ const WeeklyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDa
                                         <div className="sticky top-[49px] bg-background z-10 text-center text-xs py-1 border-b font-semibold" style={{ color: tech.color }}>
                                             {getInitials(tech.name)}
                                         </div>
-                                        <div className="relative h-[calc(13*60px)]">
+                                        <div className="relative" style={{ height: `${hours.length * 60}px`}}>
                                             {hours.map(hour => (
                                                 [0, 15, 30, 45].map(minute => {
                                                     const slotTime = new Date(day);
@@ -200,14 +205,14 @@ const WeeklyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDa
                                                     );
                                                 })
                                             ))}
-                                            {hours.map(h => <div key={h} className="h-[60px] border-t border-dashed border-gray-300" />)}
+                                            {hours.slice(1).map(h => <div key={h} className="h-[60px] border-t border-dashed border-gray-300" style={{top: `${(h-startHour)*60}px`, position: 'absolute', width: '100%'}} />)}
                                             {jobs
                                                 .filter(job => {
                                                     const techMatch = tech.id === 'unassigned' ? !job.technicianId || job.technicianId === 'unassigned' : job.technicianId === tech.id;
                                                     return techMatch && isSameDay(new Date(job.schedule.start), day);
                                                 })
                                                 .map(job => (
-                                                     <DraggableJob key={job.id} job={job} onStatusChange={onJobStatusChange} isCompact />
+                                                     <DraggableJob key={job.id} job={job} onStatusChange={onJobStatusChange} isCompact startHour={startHour} />
                                                 ))}
                                         </div>
                                     </div>
@@ -236,6 +241,7 @@ export function ScheduleView({
   onActiveViewChange,
 }: ScheduleViewProps) {
     const { role } = useRole();
+    const { startHour, endHour } = mockData.scheduleSettings;
     const getHref = (path: string) => {
         let roleParam = role ? `role=${role}` : '';
         return `${path}?${roleParam}`;
@@ -306,10 +312,10 @@ export function ScheduleView({
           </CardHeader>
           <CardContent className="flex-grow overflow-auto p-0">
             <TabsContent value="day" className="h-full mt-0 p-4">
-              <DailyView jobs={jobs} technicians={technicians} onJobDrop={onJobDrop} onJobStatusChange={onJobStatusChange} currentDate={currentDate} />
+              <DailyView jobs={jobs} technicians={technicians} onJobDrop={onJobDrop} onJobStatusChange={onJobStatusChange} currentDate={currentDate} startHour={startHour} endHour={endHour}/>
             </TabsContent>
             <TabsContent value="week" className="h-full mt-0">
-              <WeeklyView jobs={jobs} technicians={technicians} onJobDrop={onJobDrop} onJobStatusChange={onJobStatusChange} currentDate={currentDate} />
+              <WeeklyView jobs={jobs} technicians={technicians} onJobDrop={onJobDrop} onJobStatusChange={onJobStatusChange} currentDate={currentDate} startHour={startHour} endHour={endHour}/>
             </TabsContent>
           </CardContent>
         </Tabs>

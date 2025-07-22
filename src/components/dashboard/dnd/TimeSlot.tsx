@@ -9,9 +9,10 @@ interface TimeSlotProps {
   technicianId: string;
   startTime: Date;
   onDrop: (jobId: string, technicianId: string, startTime: Date) => void;
+  startHour?: number;
 }
 
-export const TimeSlot: React.FC<TimeSlotProps> = ({ technicianId, startTime, onDrop }) => {
+export const TimeSlot: React.FC<TimeSlotProps> = ({ technicianId, startTime, onDrop, startHour = 7 }) => {
   const [{ isOver, canDrop }, drop] = useDrop(() => ({
     accept: ItemTypes.JOB,
     drop: (item: { id: string }) => onDrop(item.id, technicianId, startTime),
@@ -26,7 +27,7 @@ export const TimeSlot: React.FC<TimeSlotProps> = ({ technicianId, startTime, onD
       ref={drop}
       className="absolute w-full border-t border-dashed border-gray-300"
       style={{
-        top: `${(startTime.getHours() - 7 + startTime.getMinutes() / 60) * 60}px`,
+        top: `${(startTime.getHours() - startHour + startTime.getMinutes() / 60) * 60}px`,
         height: '15px', 
       }}
     >

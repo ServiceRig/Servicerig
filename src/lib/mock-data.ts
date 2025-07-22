@@ -12,7 +12,11 @@ const getDay = (day: number) => {
 
 // Wrapping our mock data in a single object makes it mutable across requests
 // in a Node.js development server environment. This simulates a persistent store.
-export const mockData: { [key: string]: any[] } = {
+export const mockData: { [key: string]: any } = {
+  scheduleSettings: {
+    startHour: 8,
+    endHour: 19,
+  },
   vendors: [
     { 
       id: 'vendor_fhd1', 
