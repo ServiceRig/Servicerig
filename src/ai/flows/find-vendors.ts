@@ -10,7 +10,7 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
-export const FindVendorsInputSchema = z.object({
+const FindVendorsInputSchema = z.object({
   query: z.string().describe('The user\'s search query, including the type of vendor and location. For example: "plumbing supply house near Dallas, TX" or "HVAC parts distributors in zip code 75001".'),
 });
 export type FindVendorsInput = z.infer<typeof FindVendorsInputSchema>;
@@ -26,7 +26,7 @@ const VendorSchema = z.object({
     categories: z.array(z.string()).describe('An array of product categories the vendor likely sells, e.g., ["Fittings", "Water Heaters", "PEX Tubing"].'),
 });
 
-export const FindVendorsOutputSchema = z.object({
+const FindVendorsOutputSchema = z.object({
   vendors: z.array(VendorSchema).describe('A list of vendors that match the search query.'),
 });
 export type FindVendorsOutput = z.infer<typeof FindVendorsOutputSchema>;
