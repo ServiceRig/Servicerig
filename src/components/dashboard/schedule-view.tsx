@@ -1,4 +1,3 @@
-
 'use client'
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
@@ -11,7 +10,7 @@ import { DraggableJob } from './dnd/DraggableJob';
 import { TimeSlot } from './dnd/TimeSlot';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Button } from '../ui/button';
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Maximize } from 'lucide-react';
 import { Calendar } from '../ui/calendar';
 import { format, addDays, startOfWeek, isSameDay } from 'date-fns';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
@@ -140,7 +139,7 @@ const DailyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDat
     );
 };
 
-const WeeklyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDate }: { jobs: Job[], technicians: Technician[], onJobDrop: (jobId: string, techId: string, startTime: Date) => void, onJobStatusChange: (jobId: string, status: Job['status']) => void, currentDate: Date }) => {
+const WeeklyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDate, isFitToScreen }: { jobs: Job[], technicians: Technician[], onJobDrop: (jobId: string, techId: string, startTime: Date) => void, onJobStatusChange: (jobId: string, status: Job['status']) => void, currentDate: Date, isFitToScreen: boolean }) => {
     const weekStartsOn = startOfWeek(currentDate, { weekStartsOn: 1 }); // Monday
     const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStartsOn, i));
 
@@ -148,9 +147,9 @@ const WeeklyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDa
          <div className="flex h-full">
             <TimeAxis />
             <ScrollArea className="flex-grow" viewportClassName="h-full">
-                <div className="flex">
+                <div className={cn("flex", isFitToScreen && "w-full")}>
                     {weekDays.map((day, dayIndex) => (
-                        <div key={dayIndex} className="min-w-[200px] lg:min-w-[250px] border-l">
+                        <div key={dayIndex} className={cn("min-w-[200px] lg:min-w-[250px] border-l", isFitToScreen && "flex-1 min-w-0")}>
                             <div className="text-center font-semibold py-2 border-b sticky top-0 bg-background z-10">
                                 {format(day, 'EEE')} <span className="text-muted-foreground">{format(day, 'd')}</span>
                             </div>
@@ -264,6 +263,8 @@ export function ScheduleView({
   activeView,
   onActiveViewChange,
 }: ScheduleViewProps) {
+  const [isFitToScreen, setIsFitToScreen] = React.useState(false);
+    
   return (
     <div className="flex flex-col md:flex-row gap-4 h-full">
       <UnscheduledJobsPanel jobs={unscheduledJobs} />
@@ -317,18 +318,33 @@ export function ScheduleView({
                 </TooltipProvider>
               </div>
             </div>
-            <TabsList>
-              <TabsTrigger value="day">Daily</TabsTrigger>
-              <TabsTrigger value="week">Weekly</TabsTrigger>
-              <TabsTrigger value="technician">By Technician</TabsTrigger>
-            </TabsList>
+            <div className="flex items-center gap-2">
+                <TabsList>
+                  <TabsTrigger value="day">Daily</TabsTrigger>
+                  <TabsTrigger value="week">Weekly</TabsTrigger>
+                  <TabsTrigger value="technician">By Technician</TabsTrigger>
+                </TabsList>
+                 {activeView === 'week' && (
+                  <TooltipProvider>
+                    <Tooltip>
+                       <TooltipTrigger asChild>
+                          <Button variant="outline" size="icon" onClick={() => setIsFitToScreen(!isFitToScreen)} className={cn(isFitToScreen && "bg-accent text-accent-foreground")}>
+                              <Maximize className="h-4 w-4" />
+                              <span className="sr-only">Fit to Screen</span>
+                          </Button>
+                      </TooltipTrigger>
+                      <TooltipContent><p>Fit to Screen</p></TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
+            </div>
           </CardHeader>
           <CardContent className="flex-grow overflow-auto p-0">
             <TabsContent value="day" className="h-full mt-0 p-4">
               <DailyView jobs={jobs} technicians={technicians} onJobDrop={onJobDrop} onJobStatusChange={onJobStatusChange} currentDate={currentDate} />
             </TabsContent>
             <TabsContent value="week" className="h-full mt-0">
-              <WeeklyView jobs={jobs} technicians={technicians} onJobDrop={onJobDrop} onJobStatusChange={onJobStatusChange} currentDate={currentDate} />
+              <WeeklyView jobs={jobs} technicians={technicians} onJobDrop={onJobDrop} onJobStatusChange={onJobStatusChange} currentDate={currentDate} isFitToScreen={isFitToScreen} />
             </TabsContent>
             <TabsContent value="technician" className="h-full mt-0">
               <TechnicianView jobs={jobs} technicians={technicians} onJobDrop={onJobDrop} onJobStatusChange={onJobStatusChange} currentDate={currentDate} />
