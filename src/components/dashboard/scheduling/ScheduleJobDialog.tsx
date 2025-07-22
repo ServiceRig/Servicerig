@@ -39,6 +39,12 @@ const arrivalWindows = [
     '4:00 PM – 6:00 PM',
 ];
 
+const initialNewCustomerState = {
+    name: '',
+    email: '',
+    phone: '',
+    address: '',
+};
 
 export function ScheduleJobDialog() {
     const [isOpen, setIsOpen] = useState(false);
@@ -60,8 +66,12 @@ export function ScheduleJobDialog() {
     const [arrivalWindow, setArrivalWindow] = useState<string>('');
     const [isUnscheduled, setIsUnscheduled] = useState(false);
 
+    // New Customer State
+    const [isCreatingCustomer, setIsCreatingCustomer] = useState(false);
+    const [newCustomerData, setNewCustomerData] = useState(initialNewCustomerState);
+
     // Data from mock
-    const allCustomers = mockData.customers as Customer[];
+    const [allCustomers, setAllCustomers] = useState<Customer[]>(mockData.customers as Customer[]);
     const allTechnicians = mockData.technicians as Technician[];
     const allEquipment = mockData.equipment as Equipment[];
 
@@ -92,6 +102,35 @@ export function ScheduleJobDialog() {
         });
     }
 
+    const handleNewCustomerInputChange = (field: keyof typeof initialNewCustomerState, value: string) => {
+        setNewCustomerData(prev => ({...prev, [field]: value}));
+    };
+
+    const handleSaveNewCustomer = () => {
+        if (!newCustomerData.name || !newCustomerData.email || !newCustomerData.phone) {
+            toast({ variant: 'destructive', title: 'Missing Fields', description: 'Please provide name, email, and phone for the new customer.'});
+            return;
+        }
+
+        const newCustomer: Customer = {
+            id: `cust_${Date.now()}`,
+            primaryContact: { name: newCustomerData.name, email: newCustomerData.email, phone: newCustomerData.phone },
+            companyInfo: { name: newCustomerData.name, address: newCustomerData.address }, // Using name as company name for simplicity
+            createdAt: new Date(),
+            updatedAt: new Date(),
+        };
+
+        // In a real app, this would be a server action
+        mockData.customers.unshift(newCustomer);
+        setAllCustomers(prev => [newCustomer, ...prev]);
+
+        toast({ title: 'Customer Created', description: `${newCustomer.primaryContact.name} has been added.`});
+        
+        setSelectedCustomer(newCustomer);
+        setIsCreatingCustomer(false);
+        setNewCustomerData(initialNewCustomerState);
+    };
+
     const resetForm = () => {
         setSelectedCustomer(null);
         setTrade('Other');
@@ -105,10 +144,11 @@ export function ScheduleJobDialog() {
         setEndTime('10:00');
         setArrivalWindow('');
         setIsUnscheduled(false);
+        setIsCreatingCustomer(false);
     };
     
     const handleSave = async () => {
-        if (!selectedCustomer || !trade || !description || !primaryTechnicianId) {
+        if (!selectedCustomer || !trade || !description || (!isUnscheduled && !primaryTechnicianId)) {
             toast({ variant: 'destructive', title: 'Missing Fields', description: 'Please fill out all required fields.' });
             return;
         }
@@ -174,30 +214,45 @@ export function ScheduleJobDialog() {
                         {/* Customer Section */}
                         <div className="p-4 border rounded-lg">
                             <h3 className="font-semibold mb-4">Customer</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label>Select Customer</Label>
-                                     <Select onValueChange={handleSelectCustomer}>
-                                        <SelectTrigger><SelectValue placeholder="Search by name, phone..." /></SelectTrigger>
-                                        <SelectContent>
-                                            {allCustomers.map(c => <SelectItem key={c.id} value={c.id}>{c.primaryContact.name}</SelectItem>)}
-                                        </SelectContent>
-                                    </Select>
+                            {isCreatingCustomer ? (
+                                <div className="space-y-4">
+                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-2"><Label>Full Name</Label><Input value={newCustomerData.name} onChange={e => handleNewCustomerInputChange('name', e.target.value)} /></div>
+                                        <div className="space-y-2"><Label>Email</Label><Input type="email" value={newCustomerData.email} onChange={e => handleNewCustomerInputChange('email', e.target.value)} /></div>
+                                        <div className="space-y-2"><Label>Phone</Label><Input value={newCustomerData.phone} onChange={e => handleNewCustomerInputChange('phone', e.target.value)} /></div>
+                                        <div className="space-y-2"><Label>Address</Label><Input value={newCustomerData.address} onChange={e => handleNewCustomerInputChange('address', e.target.value)} /></div>
+                                     </div>
+                                      <div className="flex gap-2">
+                                        <Button onClick={handleSaveNewCustomer}>Save Customer</Button>
+                                        <Button variant="ghost" onClick={() => setIsCreatingCustomer(false)}>Cancel</Button>
+                                     </div>
                                 </div>
-                                <Button variant="outline" className="self-end"><UserPlus className="mr-2 h-4 w-4"/> New Customer</Button>
-
-                                {selectedCustomer && (
-                                    <div className="space-y-2 md:col-span-2">
-                                        <Label>Customer Equipment (Optional)</Label>
-                                        <Select value={selectedEquipmentId} onValueChange={setSelectedEquipmentId}>
-                                            <SelectTrigger><SelectValue placeholder="Select equipment..." /></SelectTrigger>
+                            ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label>Select Customer</Label>
+                                        <Select onValueChange={handleSelectCustomer} value={selectedCustomer?.id || ''}>
+                                            <SelectTrigger><SelectValue placeholder="Search by name, phone..." /></SelectTrigger>
                                             <SelectContent>
-                                                {customerEquipment.map(eq => <SelectItem key={eq.id} value={eq.id}>{eq.name} ({eq.serial})</SelectItem>)}
+                                                {allCustomers.map(c => <SelectItem key={c.id} value={c.id}>{c.primaryContact.name}</SelectItem>)}
                                             </SelectContent>
                                         </Select>
                                     </div>
-                                )}
-                            </div>
+                                    <Button variant="outline" className="self-end" onClick={() => setIsCreatingCustomer(true)}><UserPlus className="mr-2 h-4 w-4"/> New Customer</Button>
+
+                                    {selectedCustomer && (
+                                        <div className="space-y-2 md:col-span-2">
+                                            <Label>Customer Equipment (Optional)</Label>
+                                            <Select value={selectedEquipmentId} onValueChange={setSelectedEquipmentId}>
+                                                <SelectTrigger><SelectValue placeholder="Select equipment..." /></SelectTrigger>
+                                                <SelectContent>
+                                                    {customerEquipment.map(eq => <SelectItem key={eq.id} value={eq.id}>{eq.name} ({eq.serial})</SelectItem>)}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
 
                         {/* Job Details Section */}
@@ -245,7 +300,7 @@ export function ScheduleJobDialog() {
                                       {/* This is a simplified multi-select */}
                                       <div className="flex flex-wrap gap-2 p-2 border rounded-md">
                                           {allTechnicians.filter(t => t.id !== primaryTechnicianId).map(t => (
-                                              <Button key={t.id} variant={additionalTechnicians.has(t.id) ? 'default' : 'outline'} size="sm" onClick={() => handleMultiTechSelect(t.id)}>{t.name}</Button>
+                                              <Button key={t.id} type="button" variant={additionalTechnicians.has(t.id) ? 'default' : 'outline'} size="sm" onClick={() => handleMultiTechSelect(t.id)}>{t.name}</Button>
                                           ))}
                                       </div>
                                   </div>
