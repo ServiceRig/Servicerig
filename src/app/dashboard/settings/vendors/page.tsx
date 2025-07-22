@@ -12,7 +12,6 @@ import { VendorDialog } from '@/components/dashboard/settings/VendorDialog';
 import { VendorTable } from '@/components/dashboard/settings/VendorTable';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AiVendorFinder } from '@/components/dashboard/settings/AiVendorFinder';
 import { Separator } from '@/components/ui/separator';
 
 const allTrades = ['Plumbing', 'HVAC', 'Electrical', 'General'];
@@ -37,10 +36,6 @@ export default function VendorsPage() {
         }
     };
     
-    const handleAiVendorAdded = (updatedVendors: Vendor[]) => {
-        setVendors(updatedVendors);
-    }
-
     const handleAddNew = () => {
         setSelectedVendor(null);
         setIsDialogOpen(true);
@@ -77,10 +72,6 @@ export default function VendorsPage() {
                     <PlusCircle className="mr-2 h-4 w-4" /> Add Vendor
                 </Button>
             </div>
-            
-            <AiVendorFinder onVendorAdded={handleAiVendorAdded} />
-            
-            <Separator />
             
             <Card>
                 <CardHeader>
