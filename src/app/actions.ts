@@ -1,3 +1,4 @@
+
 'use server';
 
 import { generateTieredEstimates, type GenerateTieredEstimatesInput, type GenerateTieredEstimatesOutput } from "@/ai/flows/generate-tiered-estimates";
@@ -13,7 +14,6 @@ import { addPricebookItem } from "@/lib/firestore/pricebook";
 import { getCustomerById } from "@/lib/firestore/customers";
 import { analyzeInvoice } from "@/ai/flows/analyze-invoice";
 import { addInvoice as addInvoiceToDb, updateInvoice as updateInvoiceInDb } from "@/lib/firestore/invoices";
-import { findVendors } from "@/ai/flows/find-vendors";
 
 const tieredEstimatesSchema = z.object({
   jobDetails: z.string().min(10, "Job details must be at least 10 characters long."),
@@ -1249,34 +1249,6 @@ export async function updateInventoryItem(prevState: any, formData: FormData) {
     }
 }
 
-const findVendorsInputSchema = z.object({
-  query: z.string().describe('The user\'s search query, e.g., "plumbing suppliers in Austin, TX" or "Johnstone Supply".'),
-});
-
-type FindVendorsState = {
-    vendors?: any[];
-    error?: string;
-    message?: string;
-}
-
-export async function findVendorsAction(prevState: FindVendorsState, formData: FormData): Promise<FindVendorsState> {
-    const validatedFields = findVendorsInputSchema.safeParse({
-        query: formData.get('query'),
-    });
-
-    if (!validatedFields.success) {
-        return { error: validatedFields.error.flatten().fieldErrors.query?.[0] || 'Invalid query.' };
-    }
-    
-    try {
-        const result = await findVendors(validatedFields.data);
-        return { vendors: result.vendors };
-    } catch(e: any) {
-        console.error("Error finding vendors:", e);
-        return { error: 'An unexpected error occurred during the AI search.' };
-    }
-}
-
 const addVendorSchema = z.object({
   vendorData: z.string(),
 });
@@ -1339,3 +1311,5 @@ export async function deleteVendor(prevState: DeleteVendorState, formData: FormD
         return { success: false, message: `An unexpected error occurred: ${e.message}` };
     }
 }
+
+    
