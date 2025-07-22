@@ -11,7 +11,7 @@ import { Flame, Maximize } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import { useScheduleView } from './scheduling/page';
+import { ScheduleViewProvider, useScheduleView } from './scheduling/page';
 
 
 function FitToScreenButton() {
@@ -103,9 +103,18 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
 
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  return (
+  const pathname = usePathname();
+  const isSchedulingPage = pathname.includes('/dashboard/scheduling');
+
+  const content = (
     <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
       <DashboardLayoutContent>{children}</DashboardLayoutContent>
     </Suspense>
   )
+
+  if (isSchedulingPage) {
+    return <ScheduleViewProvider>{content}</ScheduleViewProvider>
+  }
+  
+  return content;
 }

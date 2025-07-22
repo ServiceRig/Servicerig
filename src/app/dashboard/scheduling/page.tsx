@@ -25,7 +25,7 @@ export const useScheduleView = () => {
     return context;
 };
 
-const ScheduleViewProvider = ({ children }: { children: React.ReactNode }) => {
+export const ScheduleViewProvider = ({ children }: { children: React.ReactNode }) => {
     const [isFitToScreen, setIsFitToScreen] = useState(false);
     return (
         <ScheduleViewContext.Provider value={{ isFitToScreen, setIsFitToScreen }}>
@@ -165,8 +165,6 @@ function SchedulingPageContent() {
 
 export default function SchedulingPage() {
     return (
-        <ScheduleViewProvider>
-            <SchedulingPageContent />
-        </ScheduleViewProvider>
+        <SchedulingPageContent />
     )
 }
