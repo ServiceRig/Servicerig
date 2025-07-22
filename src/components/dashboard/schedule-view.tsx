@@ -1,7 +1,5 @@
-
 'use client';
-import React, { useState } from 'react';
-import Link from 'next/link';
+import React, { useState, useCallback } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -12,7 +10,7 @@ import { DraggableJob } from './dnd/DraggableJob';
 import { TimeSlot } from './dnd/TimeSlot';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Button } from '../ui/button';
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Maximize, PlusCircle } from 'lucide-react';
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, PlusCircle } from 'lucide-react';
 import { Calendar } from '../ui/calendar';
 import { format, addDays, startOfWeek, isSameDay } from 'date-fns';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
@@ -36,7 +34,7 @@ interface ScheduleViewProps {
     onActiveViewChange: (view: string) => void;
 }
 
-const hours = Array.from({ length: 16 }, (_, i) => i + 7); // 7 AM to 10 PM
+const hours = Array.from({ length: 13 }, (_, i) => i + 7); // 7 AM to 7 PM
 
 const UnscheduledJobCard = ({ job }: { job: Job }) => (
     <DraggableJob job={job}>
@@ -163,60 +161,49 @@ const WeeklyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDa
     const { isFitToScreen } = useScheduleView();
     const weekStartsOn = startOfWeek(currentDate, { weekStartsOn: 1 }); // Monday
     const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStartsOn, i));
+    const allTechsAndUnassigned = [...technicians, { id: 'unassigned', name: 'Unassigned', color: '#888888' }];
 
     return (
-         <div className="flex h-full">
+        <div className="flex h-full">
             <TimeAxis />
             <ScrollArea className="flex-grow" viewportClassName="h-full">
-                <div className={cn("grid grid-cols-7 h-full", isFitToScreen ? "w-full" : "min-w-[1400px]")}>
-                    {weekDays.map((day, dayIndex) => (
-                        <div key={dayIndex} className="border-l flex flex-col">
+                <div className={cn("grid grid-cols-7 h-full", isFitToScreen ? "w-full" : "min-w-[2000px]")}>
+                    {weekDays.map((day) => (
+                        <div key={day.toISOString()} className="border-l flex flex-col">
                             <div className="text-center font-semibold py-2 border-b sticky top-0 bg-background z-10">
                                 {format(day, 'EEE')} <span className="text-muted-foreground">{format(day, 'd')}</span>
                             </div>
-                            <div className="grid h-full" style={{ gridTemplateColumns: `repeat(${technicians.length}, minmax(0, 1fr))`}}>
-                                {technicians.map((tech, techIndex) => (
+                            <div className="grid h-full" style={{ gridTemplateColumns: `repeat(${allTechsAndUnassigned.length}, 1fr)` }}>
+                                {allTechsAndUnassigned.map((tech, techIndex) => (
                                     <div key={tech.id} className={cn("relative h-full", techIndex > 0 && "border-l border-dashed")}>
-                                        <div className="absolute inset-0" style={{ backgroundColor: tech.color || 'transparent', opacity: 0.1 }}></div>
-                                        {hours.map(hour => (
-                                            [0, 15, 30, 45].map(minute => {
-                                                const slotTime = new Date(day);
-                                                slotTime.setHours(hour, minute, 0, 0);
-                                                return (
-                                                    <TimeSlot 
-                                                        key={`${hour}-${minute}`} 
-                                                        technicianId={tech.id} 
-                                                        startTime={slotTime} 
-                                                        onDrop={onJobDrop} 
-                                                    />
-                                                );
-                                            })
-                                        ))}
-                                        {hours.map(h => <div key={h} style={{top: `${(h-7)*60}px`}} className="absolute w-full h-[60px] border-t border-dashed border-gray-300" />)}
-                                        {jobs.filter(job => job.technicianId === tech.id && isSameDay(new Date(job.schedule.start), day))
-                                            .map(job => {
-                                                const durationMinutes = (new Date(job.schedule.end).getTime() - new Date(job.schedule.start).getTime()) / (1000 * 60);
-                                                const startHour = new Date(job.schedule.start).getHours();
-                                                const startMinute = new Date(job.schedule.start).getMinutes();
-                                                const topPosition = ((startHour - 7) * 60) + startMinute;
-                                                return (
-                                                    <DraggableJob
-                                                        key={job.id}
-                                                        job={job}
-                                                        onStatusChange={onJobStatusChange}
-                                                        isCompact
-                                                    >
-                                                         <div
-                                                            className="absolute w-full"
-                                                            style={{
-                                                                top: `${topPosition}px`,
-                                                                height: `${durationMinutes}px`,
-                                                            }}
+                                        <div className="sticky top-[49px] bg-background z-10 text-center text-xs py-1 border-b font-semibold" style={{ color: tech.color }}>
+                                            {tech.name}
+                                        </div>
+                                        <div className="relative h-[calc(12*60px)]">
+                                            {hours.map(hour => (
+                                                [0, 15, 30, 45].map(minute => {
+                                                    const slotTime = new Date(day);
+                                                    slotTime.setHours(hour, minute, 0, 0);
+                                                    return (
+                                                        <TimeSlot
+                                                            key={`${hour}-${minute}`}
+                                                            technicianId={tech.id === 'unassigned' ? '' : tech.id}
+                                                            startTime={slotTime}
+                                                            onDrop={onJobDrop}
                                                         />
-                                                    </DraggableJob>
-                                                )
-                                            })
-                                        }
+                                                    );
+                                                })
+                                            ))}
+                                            {hours.map(h => <div key={h} className="h-[60px] border-t border-dashed border-gray-300" />)}
+                                            {jobs
+                                                .filter(job => {
+                                                    const techMatch = tech.id === 'unassigned' ? !job.technicianId : job.technicianId === tech.id;
+                                                    return techMatch && isSameDay(new Date(job.schedule.start), day);
+                                                })
+                                                .map(job => (
+                                                    <DraggableJob key={job.id} job={job} onStatusChange={onJobStatusChange} isCompact />
+                                                ))}
+                                        </div>
                                     </div>
                                 ))}
                             </div>
@@ -227,6 +214,7 @@ const WeeklyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDa
         </div>
     );
 };
+
 
 export function ScheduleView({
   jobs,
