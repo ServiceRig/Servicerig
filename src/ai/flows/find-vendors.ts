@@ -3,7 +3,6 @@
  * @fileOverview An AI agent for finding and vetting potential vendors using a search tool.
  *
  * - findVendors - A function that handles the vendor discovery process.
- * - findVendorsAction - The server action wrapper for the UI.
  * - FindVendorsOutput - The return type for the findVendors function.
  */
 
@@ -42,7 +41,17 @@ const googleSearch = ai.defineTool(
         ]
       }
     }
-    return {
+     // Add another mock for a different query to show it's dynamic
+    if (query.toLowerCase().includes('hvac') && query.toLowerCase().includes('dallas')) {
+        return {
+            results: [
+                { name: 'Johnstone Supply', address: '123 HVAC Way, Dallas, TX', phone: '214-555-1212', rating: 4.8, snippet: 'Wholesale HVAC parts and supplies.'},
+                { name: 'RE Michel Company', address: '456 Industrial Dr, Dallas, TX', phone: '214-555-1313', rating: 4.6, snippet: 'HVACR distributor for over 80 years.'},
+                { name: 'Carrier Enterprise', address: '789 Freon Ln, Dallas, TX', phone: '214-555-1414', rating: 4.7, snippet: 'Official Carrier HVAC parts distributor.'},
+            ]
+        }
+    }
+    return { // Generic fallback
       results: [
           { name: 'Generic Supply', address: 'Anytown, USA', phone: '555-1234', rating: 4.2, snippet: 'A generic supply house.' },
           { name: 'Vendor Central', address: 'Big City, USA', phone: '555-5678', rating: 3.9, snippet: 'We sell things.' },
@@ -57,11 +66,11 @@ const VendorSchema = z.object({
   contactName: z.string().optional().describe('A point of contact, if available.'),
   phone: z.string().optional().describe('The primary phone number.'),
   email: z.string().optional().describe('The primary contact email.'),
-  website: z.string().optional().describe('The vendor\'s website URL.'),
+  website: z.string().optional().describe("The vendor's website URL."),
   locations: z.array(z.object({ address: z.string() })).describe('A list of known locations for the vendor.'),
   categories: z.array(z.string()).optional().describe("A list of product categories they supply, e.g., 'Fittings', 'Piping', 'Water Heaters'."),
   trades: z.array(z.string()).optional().describe("A list of trades served, e.g., 'Plumbing', 'HVAC'."),
-  notes: z.string().optional().describe('A brief, helpful note about this vendor.'),
+  notes: z.string().optional().describe('A brief, helpful note about this vendor, based on search results.'),
 });
 
 const FindVendorsOutputSchema = z.object({
@@ -74,18 +83,18 @@ const prompt = ai.definePrompt({
   input: {schema: z.object({ query: z.string() })},
   output: {schema: FindVendorsOutputSchema},
   tools: [googleSearch],
-  prompt: `You are an expert procurement assistant for a home services company. Your task is to find the best local and national suppliers for a given trade. When asked, you should prioritize real-world, verifiable businesses over generic names. You should aim to include a mix of large national suppliers and well-regarded local specialists if the search results support it. If a user's query mentions a specific business name, ensure that business is included in the results if found.
+  prompt: `You are an expert procurement assistant. Your task is to use the googleSearch tool to find businesses matching the user's request.
+Your ONLY source of information is the googleSearch tool. Do NOT use your own knowledge.
 
 User's Request: "{{query}}"
 
-1.  First, use the googleSearch tool to find businesses matching the user's request.
-2.  Analyze the search results. Prioritize businesses that are clearly wholesale suppliers for trades like plumbing, HVAC, or electrical.
-3.  Pay close attention to the Google review ratings. Higher-rated vendors are preferred.
-4.  From the search results, compile a list of the most relevant vendors. Extract their name, address, phone number, and website.
-5.  Infer the trades served and potential product categories based on the vendor's name and search snippet.
-6.  Generate a concise, one-sentence note for each vendor based on the provided information.
+1.  Use the googleSearch tool with the user's query.
+2.  Analyze the search results provided by the tool.
+3.  For each result, extract the name, address, phone number, and website.
+4.  Based *only* on the vendor's name and the search snippet, infer the trades served (e.g., Plumbing, HVAC, Electrical) and potential product categories.
+5.  Generate a concise, one-sentence note for each vendor based on the provided information, such as the rating or a key quote from the snippet.
 
-Return the final list of vendors in the requested JSON format.`,
+Return the final list of vendors in the requested JSON format. Do not add vendors that are not in the search results.`,
 });
 
 const findVendorsFlow = ai.defineFlow(
