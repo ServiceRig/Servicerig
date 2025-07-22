@@ -23,11 +23,12 @@ interface DraggableJobProps {
     job: Job;
     children?: React.ReactNode;
     onStatusChange?: (jobId: string, status: Job['status']) => void;
+    onJobDrop?: (jobId: string, technicianId: string, startTime: Date) => void;
     isCompact?: boolean;
     startHour?: number;
 }
 
-export const DraggableJob: React.FC<DraggableJobProps> = ({ job, children, onStatusChange, isCompact, startHour = 7 }) => {
+export const DraggableJob: React.FC<DraggableJobProps> = ({ job, children, onStatusChange, isCompact, startHour = 7, onJobDrop }) => {
     const [{ isDragging }, drag] = useDrag(() => ({
         type: ItemTypes.JOB,
         item: { ...job },
@@ -63,16 +64,8 @@ export const DraggableJob: React.FC<DraggableJobProps> = ({ job, children, onSta
     const topPosition = ((jobStartHour - startHour) * 60) + jobStartMinute;
 
     if (isCompact) {
-        return (
-            <div
-                ref={drag}
-                className="absolute inset-x-1"
-                style={{
-                    top: `${topPosition}px`,
-                    height: `${durationMinutes}px`,
-                    opacity: isDragging ? 0.5 : 1,
-                }}
-            >
+         return (
+             <div ref={drag} className="absolute inset-x-1 z-10" style={{ top: `${topPosition}px`, height: `${durationMinutes}px`, opacity: isDragging ? 0.5 : 1, cursor: 'grab' }}>
                 <div
                     className={cn(
                         "h-full w-full rounded p-1 text-[10px] cursor-grab active:cursor-grabbing overflow-hidden",

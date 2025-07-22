@@ -185,7 +185,7 @@ const WeeklyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDa
                             <div className="text-center font-semibold py-2 border-b sticky top-0 bg-background z-10">
                                 {format(day, 'EEE')} <span className="text-muted-foreground">{format(day, 'd')}</span>
                             </div>
-                             <div className="grid h-full mt-[2.5rem]" style={{ gridTemplateColumns: `repeat(${allTechsAndUnassigned.length}, 1fr)` }}>
+                            <div className="grid h-full mt-[2.5rem]" style={{ gridTemplateColumns: `repeat(${allTechsAndUnassigned.length}, 1fr)` }}>
                                 {allTechsAndUnassigned.map((tech, techIndex) => (
                                     <div key={tech.id} className={cn("relative h-full", techIndex > 0 && "border-l border-dashed")}>
                                         <div className="sticky top-[49px] bg-background z-10 text-center text-xs py-1 border-b font-semibold" style={{ color: tech.color }}>
@@ -213,13 +213,12 @@ const WeeklyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDa
                                                     return techMatch && isSameDay(new Date(job.schedule.start), day);
                                                 })
                                                 .map(job => (
-                                                     <DraggableJob key={job.id} job={job} onStatusChange={onJobStatusChange} isCompact startHour={startHour} />
+                                                     <DraggableJob key={job.id} job={job} onStatusChange={onJobStatusChange} onJobDrop={onJobDrop} isCompact startHour={startHour} />
                                                 ))}
                                         </div>
                                     </div>
                                 ))}
                             </div>
-                             {/* Render dashed lines on top of the tech columns */}
                             <div className="absolute top-[78px] left-0 right-0 mt-[29px]" style={{ height: `${hours.length * 60}px`}}>
                                 {hours.slice(1).map(h => (
                                     <div 
