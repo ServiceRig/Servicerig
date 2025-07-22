@@ -100,7 +100,16 @@ const useMockFirestore = () => {
   const updateJobStatus = useCallback((jobId: string, newStatus: Job['status']) => {
     setData(prevData => ({
         ...prevData,
-        jobs: prevData.jobs.map(j => j.id === jobId ? { ...j, status: newStatus } : j)
+        jobs: prevData.jobs.map(j => {
+            if (j.id === jobId) {
+                const updatedJob = { ...j, status: newStatus };
+                if (newStatus === 'unscheduled') {
+                    updatedJob.technicianId = '';
+                }
+                return updatedJob;
+            }
+            return j;
+        })
     }));
      console.log(`Updated job ${jobId} status to ${newStatus}`);
   }, []);
@@ -131,6 +140,7 @@ function SchedulingPageContent() {
       ...job,
       customerName: customer?.primaryContact.name || 'Unknown Customer',
       technicianName: technician?.name || 'Unassigned',
+      color: technician?.color || '#A0A0A0', // Add color here
     };
   });
 

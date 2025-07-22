@@ -203,13 +203,11 @@ const WeeklyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDa
                                             {hours.map(h => <div key={h} className="h-[60px] border-t border-dashed border-gray-300" />)}
                                             {jobs
                                                 .filter(job => {
-                                                    const techMatch = tech.id === 'unassigned' ? !job.technicianId : job.technicianId === tech.id;
+                                                    const techMatch = tech.id === 'unassigned' ? !job.technicianId || job.technicianId === 'unassigned' : job.technicianId === tech.id;
                                                     return techMatch && isSameDay(new Date(job.schedule.start), day);
                                                 })
                                                 .map(job => (
-                                                     <DraggableJob key={job.id} job={job} onStatusChange={onJobStatusChange} isCompact>
-                                                        <div className="h-full w-full" style={{ backgroundColor: job.color }}></div>
-                                                    </DraggableJob>
+                                                     <DraggableJob key={job.id} job={job} onStatusChange={onJobStatusChange} isCompact />
                                                 ))}
                                         </div>
                                     </div>
