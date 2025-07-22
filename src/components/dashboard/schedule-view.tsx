@@ -19,6 +19,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/
 import { useScheduleView } from '@/app/dashboard/scheduling/page';
 import { useRole } from '@/hooks/use-role';
 import { ScheduleJobDialog } from './scheduling/ScheduleJobDialog';
+import { useDrop } from 'react-dnd';
+import { ItemTypes } from '@/lib/constants';
 
 interface ScheduleViewProps {
     jobs: Job[];
@@ -50,9 +52,19 @@ const UnscheduledJobCard = ({ job }: { job: Job }) => (
     </DraggableJob>
 );
 
-const UnscheduledJobsPanel = ({ jobs, technicians }: { jobs: Job[], technicians: Technician[] }) => {
+const UnscheduledJobsPanel = ({ jobs, onJobStatusChange }: { jobs: Job[], onJobStatusChange: (jobId: string, status: Job['status']) => void }) => {
+    const [{ isOver }, drop] = useDrop(() => ({
+        accept: ItemTypes.JOB,
+        drop: (item: Job) => {
+            onJobStatusChange(item.id, 'unscheduled');
+        },
+        collect: (monitor) => ({
+            isOver: !!monitor.isOver(),
+        }),
+    }));
+
     return (
-        <Card className="w-full flex-grow flex flex-col">
+        <Card ref={drop} className={cn("w-full flex-grow flex flex-col transition-colors", isOver && "bg-accent/20 border-accent")}>
             <CardHeader>
                 <CardTitle>Unscheduled Jobs</CardTitle>
                 <CardDescription>{jobs.length} jobs waiting</CardDescription>
@@ -304,7 +316,7 @@ export function ScheduleView({
     <div className="flex flex-col md:flex-row gap-4 h-full">
        <div className="w-full md:w-64 flex flex-col gap-4">
         <ScheduleJobDialog />
-        <UnscheduledJobsPanel jobs={unscheduledJobs} technicians={technicians} />
+        <UnscheduledJobsPanel jobs={unscheduledJobs} onJobStatusChange={onJobStatusChange} />
       </div>
       <Card className="flex-grow h-full flex flex-col">
         <Tabs value={activeView} onValueChange={onActiveViewChange} className="h-full flex flex-col">
