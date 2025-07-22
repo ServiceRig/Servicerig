@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { DeleteVendorDialog } from '@/components/dashboard/settings/DeleteVendorDialog';
+import { AiVendorFinder } from '@/components/dashboard/settings/AiVendorFinder';
 
 const allTrades = ['Plumbing', 'HVAC', 'Electrical', 'General'];
 
@@ -29,9 +30,15 @@ export default function VendorsPage() {
 
     const handleSaveVendor = (vendor: Vendor) => {
         // This is where you would call a server action to save to Firestore
-        if (selectedVendor) {
+        const existingIndex = vendors.findIndex(v => v.id === vendor.id);
+
+        if (existingIndex > -1) {
             // Update existing vendor
-            setVendors(prev => prev.map(v => v.id === vendor.id ? vendor : v));
+            setVendors(prev => {
+                const newVendors = [...prev];
+                newVendors[existingIndex] = vendor;
+                return newVendors;
+            });
         } else {
             // Add new vendor
             setVendors(prev => [{ ...vendor, id: `vendor_${Date.now()}`, createdAt: new Date() }, ...prev]);
@@ -74,13 +81,17 @@ export default function VendorsPage() {
 
     return (
         <div className="space-y-6">
+            <AiVendorFinder onVendorAdded={handleSaveVendor} />
+
+            <Separator />
+
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-bold">Vendor Catalog</h1>
                     <p className="text-muted-foreground">Manage your list of approved parts and materials suppliers.</p>
                 </div>
                  <Button onClick={handleAddNew}>
-                    <PlusCircle className="mr-2 h-4 w-4" /> Add Vendor
+                    <PlusCircle className="mr-2 h-4 w-4" /> Add Vendor Manually
                 </Button>
             </div>
             
