@@ -4,6 +4,7 @@
 
 
 
+
 'use server';
 
 import { generateTieredEstimates, type GenerateTieredEstimatesInput, type GenerateTieredEstimatesOutput } from "@/ai/flows/generate-tiered-estimates";
@@ -12,7 +13,7 @@ import { addEstimate as addEstimateToDb, getEstimateById, updateEstimate as upda
 import { addJob as addJobToDb, getJobById, updateJob } from "@/lib/firestore/jobs";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import type { Estimate, GbbTier, LineItem, PricebookItem, Job, Invoice, EquipmentLog, Equipment, PurchaseOrder, UsedPart, PurchaseOrderPart, EstimateTemplate, InventoryItem } from "@/lib/types";
+import type { Estimate, GbbTier, LineItem, PricebookItem, Job, Invoice, EquipmentLog, Equipment, PurchaseOrder, UsedPart, PurchaseOrderPart, EstimateTemplate, InventoryItem, Vendor } from "@/lib/types";
 import { addEstimateTemplate, updateEstimateTemplate } from "@/lib/firestore/templates";
 import { mockData } from "@/lib/mock-data";
 import { addPricebookItem } from "@/lib/firestore/pricebook";
@@ -1251,5 +1252,67 @@ export async function updateInventoryItem(prevState: any, formData: FormData) {
     } catch (e) {
         console.error(e);
         return { success: false, message: 'An unexpected error occurred.' };
+    }
+}
+
+const vendorSchema = z.object({
+    name: z.string().min(1, 'Vendor name is required.'),
+    contactName: z.string().optional(),
+    phone: z.string().optional(),
+    email: z.string().email().optional().or(z.literal('')),
+    website: z.string().url().optional().or(z.literal('')),
+    address: z.string().optional(),
+    trades: z.array(z.enum(['Plumbing', 'HVAC', 'Electrical', 'General'])).optional(),
+    categories: z.array(z.string()).optional(),
+});
+
+type AddVendorState = {
+    success: boolean;
+    message: string;
+    vendors?: Vendor[];
+}
+
+export async function addVendor(prevState: any, formData: FormData): Promise<AddVendorState> {
+    const validatedFields = vendorSchema.safeParse({
+        name: formData.get('name'),
+        contactName: formData.get('contactName'),
+        phone: formData.get('phone'),
+        email: formData.get('email'),
+        website: formData.get('website'),
+        address: formData.get('address'),
+        trades: JSON.parse(formData.get('trades') as string || '[]'),
+        categories: JSON.parse(formData.get('categories') as string || '[]'),
+    });
+
+    if (!validatedFields.success) {
+        console.error(validatedFields.error);
+        return { success: false, message: 'Invalid vendor data.' };
+    }
+
+    try {
+        const newVendor: Vendor = {
+            id: `vendor_${Date.now()}`,
+            name: validatedFields.data.name,
+            contactName: validatedFields.data.contactName,
+            phone: validatedFields.data.phone,
+            email: validatedFields.data.email,
+            website: validatedFields.data.website,
+            preferred: false,
+            trades: validatedFields.data.trades || [],
+            categories: validatedFields.data.categories || [],
+            locations: validatedFields.data.address ? [{ address: validatedFields.data.address }] : [],
+            deliveryOptions: ['Warehouse'],
+            createdAt: new Date(),
+        };
+
+        mockData.vendors.unshift(newVendor);
+
+        return {
+            success: true,
+            message: `Vendor "${newVendor.name}" added successfully.`,
+            vendors: [...mockData.vendors],
+        };
+    } catch (e: any) {
+        return { success: false, message: e.message || 'An unexpected error occurred.' };
     }
 }
