@@ -102,7 +102,7 @@ const DailyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDat
     const [selectedTech, setSelectedTech] = React.useState<string | 'all'>('all');
     
     const filteredJobs = jobs.filter(j => 
-        isSameDay(j.schedule.start, currentDate) && 
+        isSameDay(new Date(j.schedule.start), currentDate) && 
         (selectedTech === 'all' || j.technicianId === selectedTech)
     );
     
@@ -178,23 +178,27 @@ const WeeklyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDa
                                 {technicians.map((tech, techIndex) => (
                                     <div key={tech.id} className={cn("relative h-full", techIndex > 0 && "border-l border-dashed")}>
                                         <div className="absolute inset-0" style={{ backgroundColor: tech.color || 'transparent', opacity: 0.1 }}></div>
-                                        {hours.map(hour => {
-                                            const slotTime = new Date(day);
-                                            slotTime.setHours(hour, 0, 0, 0);
-                                            return (
-                                                <TimeSlot 
-                                                    key={`${hour}-full`} 
-                                                    technicianId={tech.id} 
-                                                    startTime={slotTime} 
-                                                    onDrop={onJobDrop} 
-                                                />
-                                            )
-                                        })}
+                                        {hours.map(hour => (
+                                            [0, 15, 30, 45].map(minute => {
+                                                const slotTime = new Date(day);
+                                                slotTime.setHours(hour, minute, 0, 0);
+                                                return (
+                                                    <TimeSlot 
+                                                        key={`${hour}-${minute}`} 
+                                                        technicianId={tech.id} 
+                                                        startTime={slotTime} 
+                                                        onDrop={onJobDrop} 
+                                                    />
+                                                );
+                                            })
+                                        ))}
                                         {hours.map(h => <div key={h} style={{top: `${(h-7)*60}px`}} className="absolute w-full h-[60px] border-t border-dashed border-gray-300" />)}
                                         {jobs.filter(job => job.technicianId === tech.id && isSameDay(new Date(job.schedule.start), day))
                                             .map(job => {
                                                 const durationMinutes = (new Date(job.schedule.end).getTime() - new Date(job.schedule.start).getTime()) / (1000 * 60);
-                                                const topPosition = (new Date(job.schedule.start).getHours() - 7 + new Date(job.schedule.start).getMinutes() / 60) * 60;
+                                                const startHour = new Date(job.schedule.start).getHours();
+                                                const startMinute = new Date(job.schedule.start).getMinutes();
+                                                const topPosition = ((startHour - 7) * 60) + startMinute;
                                                 return (
                                                     <div
                                                         key={job.id}
