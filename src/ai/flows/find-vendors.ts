@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An AI agent for finding local vendors and suppliers.
@@ -40,22 +41,24 @@ const prompt = ai.definePrompt({
   name: 'findVendorsPrompt',
   input: {schema: FindVendorsInputSchema},
   output: {schema: FindVendorsOutputSchema},
-  prompt: `You are a business directory assistant for a field service company. Your task is to find local suppliers based on a user's query.
+  prompt: `You are an expert sourcing assistant for a field service company. Your task is to find real, existing local suppliers based on a user's query. Prioritize accuracy and real-world data.
 
-You must find real-world, accurate information if possible, but act as a perfect directory. Generate a list of 3-5 vendors that match the user's search criteria.
+**Your Goal:** Generate a list of 3-5 highly relevant vendors that match the user's search criteria. Try to include a mix of major national suppliers (like Ferguson, Johnstone Supply) and well-known local suppliers.
 
-For each vendor, you need to provide:
--   A plausible business name.
--   A contact person (can be generic like "Pro Desk").
+**If the user's query mentions a specific business name (e.g., "APEX plumbing supply"), you MUST include that business in the results if it matches the location and trade.**
+
+User Query: "{{{query}}}"
+
+For each vendor, you must provide:
+-   The full, correct business name.
+-   A plausible contact person (e.g., "Pro Desk", "Sales Department").
 -   A valid-looking phone number and email address.
--   A website URL.
--   A full street address.
+-   A real website URL if one exists.
+-   A full, real street address.
 -   The primary trades they serve.
 -   A list of likely product categories they offer.
 
-Return the response in the requested JSON format. Do not make up information that isn't reasonably expected for a business directory.
-
-User Query: "{{{query}}}"`,
+Return the response in the requested JSON format. Do not invent information. If you cannot find a real-world match, it is better to return fewer, accurate results.`,
 });
 
 const findVendorsFlow = ai.defineFlow(
