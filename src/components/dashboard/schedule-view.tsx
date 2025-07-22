@@ -1,3 +1,4 @@
+
 'use client'
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
@@ -149,7 +150,7 @@ const WeeklyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDa
             <ScrollArea className="flex-grow" viewportClassName="h-full">
                 <div className={cn("flex", isFitToScreen && "w-full")}>
                     {weekDays.map((day, dayIndex) => (
-                        <div key={dayIndex} className={cn("min-w-[200px] lg:min-w-[250px] border-l", isFitToScreen && "flex-1 min-w-0")}>
+                        <div key={dayIndex} className={cn("border-l", isFitToScreen ? "flex-1 min-w-0" : "min-w-[200px] lg:min-w-[250px]")}>
                             <div className="text-center font-semibold py-2 border-b sticky top-0 bg-background z-10">
                                 {format(day, 'EEE')} <span className="text-muted-foreground">{format(day, 'd')}</span>
                             </div>
@@ -204,7 +205,7 @@ const TechnicianView = ({ jobs, technicians, onJobDrop, onJobStatusChange, curre
     const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStartsOn, i));
 
     return (
-        <div className="h-full">
+        <div className="h-full flex flex-col">
             <div className="flex border-b sticky top-0 bg-background z-10">
                 <div className="w-40 px-2 py-2 font-semibold border-r">Technician</div>
                  <div className="flex-grow grid grid-cols-7">
@@ -215,7 +216,7 @@ const TechnicianView = ({ jobs, technicians, onJobDrop, onJobStatusChange, curre
                     ))}
                 </div>
             </div>
-            <ScrollArea className="flex-grow pr-4" viewportClassName="h-full" style={{height: 'calc(100% - 41px)'}}>
+            <ScrollArea className="flex-grow pr-4" viewportClassName="h-full">
                 {technicians.map(tech => (
                     <div key={tech.id} className="flex border-b">
                         <div className="w-40 px-2 py-2 font-semibold border-r">{tech.name}</div>
