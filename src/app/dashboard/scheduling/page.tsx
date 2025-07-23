@@ -140,16 +140,22 @@ function SchedulingPageContent() {
         const daysInJob = eachDayOfInterval(jobInterval);
         
         return daysInJob.flatMap(day => {
-            const originalStartHour = getHours(jobStart);
-            const originalStartMinute = getMinutes(jobStart);
-            const originalEndHour = getHours(jobEnd);
-            const originalEndMinute = getMinutes(jobEnd);
+            const dayStart = startOfDay(day);
+            const dayEnd = endOfDay(day);
+
+            const effectiveDayStart = setMinutes(setHours(dayStart, workdayStartHour), 0);
+            const effectiveDayEnd = setMinutes(setHours(dayStart, workdayEndHour), 0);
+
+            const visibleStart = max([jobStart, dayStart]);
+            const visibleEnd = min([jobEnd, dayEnd]);
             
-            const segmentStart = setMinutes(setHours(day, originalStartHour), originalStartMinute);
-            const segmentEnd = setMinutes(setHours(day, originalEndHour), originalEndMinute);
+            if (isBefore(visibleEnd, visibleStart)) return [];
+            
+            const segmentStart = isSameDay(day, jobStart) ? visibleStart : effectiveDayStart;
+            const segmentEnd = isSameDay(day, jobEnd) ? visibleEnd : effectiveDayEnd;
             
             if (isBefore(segmentEnd, segmentStart)) return [];
-
+            
             const allTechsForJob = [job.technicianId, ...(job.additionalTechnicians || [])].filter(Boolean);
 
             return allTechsForJob.map((techId, index) => {
