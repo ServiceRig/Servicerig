@@ -34,15 +34,13 @@ export const ScheduleViewProvider = ({ children }: { children: React.ReactNode }
     );
 };
 
-function SchedulingPageContent() {
-  const [jobs, setJobs] = useState<Job[]>([]);
+function SchedulingPageContent({ jobs, setJobs }: { jobs: Job[], setJobs: React.Dispatch<React.SetStateAction<Job[]>>}) {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [technicians, setTechnicians] = useState<Technician[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setTimeout(() => {
-        setJobs(mockData.jobs as Job[]);
         setCustomers(mockData.customers as Customer[]);
         setTechnicians(mockData.technicians as Technician[]);
         setLoading(false);
@@ -56,7 +54,7 @@ function SchedulingPageContent() {
         }
         return [newJob, ...prevJobs];
     });
-  }, []);
+  }, [setJobs]);
   
   const moveJob = useCallback((jobId: string, newTechnicianId: string, newStartTime: Date) => {
     setJobs(prevJobs => {
@@ -89,7 +87,7 @@ function SchedulingPageContent() {
         
         return newJobs;
     });
-  }, []);
+  }, [setJobs]);
 
   const updateJobStatus = useCallback((jobId: string, newStatus: Job['status']) => {
     setJobs(prevJobs => {
@@ -104,7 +102,7 @@ function SchedulingPageContent() {
       newJobs[jobIndex] = updatedJob;
       return newJobs;
     });
-  }, []);
+  }, [setJobs]);
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [activeView, setActiveView] = useState('week');
@@ -207,7 +205,9 @@ function SchedulingPageContent() {
 
 
 export default function SchedulingPage() {
+    const [jobs, setJobs] = useState<Job[]>(mockData.jobs as Job[]);
     return (
-        <SchedulingPageContent />
+        <SchedulingPageContent jobs={jobs} setJobs={setJobs} />
     )
 }
+
