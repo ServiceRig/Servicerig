@@ -8,7 +8,7 @@ import { ScheduleView } from "@/components/dashboard/schedule-view";
 import { mockData } from "@/lib/mock-data";
 import { Job, Customer, Technician } from "@/lib/types";
 import { useEffect, useState, useCallback, createContext, useContext } from "react";
-import { addDays, eachDayOfInterval, startOfDay, endOfDay, max, min, isSameDay, setHours, setMinutes, getHours, getMinutes, isAfter, isBefore } from 'date-fns';
+import { addDays, eachDayOfInterval, startOfDay, endOfDay, max, min, isSameDay, setHours, setMinutes, getHours, getMinutes, isAfter, isBefore, format } from 'date-fns';
 
 // Create a context for schedule view state
 interface ScheduleViewContextType {
