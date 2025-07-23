@@ -93,25 +93,26 @@ function SchedulingPageContent() {
   }, []);
 
   const updateJobStatus = useCallback((jobId: string, newStatus: Job['status']) => {
-      setJobs(prevJobs => {
-          const updatedJobs = prevJobs.map(j => {
-              if (j.id === jobId) {
-                  return { ...j, status: newStatus };
-              }
-              return j;
-          });
+    let updatedJob: Job | undefined;
+    
+    setJobs(prevJobs => {
+        const newJobs = prevJobs.map(j => {
+            if (j.id === jobId) {
+                updatedJob = { ...j, status: newStatus };
+                return updatedJob;
+            }
+            return j;
+        });
+        return newJobs;
+    });
 
-          // Also update the mockData source of truth
-          const mockJobIndex = mockData.jobs.findIndex((mockJ: Job) => mockJ.id === jobId);
-          if (mockJobIndex !== -1) {
-              const updatedJob = updatedJobs.find(j => j.id === jobId);
-              if(updatedJob) {
-                mockData.jobs[mockJobIndex] = updatedJob;
-              }
-          }
-
-          return updatedJobs;
-      });
+    // Also update the mockData source of truth
+    if (updatedJob) {
+        const mockJobIndex = mockData.jobs.findIndex((mockJ: Job) => mockJ.id === jobId);
+        if (mockJobIndex !== -1) {
+            mockData.jobs[mockJobIndex] = updatedJob;
+        }
+    }
   }, []);
 
   const [currentDate, setCurrentDate] = useState(new Date());
