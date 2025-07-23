@@ -103,7 +103,7 @@ export type Job = {
   technicianId: string;
   additionalTechnicians?: string[];
   equipmentId?: string;
-  status: 'unscheduled' | 'scheduled' | 'in_progress' | 'complete';
+  status: 'unscheduled' | 'scheduled' | 'in_progress' | 'complete' | 'started' | 'on_hold' | 'awaiting_parts' | 'invoiced';
   schedule: {
     start: Date;
     end: Date;

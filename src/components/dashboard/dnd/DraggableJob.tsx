@@ -1,6 +1,6 @@
 
 'use client';
-import React, from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDrag } from 'react-dnd';
 import { ItemTypes } from '@/lib/constants';
 import { Job } from '@/lib/types';
@@ -12,13 +12,21 @@ import { MoreHorizontal, User, MapPin, Calendar, Clock, Wrench } from 'lucide-re
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const getStatusColor = (status: Job['status']) => {
     switch (status) {
         case 'scheduled': return 'bg-blue-200 border-blue-400 text-blue-800';
-        case 'in_progress': return 'bg-yellow-200 border-yellow-400 text-yellow-800';
+        case 'in_progress':
+        case 'started':
+             return 'bg-yellow-200 border-yellow-400 text-yellow-800';
         case 'complete': return 'bg-green-200 border-green-400 text-green-800';
-        case 'unscheduled': return 'bg-gray-200 border-gray-400 text-gray-800';
+        case 'unscheduled':
+        case 'on_hold':
+        case 'awaiting_parts':
+             return 'bg-gray-200 border-gray-400 text-gray-800';
+        case 'invoiced':
+             return 'bg-purple-200 border-purple-400 text-purple-800';
         default: return 'bg-gray-200 border-gray-400 text-gray-800';
     }
 };
@@ -42,6 +50,15 @@ const InfoRow = ({ icon: Icon, label, children }: { icon: React.ElementType, lab
     </div>
 );
 
+const allStatuses: Job['status'][] = ['unscheduled', 'scheduled', 'started', 'on_hold', 'awaiting_parts', 'in_progress', 'complete', 'invoiced'];
+
+const formatDuration = (seconds: number) => {
+    const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
+    const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
+    const s = Math.floor(seconds % 60).toString().padStart(2, '0');
+    return `${h}:${m}:${s}`;
+}
+
 
 export const DraggableJob: React.FC<DraggableJobProps> = ({ job, children, onStatusChange, isCompact, startHour = 7, onJobDrop }) => {
     const [{ isDragging }, drag] = useDrag(() => ({
@@ -51,19 +68,33 @@ export const DraggableJob: React.FC<DraggableJobProps> = ({ job, children, onSta
             isDragging: !!monitor.isDragging(),
         }),
     }));
+    
+    const [elapsedTime, setElapsedTime] = useState(0);
+    const [isActive, setIsActive] = useState(false);
 
-    const handleStatusChange = (status: Job['status']) => {
+    useEffect(() => {
+        const isTimerActive = job.status === 'started' || job.status === 'in_progress';
+        setIsActive(isTimerActive);
+        
+        let interval: NodeJS.Timeout | null = null;
+        if (isTimerActive) {
+            interval = setInterval(() => {
+                setElapsedTime(prev => prev + 1);
+            }, 1000);
+        }
+        
+        return () => {
+            if (interval) clearInterval(interval);
+        };
+
+    }, [job.status]);
+
+    const handleStatusChange = (newStatus: Job['status']) => {
         if (onStatusChange) {
-            onStatusChange(job.id, status);
+            onStatusChange(job.id, newStatus);
         }
     }
     
-    const handleRemove = () => {
-        if (onStatusChange) {
-            onStatusChange(job.id, 'unscheduled');
-        }
-    }
-
     // This is for the unscheduled job cards in the side panel
     if (children && !isCompact) {
         return (
@@ -126,6 +157,26 @@ export const DraggableJob: React.FC<DraggableJobProps> = ({ job, children, onSta
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="text-sm text-muted-foreground">Status</label>
+                                 <Select value={job.status} onValueChange={(value) => handleStatusChange(value as Job['status'])}>
+                                    <SelectTrigger>
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {allStatuses.map(s => <SelectItem key={s} value={s} className="capitalize">{s.replace('_', ' ')}</SelectItem>)}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                             <div>
+                                <label className="text-sm text-muted-foreground">Job Timer</label>
+                                <div className="text-2xl font-mono font-bold p-2 border rounded-md text-center">
+                                    {formatDuration(elapsedTime)}
+                                </div>
+                            </div>
+                        </div>
+
                         <InfoRow icon={User} label="Customer">
                             {job.customerName}
                         </InfoRow>
