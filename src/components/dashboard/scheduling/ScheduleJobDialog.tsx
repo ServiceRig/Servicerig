@@ -329,7 +329,7 @@ export function ScheduleJobDialog({ onJobCreated }: ScheduleJobDialogProps) {
                             <div className={cn("grid grid-cols-2 md:grid-cols-4 gap-4", isUnscheduled && "opacity-50 pointer-events-none")}>
                                 <div className="space-y-2">
                                     <Label>Start Date</Label>
-                                     <Popover>
+                                     <Popover modal={false}>
                                         <PopoverTrigger asChild>
                                           <Button variant="outline" className="w-full justify-start text-left font-normal">
                                             <CalendarIcon className="mr-2 h-4 w-4" />
@@ -348,7 +348,7 @@ export function ScheduleJobDialog({ onJobCreated }: ScheduleJobDialogProps) {
                                 </div>
                                  <div className="space-y-2">
                                     <Label>End Date</Label>
-                                     <Popover>
+                                     <Popover modal={false}>
                                         <PopoverTrigger asChild>
                                           <Button variant="outline" className="w-full justify-start text-left font-normal">
                                             <CalendarIcon className="mr-2 h-4 w-4" />
