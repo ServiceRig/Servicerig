@@ -92,17 +92,19 @@ function SchedulingPageContent() {
   }, []);
 
   const updateJobStatus = useCallback((jobId: string, newStatus: Job['status']) => {
-    const jobIndex = jobs.findIndex(j => j.id === jobId);
-    if(jobIndex === -1) {
-        console.error(`Job with id ${jobId} not found for status update.`);
-        return;
-    }
-    
-    let updatedJob = { ...jobs[jobIndex], status: newStatus };
-    const newJobs = [...jobs];
-    newJobs[jobIndex] = updatedJob;
-    setJobs(newJobs);
-  }, [jobs]);
+    setJobs(prevJobs => {
+      const jobIndex = prevJobs.findIndex(j => j.id === jobId);
+      if(jobIndex === -1) {
+          console.error(`Job with id ${jobId} not found for status update.`);
+          return prevJobs;
+      }
+      
+      const updatedJob = { ...prevJobs[jobIndex], status: newStatus };
+      const newJobs = [...prevJobs];
+      newJobs[jobIndex] = updatedJob;
+      return newJobs;
+    });
+  }, []);
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [activeView, setActiveView] = useState('week');
@@ -134,20 +136,19 @@ function SchedulingPageContent() {
 
         if (isBefore(jobEnd, jobStart)) return [];
 
-        const jobInterval = { start: jobStart, end: jobEnd };
+        const jobInterval = { start: startOfDay(jobStart), end: endOfDay(jobEnd) };
         const daysInJob = eachDayOfInterval(jobInterval);
         
         return daysInJob.flatMap(day => {
-            const dayStart = startOfDay(day);
-            const dayEnd = endOfDay(day);
-
-            const effectiveDayStart = setMinutes(setHours(dayStart, workdayStartHour), 0);
-            const effectiveDayEnd = setMinutes(setHours(dayStart, workdayEndHour), 0);
-
-            const visibleStart = max([jobStart, dayStart]);
-            const visibleEnd = min([jobEnd, dayEnd]);
+            const originalStartHour = getHours(jobStart);
+            const originalStartMinute = getMinutes(jobStart);
+            const originalEndHour = getHours(jobEnd);
+            const originalEndMinute = getMinutes(jobEnd);
             
-            if (isBefore(visibleEnd, visibleStart)) return [];
+            const segmentStart = setMinutes(setHours(day, originalStartHour), originalStartMinute);
+            const segmentEnd = setMinutes(setHours(day, originalEndHour), originalEndMinute);
+            
+            if (isBefore(segmentEnd, segmentStart)) return [];
 
             const allTechsForJob = [job.technicianId, ...(job.additionalTechnicians || [])].filter(Boolean);
 
@@ -162,8 +163,8 @@ function SchedulingPageContent() {
                     technicianId: techId,
                     schedule: {
                         ...job.schedule,
-                        start: visibleStart,
-                        end: visibleEnd,
+                        start: segmentStart,
+                        end: segmentEnd,
                     },
                     customerName: customer?.primaryContact.name || 'Unknown Customer',
                     technicianName: technician?.name || 'Unassigned',
