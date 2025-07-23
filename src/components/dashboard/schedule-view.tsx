@@ -215,7 +215,7 @@ const WeeklyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDa
                                                     return techMatch && isSameDay(new Date(job.schedule.start), day);
                                                 })
                                                 .map((job, index) => (
-                                                     <DraggableJob key={`${job.id}-${tech.id}-${day.toISOString()}-${index}`} job={job} onStatusChange={onJobStatusChange} onJobDrop={onJobDrop} isCompact startHour={startHour} />
+                                                     <DraggableJob key={job.id} job={job} onStatusChange={onJobStatusChange} onJobDrop={onJobDrop} isCompact startHour={startHour} />
                                                 ))}
                                         </div>
                                     </div>
