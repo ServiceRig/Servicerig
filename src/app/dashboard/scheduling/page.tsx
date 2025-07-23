@@ -34,96 +34,82 @@ export const ScheduleViewProvider = ({ children }: { children: React.ReactNode }
     );
 };
 
-
-// This is a placeholder for a real Firestore hook
-const useMockFirestore = () => {
-  const [data, setData] = useState<{
-    jobs: Job[];
-    customers: Customer[];
-    technicians: Technician[];
-  }>({
-    jobs: [],
-    customers: [],
-    technicians: [],
-  });
+function SchedulingPageContent() {
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [technicians, setTechnicians] = useState<Technician[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Simulate fetching data
     setTimeout(() => {
-      setData({
-          jobs: mockData.jobs as Job[],
-          customers: mockData.customers as Customer[],
-          technicians: mockData.technicians as Technician[]
-      });
-      setLoading(false);
+        setJobs(mockData.jobs as Job[]);
+        setCustomers(mockData.customers as Customer[]);
+        setTechnicians(mockData.technicians as Technician[]);
+        setLoading(false);
     }, 500);
   }, []);
   
   const moveJob = useCallback((jobId: string, newTechnicianId: string, newStartTime: Date) => {
-    setData(prevData => {
-        const jobToMove = prevData.jobs.find(j => j.id === jobId);
+    setJobs(prevJobs => {
+        const jobToMove = prevJobs.find(j => j.id === jobId);
         if (!jobToMove) {
             console.error(`Job with id ${jobId} not found!`);
-            return prevData;
+            return prevJobs;
         }
 
-        // Snap to nearest 15-minute interval
         const minutes = newStartTime.getMinutes();
         const roundedMinutes = Math.round(minutes / 15) * 15;
         const snappedStartTime = new Date(newStartTime);
         snappedStartTime.setMinutes(roundedMinutes, 0, 0);
 
-        // Default duration for unscheduled jobs, otherwise keep original duration
         let durationMs: number;
         if (jobToMove.status === 'unscheduled' || !jobToMove.schedule.end) {
-            durationMs = 60 * 60 * 1000; // 1 hour
+            durationMs = 60 * 60 * 1000;
         } else {
             durationMs = new Date(jobToMove.schedule.end).getTime() - new Date(jobToMove.schedule.start).getTime();
         }
 
         const newEndTime = new Date(snappedStartTime.getTime() + durationMs);
+        
+        const updatedJobs = prevJobs.map(j => 
+            j.id === jobId 
+            ? { ...j, technicianId: newTechnicianId, schedule: { start: snappedStartTime, end: newEndTime }, status: 'scheduled' } 
+            : j
+        );
 
-        return {
-            ...prevData,
-            jobs: prevData.jobs.map(j => 
-                j.id === jobId 
-                ? { ...j, technicianId: newTechnicianId, schedule: { start: snappedStartTime, end: newEndTime }, status: 'scheduled' } 
-                : j
-            )
-        };
+        // Also update the mockData source of truth
+        const mockJobIndex = mockData.jobs.findIndex((j: Job) => j.id === jobId);
+        if (mockJobIndex !== -1) {
+            mockData.jobs[mockJobIndex] = updatedJobs.find(j => j.id === jobId)!;
+        }
+
+        return updatedJobs;
     });
-    // In a real app, you would update Firestore here.
-    console.log(`Moved job ${jobId} to tech ${newTechnicianId} at ${newStartTime}`);
   }, []);
 
   const updateJobStatus = useCallback((jobId: string, newStatus: Job['status']) => {
-    setData(prevData => ({
-        ...prevData,
-        jobs: prevData.jobs.map(j => {
+    setJobs(prevJobs => {
+        const updatedJobs = prevJobs.map(j => {
             if (j.id === jobId) {
                 const updatedJob = { ...j, status: newStatus };
                 if (newStatus === 'unscheduled') {
                     updatedJob.technicianId = '';
                 }
+                
+                const mockJobIndex = mockData.jobs.findIndex((mockJ: Job) => mockJ.id === jobId);
+                if (mockJobIndex !== -1) {
+                    mockData.jobs[mockJobIndex] = updatedJob;
+                }
+                
                 return updatedJob;
             }
             return j;
-        })
-    }));
-     console.log(`Updated job ${jobId} status to ${newStatus}`);
+        });
+        return updatedJobs;
+    });
   }, []);
 
-  return { 
-    ...data,
-    loading, 
-    moveJob,
-    updateJobStatus
-  };
-};
-
-function SchedulingPageContent() {
-  const { jobs, customers, technicians, loading, moveJob, updateJobStatus } = useMockFirestore();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [activeView, setActiveView] = useState('week');
 
