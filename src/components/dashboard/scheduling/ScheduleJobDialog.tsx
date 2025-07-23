@@ -3,13 +3,11 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Switch } from '@/components/ui/switch';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { PlusCircle, UserPlus, Calendar as CalendarIcon } from 'lucide-react';
@@ -69,6 +67,11 @@ export function ScheduleJobDialog({ onJobCreated }: ScheduleJobDialogProps) {
     const [endTime, setEndTime] = useState<string>('10:00');
     const [arrivalWindow, setArrivalWindow] = useState<string>('');
     const [isUnscheduled, setIsUnscheduled] = useState(false);
+
+    // New state for calendar visibility
+    const [showStartDateCalendar, setShowStartDateCalendar] = useState(false);
+    const [showEndDateCalendar, setShowEndDateCalendar] = useState(false);
+
 
     // New Customer State
     const [isCreatingCustomer, setIsCreatingCustomer] = useState(false);
@@ -326,64 +329,59 @@ export function ScheduleJobDialog({ onJobCreated }: ScheduleJobDialogProps) {
                                 <Checkbox id="unscheduled" checked={isUnscheduled} onCheckedChange={(checked) => setIsUnscheduled(!!checked)} />
                                 <Label htmlFor="unscheduled">Add to Unscheduled Jobs list</Label>
                             </div>
-                            <div className={cn("grid grid-cols-2 md:grid-cols-4 gap-4", isUnscheduled && "opacity-50 pointer-events-none")}>
+                            <div className={cn("space-y-4", isUnscheduled && "opacity-50 pointer-events-none")}>
+                               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                  <div className="space-y-2 relative">
+                                      <Label>Start Date</Label>
+                                      <Button type="button" variant="outline" className="w-full justify-start text-left font-normal" onClick={() => setShowStartDateCalendar(!showStartDateCalendar)}>
+                                          <CalendarIcon className="mr-2 h-4 w-4" />
+                                          {startDate ? format(startDate, "PPP") : <span>Pick a date</span>}
+                                      </Button>
+                                      {showStartDateCalendar && (
+                                          <Calendar 
+                                              mode="single" 
+                                              selected={startDate} 
+                                              onSelect={(date) => { setStartDate(date); setShowStartDateCalendar(false); }}
+                                              initialFocus 
+                                              className="absolute z-10 bg-background border rounded-md shadow-md"
+                                          />
+                                      )}
+                                  </div>
+                                   <div className="space-y-2 relative">
+                                      <Label>End Date</Label>
+                                      <Button type="button" variant="outline" className="w-full justify-start text-left font-normal" onClick={() => setShowEndDateCalendar(!showEndDateCalendar)}>
+                                          <CalendarIcon className="mr-2 h-4 w-4" />
+                                          {endDate ? format(endDate, "PPP") : <span>Pick a date</span>}
+                                      </Button>
+                                      {showEndDateCalendar && (
+                                          <Calendar 
+                                              mode="single" 
+                                              selected={endDate} 
+                                              onSelect={(date) => { setEndDate(date); setShowEndDateCalendar(false); }}
+                                              initialFocus 
+                                              className="absolute z-10 bg-background border rounded-md shadow-md"
+                                          />
+                                      )}
+                                  </div>
+                                  <div className="space-y-2">
+                                      <Label>Start Time</Label>
+                                      <Select value={startTime} onValueChange={setStartTime}><SelectTrigger><SelectValue/></SelectTrigger>
+                                          <SelectContent>{timeOptions.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
+                                      </Select>
+                                  </div>
+                                   <div className="space-y-2">
+                                      <Label>End Time</Label>
+                                       <Select value={endTime} onValueChange={setEndTime}><SelectTrigger><SelectValue/></SelectTrigger>
+                                          <SelectContent>{timeOptions.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
+                                      </Select>
+                                  </div>
+                               </div>
                                 <div className="space-y-2">
-                                    <Label>Start Date</Label>
-                                     <Popover modal={false}>
-                                        <PopoverTrigger asChild>
-                                          <Button variant="outline" className="w-full justify-start text-left font-normal">
-                                            <CalendarIcon className="mr-2 h-4 w-4" />
-                                            {startDate ? format(startDate, "PPP") : <span>Pick a date</span>}
-                                          </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-auto p-0">
-                                            <Calendar 
-                                                mode="single" 
-                                                selected={startDate} 
-                                                onSelect={setStartDate}
-                                                initialFocus 
-                                            />
-                                        </PopoverContent>
-                                      </Popover>
-                                </div>
-                                 <div className="space-y-2">
-                                    <Label>End Date</Label>
-                                     <Popover modal={false}>
-                                        <PopoverTrigger asChild>
-                                          <Button variant="outline" className="w-full justify-start text-left font-normal">
-                                            <CalendarIcon className="mr-2 h-4 w-4" />
-                                            {endDate ? format(endDate, "PPP") : <span>Pick a date</span>}
-                                          </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-auto p-0">
-                                            <Calendar 
-                                                mode="single" 
-                                                selected={endDate} 
-                                                onSelect={setEndDate}
-                                                initialFocus 
-                                            />
-                                        </PopoverContent>
-                                      </Popover>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>Start Time</Label>
-                                    <Select value={startTime} onValueChange={setStartTime}><SelectTrigger><SelectValue/></SelectTrigger>
-                                        <SelectContent>{timeOptions.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
-                                    </Select>
-                                </div>
-                                 <div className="space-y-2">
-                                    <Label>End Time</Label>
-                                     <Select value={endTime} onValueChange={setEndTime}><SelectTrigger><SelectValue/></SelectTrigger>
-                                        <SelectContent>{timeOptions.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
-                                    </Select>
-                                </div>
-                                 <div className="space-y-2">
-                                    <Label>Arrival Window</Label>
-                                    <Select value={arrivalWindow} onValueChange={setArrivalWindow}><SelectTrigger><SelectValue placeholder="Select window"/></SelectTrigger>
-                                        <SelectContent>{arrivalWindows.map(w => <SelectItem key={w} value={w}>{w}</SelectItem>)}</SelectContent>
-                                    </Select>
-                                </div>
-                                
+                                   <Label>Arrival Window</Label>
+                                   <Select value={arrivalWindow} onValueChange={setArrivalWindow}><SelectTrigger><SelectValue placeholder="Select window"/></SelectTrigger>
+                                       <SelectContent>{arrivalWindows.map(w => <SelectItem key={w} value={w}>{w}</SelectItem>)}</SelectContent>
+                                   </Select>
+                               </div>
                             </div>
                         </div>
 
