@@ -43,17 +43,19 @@ const getInitials = (name: string) => {
 }
 
 const UnscheduledJobCard = ({ job }: { job: Job }) => (
-    <DraggableJob job={job}>
-        <Card className="mb-2 p-2 cursor-grab active:cursor-grabbing">
-            <CardHeader className="p-1">
-                <CardTitle className="text-sm font-bold">{job.title}</CardTitle>
-                <CardDescription className="text-xs">{job.customerName}</CardDescription>
-            </CardHeader>
-            <CardContent className="p-1 text-xs text-muted-foreground">
-                {job.details.serviceType}
-            </CardContent>
-        </Card>
-    </DraggableJob>
+    <div key={`unscheduled-${job.id}`}>
+        <DraggableJob job={job}>
+            <Card className="mb-2 p-2 cursor-grab active:cursor-grabbing">
+                <CardHeader className="p-1">
+                    <CardTitle className="text-sm font-bold">{job.title}</CardTitle>
+                    <CardDescription className="text-xs">{job.customerName}</CardDescription>
+                </CardHeader>
+                <CardContent className="p-1 text-xs text-muted-foreground">
+                    {job.details.serviceType}
+                </CardContent>
+            </Card>
+        </DraggableJob>
+    </div>
 );
 
 const UnscheduledJobsPanel = ({ jobs, onJobStatusChange }: { jobs: Job[], onJobStatusChange: (jobId: string, status: Job['status']) => void }) => {
