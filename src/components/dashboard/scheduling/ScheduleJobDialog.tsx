@@ -61,6 +61,7 @@ export function ScheduleJobDialog() {
     const [additionalTechnicians, setAdditionalTechnicians] = useState<Set<string>>(new Set());
     const [isMultiDay, setIsMultiDay] = useState(false);
     const [startDate, setStartDate] = useState<Date | undefined>(new Date());
+    const [endDate, setEndDate] = useState<Date | undefined>(new Date());
     const [startTime, setStartTime] = useState<string>('08:00');
     const [endTime, setEndTime] = useState<string>('10:00');
     const [arrivalWindow, setArrivalWindow] = useState<string>('');
@@ -140,6 +141,7 @@ export function ScheduleJobDialog() {
         setAdditionalTechnicians(new Set());
         setIsMultiDay(false);
         setStartDate(new Date());
+        setEndDate(new Date());
         setStartTime('08:00');
         setEndTime('10:00');
         setArrivalWindow('');
@@ -152,12 +154,22 @@ export function ScheduleJobDialog() {
             toast({ variant: 'destructive', title: 'Missing Fields', description: 'Please fill out all required fields.' });
             return;
         }
+        
+        if (!startDate || !endDate) {
+            toast({ variant: 'destructive', title: 'Invalid Dates', description: 'Please select a valid start and end date.' });
+            return;
+        }
+
+        if (endDate < startDate) {
+            toast({ variant: 'destructive', title: 'Invalid Dates', description: 'End date cannot be before the start date.' });
+            return;
+        }
 
         const [startH, startM] = startTime.split(':').map(Number);
         const [endH, endM] = endTime.split(':').map(Number);
 
         const finalStartDate = setMinutes(setHours(startDate!, startH), startM);
-        const finalEndDate = setMinutes(setHours(startDate!, endH), endM);
+        const finalEndDate = setMinutes(setHours(endDate!, endH), endM);
 
         const newJob: Job = {
             id: `job_${Date.now()}`,
@@ -325,6 +337,18 @@ export function ScheduleJobDialog() {
                                           </Button>
                                         </PopoverTrigger>
                                         <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={startDate} onSelect={setStartDate} initialFocus /></PopoverContent>
+                                      </Popover>
+                                </div>
+                                 <div className="space-y-2">
+                                    <Label>End Date</Label>
+                                     <Popover>
+                                        <PopoverTrigger asChild>
+                                          <Button variant="outline" className="w-full justify-start text-left font-normal">
+                                            <CalendarIcon className="mr-2 h-4 w-4" />
+                                            {endDate ? format(endDate, "PPP") : <span>Pick a date</span>}
+                                          </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={endDate} onSelect={setEndDate} initialFocus /></PopoverContent>
                                       </Popover>
                                 </div>
                                 <div className="space-y-2">
