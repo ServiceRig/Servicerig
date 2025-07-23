@@ -138,7 +138,7 @@ const DailyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDat
                             <div key={tech.id} className="min-w-[200px]">
                                 <h3 className="font-semibold text-center mb-2">{tech.name}</h3>
                                 <div className="relative bg-muted/40 rounded-lg" style={{ minHeight: `${hours.length * 60}px`}}>
-                                    {hours.map(hour => (
+                                    {hours.flatMap(hour => (
                                         [0, 15, 30, 45].map(minute => {
                                             const slotTime = new Date(currentDate);
                                             slotTime.setHours(hour, minute, 0, 0);
@@ -155,7 +155,7 @@ const DailyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDat
                                     ))}
                                     {hours.slice(1).map(h => <div key={h} className="h-[60px] border-t border-dashed border-gray-300" style={{top: `${(h-startHour)*60}px`, position: 'absolute', width: '100%'}} />)}
                                     {filteredJobs.filter(j => j.technicianId === tech.id).map(job => (
-                                         <DraggableJob key={job.id} job={job} onStatusChange={onJobStatusChange} startHour={startHour}/>
+                                         <DraggableJob key={job.id} job={job} onStatusChange={onJobStatusChange} onJobDrop={onJobDrop} startHour={startHour}/>
                                     ))}
                                 </div>
                             </div>
@@ -174,24 +174,25 @@ const WeeklyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDa
     const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStartsOn, i));
     const allTechsAndUnassigned = [...technicians, { id: 'unassigned', name: 'Unassigned', color: '#888888' }];
     const hours = Array.from({ length: endHour - startHour + 1 }, (_, i) => i + startHour);
+    const gridOffset = 78; // Combined height of day and tech headers
 
     return (
         <div className="flex h-full">
             <TimeAxis startHour={startHour} endHour={endHour}/>
             <ScrollArea className="flex-grow" viewportClassName="h-full">
-                <div className={cn("grid grid-cols-7 h-full", isFitToScreen ? "w-full" : "min-w-[2000px]")}>
+                <div className={cn("grid grid-cols-7 relative", isFitToScreen ? "w-full" : "min-w-[2000px]")}>
                     {weekDays.map((day) => (
-                        <div key={day.toISOString()} className="border-l flex flex-col relative">
-                            <div className="text-center font-semibold py-2 border-b sticky top-0 bg-background z-10">
+                        <div key={day.toISOString()} className="border-l flex flex-col">
+                            <div className="text-center font-semibold py-2 border-b sticky top-0 bg-background z-20">
                                 {format(day, 'EEE')} <span className="text-muted-foreground">{format(day, 'd')}</span>
                             </div>
-                            <div className="grid h-full mt-[2.5rem]" style={{ gridTemplateColumns: `repeat(${allTechsAndUnassigned.length}, 1fr)` }}>
+                            <div className="grid h-full" style={{ gridTemplateColumns: `repeat(${allTechsAndUnassigned.length}, 1fr)` }}>
                                 {allTechsAndUnassigned.map((tech, techIndex) => (
                                     <div key={tech.id} className={cn("relative h-full", techIndex > 0 && "border-l border-dashed")}>
                                         <div className="sticky top-[49px] bg-background z-10 text-center text-xs py-1 border-b font-semibold" style={{ color: tech.color }}>
                                             {getInitials(tech.name)}
                                         </div>
-                                        <div className="relative mt-[29px]" style={{ height: `${hours.length * 60}px`}}>
+                                        <div className="relative" style={{ height: `${hours.length * 60}px`}}>
                                              {hours.flatMap(hour =>
                                                 [0, 15, 30, 45].map(minute => {
                                                     const slotTime = new Date(day);
@@ -219,17 +220,17 @@ const WeeklyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDa
                                     </div>
                                 ))}
                             </div>
-                            <div className="absolute top-[78px] left-0 right-0 mt-[29px]" style={{ height: `${hours.length * 60}px`, pointerEvents: 'none' }}>
-                                {hours.slice(1).map(h => (
-                                    <div 
-                                        key={h} 
-                                        className="h-[60px] border-t border-dashed border-gray-300"
-                                        style={{ top: `${(h - startHour) * 60}px`, position: 'absolute', width: '100%' }} 
-                                    />
-                                ))}
-                            </div>
                         </div>
                     ))}
+                    <div className="absolute top-0 left-0 right-0" style={{ height: `${gridOffset + (hours.length * 60)}px`, pointerEvents: 'none' }}>
+                        {hours.slice(1).map(h => (
+                            <div 
+                                key={h} 
+                                className="h-[60px] border-t border-dashed border-gray-300"
+                                style={{ top: `${gridOffset + (h - startHour) * 60}px`, position: 'absolute', width: '100%' }} 
+                            />
+                        ))}
+                    </div>
                 </div>
             </ScrollArea>
         </div>
