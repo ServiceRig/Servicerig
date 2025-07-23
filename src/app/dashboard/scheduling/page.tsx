@@ -8,7 +8,7 @@ import { ScheduleView } from "@/components/dashboard/schedule-view";
 import { mockData } from "@/lib/mock-data";
 import { Job, Customer, Technician } from "@/lib/types";
 import { useEffect, useState, useCallback, createContext, useContext } from "react";
-import { addDays, eachDayOfInterval, startOfDay, endOfDay, max, min, isSameDay } from 'date-fns';
+import { addDays, eachDayOfInterval, startOfDay, endOfDay, max, min, isSameDay, setHours, setMinutes, getHours, getMinutes } from 'date-fns';
 
 // Create a context for schedule view state
 interface ScheduleViewContextType {
@@ -146,20 +146,14 @@ function SchedulingPageContent() {
     const jobInterval = { start: jobStart, end: jobEnd };
     const daysInJob = eachDayOfInterval(jobInterval);
     
-    const { startHour: workdayStartHour, endHour: workdayEndHour } = mockData.scheduleSettings;
+    const jobStartHour = getHours(jobStart);
+    const jobStartMinute = getMinutes(jobStart);
+    const jobEndHour = getHours(jobEnd);
+    const jobEndMinute = getMinutes(jobEnd);
 
     return daysInJob.flatMap(day => {
-        const dayStart = startOfDay(day);
-        const dayEnd = endOfDay(day);
-
-        const workdayStart = new Date(day.getTime());
-        workdayStart.setHours(workdayStartHour, 0, 0, 0);
-
-        const workdayEnd = new Date(day.getTime());
-        workdayEnd.setHours(workdayEndHour, 0, 0, 0);
-
-        const visibleStart = max([jobStart, workdayStart]);
-        const visibleEnd = min([jobEnd, workdayEnd]);
+        const visibleStart = setMinutes(setHours(day, jobStartHour), jobStartMinute);
+        const visibleEnd = setMinutes(setHours(day, jobEndHour), jobEndMinute);
         
         if (visibleStart >= visibleEnd) return [];
 
