@@ -15,7 +15,11 @@ interface TimeSlotProps {
 export const TimeSlot: React.FC<TimeSlotProps> = ({ technicianId, startTime, onDrop, startHour = 7 }) => {
   const [{ isOver, canDrop }, drop] = useDrop(() => ({
     accept: ItemTypes.JOB,
-    drop: (item: { id: string }) => onDrop(item.id, technicianId, startTime),
+    drop: (item: { id: string }) => {
+        // Ensure we pass a clean date object to avoid timezone issues.
+        const cleanStartTime = new Date(startTime);
+        onDrop(item.id, technicianId, cleanStartTime);
+    },
     collect: (monitor) => ({
       isOver: !!monitor.isOver(),
       canDrop: !!monitor.canDrop(),
