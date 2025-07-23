@@ -8,7 +8,7 @@ import { ScheduleView } from "@/components/dashboard/schedule-view";
 import { mockData } from "@/lib/mock-data";
 import { Job, Customer, Technician } from "@/lib/types";
 import { useEffect, useState, useCallback, createContext, useContext } from "react";
-import { addDays, eachDayOfInterval, startOfDay, endOfDay, max, min, isSameDay, setHours, setMinutes, getHours, getMinutes } from 'date-fns';
+import { addDays, eachDayOfInterval, startOfDay, endOfDay, max, min, isSameDay, setHours, setMinutes, getHours, getMinutes, isAfter, isBefore } from 'date-fns';
 
 // Create a context for schedule view state
 interface ScheduleViewContextType {
@@ -97,25 +97,22 @@ function SchedulingPageContent() {
   }, []);
 
   const updateJobStatus = useCallback((jobId: string, newStatus: Job['status']) => {
-    let updatedJob: Job | undefined;
+    const jobIndex = jobs.findIndex(j => j.id === jobId);
+    if(jobIndex === -1) {
+        console.error(`Job with id ${jobId} not found for status update.`);
+        return;
+    }
     
-    setJobs(prevJobs => {
-        const newJobs = prevJobs.map(j => {
-            if (j.id === jobId) {
-                updatedJob = { ...j, status: newStatus };
-                return updatedJob;
-            }
-            return j;
-        });
+    let updatedJob = { ...jobs[jobIndex], status: newStatus };
+    const newJobs = [...jobs];
+    newJobs[jobIndex] = updatedJob;
+    setJobs(newJobs);
 
-        const mockJobIndex = mockData.jobs.findIndex((mockJ: Job) => mockJ.id === jobId);
-        if (mockJobIndex !== -1 && updatedJob) {
-            mockData.jobs[mockJobIndex] = updatedJob;
-        }
-
-        return newJobs;
-    });
-  }, []);
+    const mockJobIndex = mockData.jobs.findIndex((mockJ: Job) => mockJ.id === jobId);
+    if (mockJobIndex !== -1) {
+        mockData.jobs[mockJobIndex] = updatedJob;
+    }
+  }, [jobs]);
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [activeView, setActiveView] = useState('week');
@@ -125,62 +122,67 @@ function SchedulingPageContent() {
     const sign = direction === 'prev' ? -1 : 1;
     setCurrentDate(prevDate => addDays(prevDate, increment * sign));
   };
+  
+    const { startHour: workdayStartHour, endHour: workdayEndHour } = mockData.scheduleSettings;
 
-  const enrichedJobs = (jobs ?? []).flatMap(job => {
-    if (job.status === 'unscheduled') {
-        const customer = customers.find(c => c.id === job.customerId);
-        return [{
-            ...job,
-            originalId: job.id,
-            customerName: customer?.primaryContact.name || 'Unknown Customer',
-            technicianName: 'Unassigned',
-            color: '#A0A0A0',
-            isGhost: false,
-        }];
-    }
-    
-    const customer = customers.find(c => c.id === job.customerId);
-    const jobStart = new Date(job.schedule.start);
-    const jobEnd = new Date(job.schedule.end);
-
-    const jobInterval = { start: jobStart, end: jobEnd };
-    const daysInJob = eachDayOfInterval(jobInterval);
-    
-    const jobStartHour = getHours(jobStart);
-    const jobStartMinute = getMinutes(jobStart);
-    const jobEndHour = getHours(jobEnd);
-    const jobEndMinute = getMinutes(jobEnd);
-
-    return daysInJob.flatMap(day => {
-        const visibleStart = setMinutes(setHours(day, jobStartHour), jobStartMinute);
-        const visibleEnd = setMinutes(setHours(day, jobEndHour), jobEndMinute);
-        
-        if (visibleStart >= visibleEnd) return [];
-
-        const allTechsForJob = [job.technicianId, ...(job.additionalTechnicians || [])].filter(Boolean);
-
-        return allTechsForJob.map((techId, index) => {
-            const technician = technicians.find(t => t.id === techId);
-            const isPrimary = index === 0;
-
-            return {
+    const enrichedJobs = (jobs ?? []).flatMap(job => {
+        if (job.status === 'unscheduled') {
+            const customer = customers.find(c => c.id === job.customerId);
+            return [{
                 ...job,
-                id: `${job.id}_${day.toISOString().split('T')[0]}_${techId}`,
                 originalId: job.id,
-                technicianId: techId,
-                schedule: {
-                    ...job.schedule,
-                    start: visibleStart,
-                    end: visibleEnd,
-                },
                 customerName: customer?.primaryContact.name || 'Unknown Customer',
-                technicianName: technician?.name || 'Unassigned',
-                color: technician?.color || '#A0A0A0',
-                isGhost: !isPrimary,
-            };
+                technicianName: 'Unassigned',
+                color: '#A0A0A0',
+                isGhost: false,
+            }];
+        }
+        
+        const customer = customers.find(c => c.id === job.customerId);
+        const jobStart = new Date(job.schedule.start);
+        const jobEnd = new Date(job.schedule.end);
+
+        if (isBefore(jobEnd, jobStart)) return [];
+
+        const jobInterval = { start: jobStart, end: jobEnd };
+        const daysInJob = eachDayOfInterval(jobInterval);
+        
+        return daysInJob.flatMap(day => {
+            const dayStart = startOfDay(day);
+            const dayEnd = endOfDay(day);
+
+            const effectiveDayStart = setMinutes(setHours(dayStart, workdayStartHour), 0);
+            const effectiveDayEnd = setMinutes(setHours(dayStart, workdayEndHour), 0);
+
+            const visibleStart = isSameDay(day, jobStart) ? jobStart : effectiveDayStart;
+            const visibleEnd = isSameDay(day, jobEnd) ? jobEnd : effectiveDayEnd;
+            
+            if (isBefore(visibleEnd, visibleStart)) return [];
+
+            const allTechsForJob = [job.technicianId, ...(job.additionalTechnicians || [])].filter(Boolean);
+
+            return allTechsForJob.map((techId, index) => {
+                const technician = technicians.find(t => t.id === techId);
+                const isPrimary = index === 0;
+
+                return {
+                    ...job,
+                    id: `${job.id}_${format(day, 'yyyy-MM-dd')}_${techId}`,
+                    originalId: job.id,
+                    technicianId: techId,
+                    schedule: {
+                        ...job.schedule,
+                        start: visibleStart,
+                        end: visibleEnd,
+                    },
+                    customerName: customer?.primaryContact.name || 'Unknown Customer',
+                    technicianName: technician?.name || 'Unassigned',
+                    color: technician?.color || '#A0A0A0',
+                    isGhost: !isPrimary,
+                };
+            });
         });
     });
-});
 
 
   const scheduledJobs = enrichedJobs.filter(job => job.status !== 'unscheduled');
