@@ -3,7 +3,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
@@ -13,10 +12,10 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
-import { PlusCircle, UserPlus, Calendar as CalendarIcon, X } from 'lucide-react';
+import { PlusCircle, UserPlus, Calendar as CalendarIcon } from 'lucide-react';
 import { mockData } from '@/lib/mock-data';
-import type { Customer, Equipment, Estimate, Job, Technician } from '@/lib/types';
-import { addDays, format, setHours, setMinutes } from 'date-fns';
+import type { Customer, Equipment, Job, Technician } from '@/lib/types';
+import { format, setHours, setMinutes } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { addJob } from '@/lib/firestore/jobs';
 
@@ -64,7 +63,6 @@ export function ScheduleJobDialog({ onJobCreated }: ScheduleJobDialogProps) {
     const [description, setDescription] = useState('');
     const [primaryTechnicianId, setPrimaryTechnicianId] = useState<string>('');
     const [additionalTechnicians, setAdditionalTechnicians] = useState<Set<string>>(new Set());
-    const [isMultiDay, setIsMultiDay] = useState(false);
     const [startDate, setStartDate] = useState<Date | undefined>(new Date());
     const [endDate, setEndDate] = useState<Date | undefined>(new Date());
     const [startTime, setStartTime] = useState<string>('08:00');
@@ -144,7 +142,6 @@ export function ScheduleJobDialog({ onJobCreated }: ScheduleJobDialogProps) {
         setDescription('');
         setPrimaryTechnicianId('');
         setAdditionalTechnicians(new Set());
-        setIsMultiDay(false);
         setStartDate(new Date());
         setEndDate(new Date());
         setStartTime('08:00');
@@ -193,7 +190,7 @@ export function ScheduleJobDialog({ onJobCreated }: ScheduleJobDialogProps) {
                 start: finalStartDate,
                 end: finalEndDate,
                 arrivalWindow: isUnscheduled ? undefined : arrivalWindow,
-                multiDay: isMultiDay,
+                multiDay: finalStartDate.toDateString() !== finalEndDate.toDateString(),
                 unscheduled: isUnscheduled,
             },
             duration: (finalEndDate.getTime() - finalStartDate.getTime()) / (1000 * 60),
@@ -219,7 +216,7 @@ export function ScheduleJobDialog({ onJobCreated }: ScheduleJobDialogProps) {
                     Schedule Job
                 </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
+            <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col" onOpenAutoFocus={(e) => e.preventDefault()}>
                 <DialogHeader>
                     <DialogTitle>Schedule a New Job</DialogTitle>
                     <DialogDescription>Fill in the details to add a new job to the schedule.</DialogDescription>
@@ -386,10 +383,7 @@ export function ScheduleJobDialog({ onJobCreated }: ScheduleJobDialogProps) {
                                         <SelectContent>{arrivalWindows.map(w => <SelectItem key={w} value={w}>{w}</SelectItem>)}</SelectContent>
                                     </Select>
                                 </div>
-                                 <div className="flex items-center space-x-2 mt-4">
-                                    <Switch id="multi-day" checked={isMultiDay} onCheckedChange={setIsMultiDay} />
-                                    <Label htmlFor="multi-day">Multi-Day Job</Label>
-                                </div>
+                                
                             </div>
                         </div>
 
