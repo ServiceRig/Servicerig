@@ -50,9 +50,9 @@ function SchedulingPageContent() {
     }, 500);
   }, []);
   
-  const handleJobCreated = (newJob: Job) => {
+  const handleJobCreated = useCallback((newJob: Job) => {
     setJobs(prevJobs => [...prevJobs, newJob]);
-  };
+  }, []);
   
   const moveJob = useCallback((jobId: string, newTechnicianId: string, newStartTime: Date) => {
     setJobs(prevJobs => {
@@ -124,19 +124,36 @@ function SchedulingPageContent() {
     setCurrentDate(prevDate => addDays(prevDate, increment * sign));
   };
 
-  const enrichedJobs = (jobs ?? []).map(job => {
+  const enrichedJobs = (jobs ?? []).flatMap(job => {
     const customer = customers.find(c => c.id === job.customerId);
-    const technician = technicians.find(t => t.id === job.technicianId);
-    return {
+    const primaryTechnician = technicians.find(t => t.id === job.technicianId);
+    
+    const primaryJob = {
       ...job,
       customerName: customer?.primaryContact.name || 'Unknown Customer',
-      technicianName: technician?.name || 'Unassigned',
-      color: technician?.color || '#A0A0A0', // Add color here
+      technicianName: primaryTechnician?.name || 'Unassigned',
+      color: primaryTechnician?.color || '#A0A0A0',
+      isGhost: false,
     };
+
+    const ghostJobs = (job.additionalTechnicians || []).map(techId => {
+        const ghostTechnician = technicians.find(t => t.id === techId);
+        return {
+            ...job,
+            id: `${job.id}_ghost_${techId}`, // Create a unique ID for the ghost job
+            technicianId: techId, // Assign to the additional tech
+            customerName: customer?.primaryContact.name || 'Unknown Customer',
+            technicianName: ghostTechnician?.name || 'Unassigned',
+            color: ghostTechnician?.color || '#A0A0A0',
+            isGhost: true, // Mark this as a non-interactive ghost job
+        };
+    });
+
+    return [primaryJob, ...ghostJobs];
   });
 
   const scheduledJobs = enrichedJobs.filter(job => job.status !== 'unscheduled');
-  const unscheduledJobs = enrichedJobs.filter(job => job.status === 'unscheduled');
+  const unscheduledJobs = enrichedJobs.filter(job => job.status === 'unscheduled' && !job.isGhost);
 
   if (loading) {
     return <div className="p-4">Loading Schedule...</div>;

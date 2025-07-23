@@ -32,7 +32,7 @@ const getStatusColor = (status: Job['status']) => {
 };
 
 interface DraggableJobProps {
-    job: Job;
+    job: Job & { isGhost?: boolean };
     children?: React.ReactNode;
     onStatusChange?: (jobId: string, status: Job['status']) => void;
     onJobDrop?: (jobId: string, technicianId: string, startTime: Date) => void;
@@ -64,6 +64,7 @@ export const DraggableJob: React.FC<DraggableJobProps> = ({ job, children, onSta
     const [{ isDragging }, drag] = useDrag(() => ({
         type: ItemTypes.JOB,
         item: { id: job.id },
+        canDrag: !job.isGhost, // Prevent ghost jobs from being dragged
         collect: (monitor) => ({
             isDragging: !!monitor.isDragging(),
         }),
@@ -114,7 +115,8 @@ export const DraggableJob: React.FC<DraggableJobProps> = ({ job, children, onSta
         <div
             className={cn(
                 "h-full w-full rounded p-1 text-[10px] cursor-pointer overflow-hidden",
-                "text-white"
+                "text-white",
+                job.isGhost && "opacity-60"
             )}
             style={{ backgroundColor: job.color, textShadow: '0 1px 2px rgba(0,0,0,0.4)' }}
         >
@@ -125,7 +127,8 @@ export const DraggableJob: React.FC<DraggableJobProps> = ({ job, children, onSta
          <div
             className={cn(
                 "h-full w-full p-2 rounded-md border text-xs cursor-pointer overflow-hidden",
-                getStatusColor(job.status)
+                getStatusColor(job.status),
+                job.isGhost && "opacity-60"
             )}
              style={{ backgroundColor: job.color, textShadow: '0 1px 2px rgba(0,0,0,0.4)' }}
         >
@@ -138,12 +141,11 @@ export const DraggableJob: React.FC<DraggableJobProps> = ({ job, children, onSta
     return (
         <div
             ref={drag}
-            className={cn("absolute z-10", isCompact ? "inset-x-1" : "left-2 right-2")}
+            className={cn("absolute z-10", isCompact ? "inset-x-1" : "left-2 right-2", job.isGhost ? 'pointer-events-none' : 'cursor-grab')}
             style={{
                 top: `${topPosition}px`,
                 height: `${durationMinutes}px`,
                 opacity: isDragging ? 0.5 : 1,
-                cursor: 'grab'
             }}
         >
             <Dialog>
@@ -161,7 +163,7 @@ export const DraggableJob: React.FC<DraggableJobProps> = ({ job, children, onSta
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label className="text-sm text-muted-foreground">Status</label>
-                                 <Select value={job.status} onValueChange={(value) => handleStatusChange(value as Job['status'])}>
+                                 <Select value={job.status} onValueChange={(value) => handleStatusChange(value as Job['status'])} disabled={job.isGhost}>
                                     <SelectTrigger>
                                         <SelectValue />
                                     </SelectTrigger>

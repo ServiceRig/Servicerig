@@ -20,7 +20,7 @@ import { addDays, format, setHours, setMinutes } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { addJob } from '@/lib/firestore/jobs';
 
-const timeOptions = Array.from({ length: 48 }, (_, i) => {
+const timeOptions = Array.from({ length: 96 }, (_, i) => { // 96 quarters in a day
     const totalMinutes = i * 15;
     const hours = Math.floor(totalMinutes / 60);
     const minutes = totalMinutes % 60;
@@ -30,6 +30,7 @@ const timeOptions = Array.from({ length: 48 }, (_, i) => {
         label: format(date, 'h:mm a'),
     };
 });
+
 
 const arrivalWindows = [
     '8:00 AM – 10:00 AM',
