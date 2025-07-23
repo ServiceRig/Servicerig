@@ -96,7 +96,7 @@ export const DraggableJob: React.FC<DraggableJobProps> = ({ job, children, onSta
     }
     
     // This is for the unscheduled job cards in the side panel
-    if (children && !isCompact) {
+    if (children) {
         return (
             <div ref={drag} style={{ opacity: isDragging ? 0.5 : 1 }}>
                 {children}
@@ -107,6 +107,7 @@ export const DraggableJob: React.FC<DraggableJobProps> = ({ job, children, onSta
     const durationMinutes = (new Date(job.schedule.end).getTime() - new Date(job.schedule.start).getTime()) / (1000 * 60);
     const jobStartHour = new Date(job.schedule.start).getHours();
     const jobStartMinute = new Date(job.schedule.start).getMinutes();
+    
     const topPosition = ((jobStartHour - startHour) * 60) + jobStartMinute;
 
     const jobTrigger = isCompact ? (

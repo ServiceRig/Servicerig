@@ -336,5 +336,3 @@ export function ScheduleView({
     </div>
   );
 }
-
-    
