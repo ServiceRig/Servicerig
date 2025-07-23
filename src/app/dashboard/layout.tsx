@@ -1,6 +1,6 @@
 
 'use client'
-import React, { Suspense, useState } from 'react';
+import React, { Suspense, useState, useEffect } from 'react';
 import Image from 'next/image';
 import { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarFooter, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { MainNav } from '@/components/dashboard/main-nav';
@@ -35,6 +35,15 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const { role, isLoading } = useRole();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
+  const isSchedulingPage = pathname.includes('/dashboard/scheduling');
+  
+  useEffect(() => {
+    // Collapse sidebar by default on scheduling page, otherwise keep it open
+    setIsSidebarOpen(!isSchedulingPage);
+  }, [isSchedulingPage, pathname]);
+
 
   React.useEffect(() => {
     if (!isLoading && !role) {
@@ -42,7 +51,6 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
     }
   }, [isLoading, role, router]);
 
-  const isSchedulingPage = pathname.includes('/dashboard/scheduling');
 
   if (isLoading || !role) {
     return (
@@ -53,7 +61,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <SidebarProvider>
+    <SidebarProvider open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
       <Sidebar collapsible="icon">
         <SidebarHeader className="p-4">
           <div className="flex items-end justify-center gap-2">

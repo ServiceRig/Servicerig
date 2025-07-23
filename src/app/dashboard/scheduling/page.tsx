@@ -26,7 +26,7 @@ export const useScheduleView = () => {
 };
 
 export const ScheduleViewProvider = ({ children }: { children: React.ReactNode }) => {
-    const [isFitToScreen, setIsFitToScreen] = useState(false);
+    const [isFitToScreen, setIsFitToScreen] = useState(true);
     return (
         <ScheduleViewContext.Provider value={{ isFitToScreen, setIsFitToScreen }}>
             {children}
@@ -141,18 +141,12 @@ function SchedulingPageContent() {
         
         return daysInJob.flatMap(day => {
             const dayStart = startOfDay(day);
-            const dayEnd = endOfDay(day);
-
-            const effectiveDayStart = setMinutes(setHours(dayStart, workdayStartHour), 0);
-            const effectiveDayEnd = setMinutes(setHours(dayStart, workdayEndHour), 0);
-
-            const visibleStart = max([jobStart, dayStart]);
-            const visibleEnd = min([jobEnd, dayEnd]);
             
-            if (isBefore(visibleEnd, visibleStart)) return [];
+            const segmentStart = new Date(day);
+            segmentStart.setHours(jobStart.getHours(), jobStart.getMinutes());
             
-            const segmentStart = isSameDay(day, jobStart) ? visibleStart : effectiveDayStart;
-            const segmentEnd = isSameDay(day, jobEnd) ? visibleEnd : effectiveDayEnd;
+            const segmentEnd = new Date(day);
+            segmentEnd.setHours(jobEnd.getHours(), jobEnd.getMinutes());
             
             if (isBefore(segmentEnd, segmentStart)) return [];
             
