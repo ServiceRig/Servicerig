@@ -58,7 +58,7 @@ const UnscheduledJobCard = ({ job }: { job: Job }) => (
 const UnscheduledJobsPanel = ({ jobs, onJobStatusChange }: { jobs: Job[], onJobStatusChange: (jobId: string, status: Job['status']) => void }) => {
     const [{ isOver }, drop] = useDrop(() => ({
         accept: ItemTypes.JOB,
-        drop: (item: Job) => {
+        drop: (item: { id: string }) => {
             onJobStatusChange(item.id, 'unscheduled');
         },
         collect: (monitor) => ({
@@ -192,7 +192,7 @@ const WeeklyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDa
                                             {getInitials(tech.name)}
                                         </div>
                                         <div className="relative mt-[29px]" style={{ height: `${hours.length * 60}px`}}>
-                                            {hours.map(hour => (
+                                             {hours.flatMap(hour =>
                                                 [0, 15, 30, 45].map(minute => {
                                                     const slotTime = new Date(day);
                                                     slotTime.setHours(hour, minute, 0, 0);
@@ -206,7 +206,7 @@ const WeeklyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDa
                                                         />
                                                     );
                                                 })
-                                            ))}
+                                            )}
                                             {jobs
                                                 .filter(job => {
                                                     const techMatch = tech.id === 'unassigned' ? !job.technicianId || job.technicianId === '' : job.technicianId === tech.id;
@@ -219,11 +219,11 @@ const WeeklyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDa
                                     </div>
                                 ))}
                             </div>
-                            <div className="absolute top-[78px] left-0 right-0 mt-[29px]" style={{ height: `${hours.length * 60}px`}}>
+                            <div className="absolute top-[78px] left-0 right-0 mt-[29px]" style={{ height: `${hours.length * 60}px`, pointerEvents: 'none' }}>
                                 {hours.slice(1).map(h => (
                                     <div 
                                         key={h} 
-                                        className="h-[60px] border-t border-dashed border-gray-300 pointer-events-none" 
+                                        className="h-[60px] border-t border-dashed border-gray-300"
                                         style={{ top: `${(h - startHour) * 60}px`, position: 'absolute', width: '100%' }} 
                                     />
                                 ))}
