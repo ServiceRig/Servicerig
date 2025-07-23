@@ -46,12 +46,20 @@ export async function getJobsByCustomerId(customerId: string): Promise<Job[]> {
 
 /**
  * Adds a new job to the mock data.
- * @param job The job object to add.
+ * @param jobData The job data to add.
+ * @returns The newly created job object.
  */
-export async function addJob(job: Job) {
-    console.log("Adding job to DB:", job.id);
-    mockData.jobs.unshift(job);
+export async function addJob(jobData: Omit<Job, 'id' | 'createdAt' | 'updatedAt'>): Promise<Job> {
+    console.log("Adding job to DB:", jobData.title);
+    const newJob: Job = {
+        ...jobData,
+        id: `job_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+    }
+    mockData.jobs.unshift(newJob);
     await new Promise(resolve => setTimeout(resolve, 100));
+    return newJob;
 }
 
 /**
@@ -69,3 +77,5 @@ export async function updateJob(updatedJob: Job): Promise<void> {
     }
     await new Promise(resolve => setTimeout(resolve, 100));
 }
+
+    

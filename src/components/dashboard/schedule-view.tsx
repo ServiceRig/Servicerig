@@ -28,6 +28,7 @@ interface ScheduleViewProps {
     technicians: Technician[];
     onJobDrop: (jobId: string, technicianId: string, startTime: Date) => void;
     onJobStatusChange: (jobId: string, status: Job['status']) => void;
+    onJobCreated: (newJob: Job) => void;
     currentDate: Date;
     onCurrentDateChange: (date: Date) => void;
     onPrevious: () => void;
@@ -244,6 +245,7 @@ export function ScheduleView({
   technicians,
   onJobDrop,
   onJobStatusChange,
+  onJobCreated,
   currentDate,
   onCurrentDateChange,
   onPrevious,
@@ -261,7 +263,7 @@ export function ScheduleView({
   return (
     <div className="flex flex-col md:flex-row gap-4 h-full">
        <div className="w-full md:w-64 flex flex-col gap-4">
-        <ScheduleJobDialog />
+        <ScheduleJobDialog onJobCreated={onJobCreated} />
         <UnscheduledJobsPanel jobs={unscheduledJobs} onJobStatusChange={onJobStatusChange} />
       </div>
       <Card className="flex-grow h-full flex flex-col">
@@ -334,3 +336,5 @@ export function ScheduleView({
     </div>
   );
 }
+
+    

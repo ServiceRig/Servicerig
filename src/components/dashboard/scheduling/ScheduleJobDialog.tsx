@@ -46,7 +46,11 @@ const initialNewCustomerState = {
     address: '',
 };
 
-export function ScheduleJobDialog() {
+interface ScheduleJobDialogProps {
+    onJobCreated: (newJob: Job) => void;
+}
+
+export function ScheduleJobDialog({ onJobCreated }: ScheduleJobDialogProps) {
     const [isOpen, setIsOpen] = useState(false);
     const { toast } = useToast();
     
@@ -66,6 +70,11 @@ export function ScheduleJobDialog() {
     const [endTime, setEndTime] = useState<string>('10:00');
     const [arrivalWindow, setArrivalWindow] = useState<string>('');
     const [isUnscheduled, setIsUnscheduled] = useState(false);
+
+    // Date Picker Popover State
+    const [isStartDatePickerOpen, setIsStartDatePickerOpen] = useState(false);
+    const [isEndDatePickerOpen, setIsEndDatePickerOpen] = useState(false);
+
 
     // New Customer State
     const [isCreatingCustomer, setIsCreatingCustomer] = useState(false);
@@ -171,8 +180,7 @@ export function ScheduleJobDialog() {
         const finalStartDate = setMinutes(setHours(startDate!, startH), startM);
         const finalEndDate = setMinutes(setHours(endDate!, endH), endM);
 
-        const newJob: Job = {
-            id: `job_${Date.now()}`,
+        const newJob: Omit<Job, 'id' | 'createdAt' | 'updatedAt'> = {
             customerId: selectedCustomer.id,
             technicianId: primaryTechnicianId,
             additionalTechnicians: Array.from(additionalTechnicians),
@@ -193,13 +201,12 @@ export function ScheduleJobDialog() {
                 unscheduled: isUnscheduled,
             },
             duration: (finalEndDate.getTime() - finalStartDate.getTime()) / (1000 * 60),
-            createdAt: new Date(),
-            updatedAt: new Date(),
         };
 
         try {
-            await addJob(newJob);
+            const createdJob = await addJob(newJob);
             toast({ title: 'Job Scheduled', description: `Job for ${selectedCustomer.primaryContact.name} has been created.` });
+            onJobCreated(createdJob);
             resetForm();
             setIsOpen(false);
         } catch (error) {
@@ -329,7 +336,7 @@ export function ScheduleJobDialog() {
                             <div className={cn("grid grid-cols-2 md:grid-cols-4 gap-4", isUnscheduled && "opacity-50 pointer-events-none")}>
                                 <div className="space-y-2">
                                     <Label>Start Date</Label>
-                                     <Popover>
+                                     <Popover open={isStartDatePickerOpen} onOpenChange={setIsStartDatePickerOpen}>
                                         <PopoverTrigger asChild>
                                           <Button variant="outline" className="w-full justify-start text-left font-normal">
                                             <CalendarIcon className="mr-2 h-4 w-4" />
@@ -340,7 +347,7 @@ export function ScheduleJobDialog() {
                                             <Calendar 
                                                 mode="single" 
                                                 selected={startDate} 
-                                                onSelect={setStartDate}
+                                                onSelect={(date) => { setStartDate(date); setIsStartDatePickerOpen(false); }}
                                                 initialFocus 
                                             />
                                         </PopoverContent>
@@ -348,7 +355,7 @@ export function ScheduleJobDialog() {
                                 </div>
                                  <div className="space-y-2">
                                     <Label>End Date</Label>
-                                     <Popover>
+                                     <Popover open={isEndDatePickerOpen} onOpenChange={setIsEndDatePickerOpen}>
                                         <PopoverTrigger asChild>
                                           <Button variant="outline" className="w-full justify-start text-left font-normal">
                                             <CalendarIcon className="mr-2 h-4 w-4" />
@@ -359,7 +366,7 @@ export function ScheduleJobDialog() {
                                             <Calendar 
                                                 mode="single" 
                                                 selected={endDate} 
-                                                onSelect={setEndDate}
+                                                onSelect={(date) => { setEndDate(date); setIsEndDatePickerOpen(false); }}
                                                 initialFocus 
                                             />
                                         </PopoverContent>
@@ -400,3 +407,5 @@ export function ScheduleJobDialog() {
         </Dialog>
     )
 }
+
+    

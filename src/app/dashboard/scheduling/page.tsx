@@ -50,6 +50,10 @@ function SchedulingPageContent() {
     }, 500);
   }, []);
   
+  const handleJobCreated = (newJob: Job) => {
+    setJobs(prevJobs => [...prevJobs, newJob]);
+  };
+  
   const moveJob = useCallback((jobId: string, newTechnicianId: string, newStartTime: Date) => {
     setJobs(prevJobs => {
         const jobToMove = prevJobs.find(j => j.id === jobId);
@@ -146,6 +150,7 @@ function SchedulingPageContent() {
               technicians={technicians}
               onJobDrop={moveJob}
               onJobStatusChange={updateJobStatus}
+              onJobCreated={handleJobCreated}
               currentDate={currentDate}
               onCurrentDateChange={setCurrentDate}
               onPrevious={() => handleDateNavigation('prev')}
@@ -164,3 +169,5 @@ export default function SchedulingPage() {
         <SchedulingPageContent />
     )
 }
+
+    
