@@ -76,6 +76,10 @@ export function ScheduleJobDialog() {
     const allTechnicians = mockData.technicians as Technician[];
     const allEquipment = mockData.equipment as Equipment[];
 
+    // Popover control state
+    const [isStartDatePickerOpen, setIsStartDatePickerOpen] = useState(false);
+    const [isEndDatePickerOpen, setIsEndDatePickerOpen] = useState(false);
+
     useEffect(() => {
         if (selectedCustomer) {
             const equipment = allEquipment.filter(e => selectedCustomer.equipmentIds?.includes(e.id));
@@ -329,26 +333,40 @@ export function ScheduleJobDialog() {
                             <div className={cn("grid grid-cols-2 md:grid-cols-4 gap-4", isUnscheduled && "opacity-50 pointer-events-none")}>
                                 <div className="space-y-2">
                                     <Label>Start Date</Label>
-                                     <Popover>
+                                     <Popover open={isStartDatePickerOpen} onOpenChange={setIsStartDatePickerOpen}>
                                         <PopoverTrigger asChild>
                                           <Button variant="outline" className="w-full justify-start text-left font-normal">
                                             <CalendarIcon className="mr-2 h-4 w-4" />
                                             {startDate ? format(startDate, "PPP") : <span>Pick a date</span>}
                                           </Button>
                                         </PopoverTrigger>
-                                        <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={startDate} onSelect={setStartDate} initialFocus /></PopoverContent>
+                                        <PopoverContent className="w-auto p-0">
+                                            <Calendar 
+                                                mode="single" 
+                                                selected={startDate} 
+                                                onSelect={(date) => { setStartDate(date); setIsStartDatePickerOpen(false); }} 
+                                                initialFocus 
+                                            />
+                                        </PopoverContent>
                                       </Popover>
                                 </div>
                                  <div className="space-y-2">
                                     <Label>End Date</Label>
-                                     <Popover>
+                                     <Popover open={isEndDatePickerOpen} onOpenChange={setIsEndDatePickerOpen}>
                                         <PopoverTrigger asChild>
                                           <Button variant="outline" className="w-full justify-start text-left font-normal">
                                             <CalendarIcon className="mr-2 h-4 w-4" />
                                             {endDate ? format(endDate, "PPP") : <span>Pick a date</span>}
                                           </Button>
                                         </PopoverTrigger>
-                                        <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={endDate} onSelect={setEndDate} initialFocus /></PopoverContent>
+                                        <PopoverContent className="w-auto p-0">
+                                            <Calendar 
+                                                mode="single" 
+                                                selected={endDate} 
+                                                onSelect={(date) => { setEndDate(date); setIsEndDatePickerOpen(false); }} 
+                                                initialFocus 
+                                            />
+                                        </PopoverContent>
                                       </Popover>
                                 </div>
                                 <div className="space-y-2">
