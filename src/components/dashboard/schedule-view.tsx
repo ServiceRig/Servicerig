@@ -43,19 +43,17 @@ const getInitials = (name: string) => {
 }
 
 const UnscheduledJobCard = ({ job }: { job: Job }) => (
-    <div key={`unscheduled-${job.id}`}>
-        <DraggableJob job={job}>
-            <Card className="mb-2 p-2 cursor-grab active:cursor-grabbing">
-                <CardHeader className="p-1">
-                    <CardTitle className="text-sm font-bold">{job.title}</CardTitle>
-                    <CardDescription className="text-xs">{job.customerName}</CardDescription>
-                </CardHeader>
-                <CardContent className="p-1 text-xs text-muted-foreground">
-                    {job.details.serviceType}
-                </CardContent>
-            </Card>
-        </DraggableJob>
-    </div>
+    <DraggableJob job={job}>
+        <Card className="mb-2 p-2 cursor-grab active:cursor-grabbing">
+            <CardHeader className="p-1">
+                <CardTitle className="text-sm font-bold">{job.title}</CardTitle>
+                <CardDescription className="text-xs">{job.customerName}</CardDescription>
+            </CardHeader>
+            <CardContent className="p-1 text-xs text-muted-foreground">
+                {job.details.serviceType}
+            </CardContent>
+        </Card>
+    </DraggableJob>
 );
 
 const UnscheduledJobsPanel = ({ jobs, onJobStatusChange }: { jobs: Job[], onJobStatusChange: (jobId: string, status: Job['status']) => void }) => {
@@ -78,7 +76,7 @@ const UnscheduledJobsPanel = ({ jobs, onJobStatusChange }: { jobs: Job[], onJobS
             <CardContent className="flex-grow overflow-hidden">
                 <ScrollArea className="h-full pr-4">
                     {jobs.length > 0 ? (
-                        jobs.map(job => <UnscheduledJobCard key={job.id} job={job} />)
+                        jobs.map((job, index) => <UnscheduledJobCard key={`${job.id}-${index}`} job={job} />)
                     ) : (
                         <div className="text-center text-sm text-muted-foreground h-full flex items-center justify-center">
                             No unscheduled jobs.
