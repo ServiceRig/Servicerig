@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { DndProvider } from 'react-dnd';
@@ -61,12 +60,14 @@ function SchedulingPageContent() {
   
   const moveJob = useCallback((jobId: string, newTechnicianId: string, newStartTime: Date) => {
     setJobs(prevJobs => {
-        const jobToMove = prevJobs.find(j => j.id === jobId);
-        if (!jobToMove) {
+        const jobToMoveIndex = prevJobs.findIndex(j => j.id === jobId);
+        if (jobToMoveIndex === -1) {
             console.error(`Job with id ${jobId} not found!`);
             return prevJobs;
         }
 
+        const jobToMove = prevJobs[jobToMoveIndex];
+        
         const minutes = newStartTime.getMinutes();
         const roundedMinutes = Math.round(minutes / 15) * 15;
         const snappedStartTime = new Date(newStartTime);
@@ -81,11 +82,12 @@ function SchedulingPageContent() {
 
         const newEndTime = new Date(snappedStartTime.getTime() + durationMs);
         
-        return prevJobs.map(j => 
-            j.id === jobId 
-            ? { ...j, technicianId: newTechnicianId, schedule: { ...j.schedule, start: snappedStartTime, end: newEndTime }, status: 'scheduled' } 
-            : j
-        );
+        const updatedJob = { ...jobToMove, technicianId: newTechnicianId, schedule: { ...jobToMove.schedule, start: snappedStartTime, end: newEndTime }, status: 'scheduled' };
+        
+        const newJobs = [...prevJobs];
+        newJobs[jobToMoveIndex] = updatedJob;
+        
+        return newJobs;
     });
   }, []);
 
@@ -100,11 +102,6 @@ function SchedulingPageContent() {
     const newJobs = [...jobs];
     newJobs[jobIndex] = updatedJob;
     setJobs(newJobs);
-
-    const mockJobIndex = mockData.jobs.findIndex((mockJ: Job) => mockJ.id === jobId);
-    if (mockJobIndex !== -1) {
-        mockData.jobs[mockJobIndex] = updatedJob;
-    }
   }, [jobs]);
 
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -147,8 +144,8 @@ function SchedulingPageContent() {
             const effectiveDayStart = setMinutes(setHours(dayStart, workdayStartHour), 0);
             const effectiveDayEnd = setMinutes(setHours(dayStart, workdayEndHour), 0);
 
-            const visibleStart = max(jobStart, dayStart);
-            const visibleEnd = min(jobEnd, dayEnd);
+            const visibleStart = max([jobStart, dayStart]);
+            const visibleEnd = min([jobEnd, dayEnd]);
             
             if (isBefore(visibleEnd, visibleStart)) return [];
 
