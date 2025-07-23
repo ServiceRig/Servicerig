@@ -8,7 +8,7 @@ import { ScheduleView } from "@/components/dashboard/schedule-view";
 import { mockData } from "@/lib/mock-data";
 import { Job, Customer, Technician } from "@/lib/types";
 import { useEffect, useState, useCallback, createContext, useContext } from "react";
-import { addDays, eachDayOfInterval, startOfDay, endOfDay, max, min, isSameDay, setHours, setMinutes, getHours, getMinutes, isAfter, isBefore, format } from 'date-fns';
+import { addDays, eachDayOfInterval, startOfDay, endOfDay, max, min, isSameDay, setHours, setMinutes, getHours, getMinutes, isBefore, format } from 'date-fns';
 
 // Create a context for schedule view state
 interface ScheduleViewContextType {
@@ -81,18 +81,11 @@ function SchedulingPageContent() {
 
         const newEndTime = new Date(snappedStartTime.getTime() + durationMs);
         
-        const updatedJobs = prevJobs.map(j => 
+        return prevJobs.map(j => 
             j.id === jobId 
             ? { ...j, technicianId: newTechnicianId, schedule: { ...j.schedule, start: snappedStartTime, end: newEndTime }, status: 'scheduled' } 
             : j
         );
-
-        const mockJobIndex = mockData.jobs.findIndex((j: Job) => j.id === jobId);
-        if (mockJobIndex !== -1) {
-            mockData.jobs[mockJobIndex] = updatedJobs.find(j => j.id === jobId)!;
-        }
-
-        return updatedJobs;
     });
   }, []);
 
@@ -154,8 +147,8 @@ function SchedulingPageContent() {
             const effectiveDayStart = setMinutes(setHours(dayStart, workdayStartHour), 0);
             const effectiveDayEnd = setMinutes(setHours(dayStart, workdayEndHour), 0);
 
-            const visibleStart = isSameDay(day, jobStart) ? jobStart : effectiveDayStart;
-            const visibleEnd = isSameDay(day, jobEnd) ? jobEnd : effectiveDayEnd;
+            const visibleStart = max(jobStart, dayStart);
+            const visibleEnd = min(jobEnd, dayEnd);
             
             if (isBefore(visibleEnd, visibleStart)) return [];
 
