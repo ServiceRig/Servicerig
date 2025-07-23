@@ -1,4 +1,5 @@
 
+
 'use client';
 import React, { useState, useCallback } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
@@ -42,7 +43,7 @@ const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('');
 }
 
-const UnscheduledJobCard = ({ job }: { job: Job }) => (
+const UnscheduledJobCard = ({ job }: { job: Job & { originalId: string } }) => (
     <DraggableJob job={job}>
         <Card className="mb-2 p-2 cursor-grab active:cursor-grabbing">
             <CardHeader className="p-1">
@@ -56,7 +57,7 @@ const UnscheduledJobCard = ({ job }: { job: Job }) => (
     </DraggableJob>
 );
 
-const UnscheduledJobsPanel = ({ jobs, onJobStatusChange }: { jobs: Job[], onJobStatusChange: (jobId: string, status: Job['status']) => void }) => {
+const UnscheduledJobsPanel = ({ jobs, onJobStatusChange }: { jobs: (Job & { originalId: string })[], onJobStatusChange: (jobId: string, status: Job['status']) => void }) => {
     const [{ isOver }, drop] = useDrop(() => ({
         accept: ItemTypes.JOB,
         drop: (item: { id: string }) => {
@@ -105,7 +106,7 @@ const TimeAxis = ({ startHour, endHour }: { startHour: number, endHour: number }
 };
 
 
-const DailyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDate, startHour, endHour }: { jobs: Job[], technicians: Technician[], onJobDrop: (jobId: string, techId: string, startTime: Date) => void, onJobStatusChange: (jobId: string, status: Job['status']) => void, currentDate: Date, startHour: number, endHour: number }) => {
+const DailyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDate, startHour, endHour }: { jobs: (Job & { originalId: string })[], technicians: Technician[], onJobDrop: (jobId: string, techId: string, startTime: Date) => void, onJobStatusChange: (jobId: string, status: Job['status']) => void, currentDate: Date, startHour: number, endHour: number }) => {
     const [selectedTech, setSelectedTech] = React.useState<string | 'all'>('all');
     
     const filteredJobs = jobs.filter(j => 
@@ -169,13 +170,13 @@ const DailyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDat
 };
 
 
-const WeeklyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDate, startHour, endHour }: { jobs: Job[], technicians: Technician[], onJobDrop: (jobId: string, techId: string, startTime: Date) => void, onJobStatusChange: (jobId: string, status: Job['status']) => void, currentDate: Date, startHour: number, endHour: number }) => {
+const WeeklyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDate, startHour, endHour }: { jobs: (Job & { originalId: string })[], technicians: Technician[], onJobDrop: (jobId: string, techId: string, startTime: Date) => void, onJobStatusChange: (jobId: string, status: Job['status']) => void, currentDate: Date, startHour: number, endHour: number }) => {
     const { isFitToScreen } = useScheduleView();
     const weekStartsOn = startOfWeek(currentDate, { weekStartsOn: 1 }); // Monday
     const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStartsOn, i));
     const allTechsAndUnassigned = [...technicians, { id: 'unassigned', name: 'Unassigned', color: '#888888' }];
     const hours = Array.from({ length: endHour - startHour + 1 }, (_, i) => i + startHour);
-    const gridOffset = 78; // Combined height of day and tech headers
+    const gridOffset = 78;
 
     return (
         <div className="flex h-full">
@@ -214,7 +215,7 @@ const WeeklyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDa
                                                     const techMatch = tech.id === 'unassigned' ? !job.technicianId || job.technicianId === '' : job.technicianId === tech.id;
                                                     return techMatch && isSameDay(new Date(job.schedule.start), day);
                                                 })
-                                                .map((job, index) => (
+                                                .map(job => (
                                                      <DraggableJob key={job.id} job={job} onStatusChange={onJobStatusChange} onJobDrop={onJobDrop} isCompact startHour={startHour} />
                                                 ))}
                                         </div>

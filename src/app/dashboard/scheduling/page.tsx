@@ -42,7 +42,6 @@ function SchedulingPageContent() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate fetching data
     setTimeout(() => {
         setJobs(mockData.jobs as Job[]);
         setCustomers(mockData.customers as Customer[]);
@@ -53,7 +52,6 @@ function SchedulingPageContent() {
   
   const handleJobCreated = useCallback((newJob: Job) => {
     setJobs(prevJobs => {
-        // This ensures no duplicate jobs are added, which can happen with fast refresh in dev
         if (prevJobs.some(job => job.id === newJob.id)) {
             return prevJobs;
         }
@@ -89,7 +87,6 @@ function SchedulingPageContent() {
             : j
         );
 
-        // Also update the mockData source of truth
         const mockJobIndex = mockData.jobs.findIndex((j: Job) => j.id === jobId);
         if (mockJobIndex !== -1) {
             mockData.jobs[mockJobIndex] = updatedJobs.find(j => j.id === jobId)!;
@@ -110,16 +107,14 @@ function SchedulingPageContent() {
             }
             return j;
         });
-        return newJobs;
-    });
 
-    // Also update the mockData source of truth
-    if (updatedJob) {
         const mockJobIndex = mockData.jobs.findIndex((mockJ: Job) => mockJ.id === jobId);
-        if (mockJobIndex !== -1) {
+        if (mockJobIndex !== -1 && updatedJob) {
             mockData.jobs[mockJobIndex] = updatedJob;
         }
-    }
+
+        return newJobs;
+    });
   }, []);
 
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -133,10 +128,10 @@ function SchedulingPageContent() {
 
   const enrichedJobs = (jobs ?? []).flatMap(job => {
     if (job.status === 'unscheduled') {
-        // Return unscheduled jobs as a single item without slicing
         const customer = customers.find(c => c.id === job.customerId);
         return [{
             ...job,
+            originalId: job.id,
             customerName: customer?.primaryContact.name || 'Unknown Customer',
             technicianName: 'Unassigned',
             color: '#A0A0A0',
@@ -151,26 +146,22 @@ function SchedulingPageContent() {
     const jobInterval = { start: jobStart, end: jobEnd };
     const daysInJob = eachDayOfInterval(jobInterval);
     
-    const workdayStartHour = 8;
-    const workdayEndHour = 17;
+    const { startHour: workdayStartHour, endHour: workdayEndHour } = mockData.scheduleSettings;
 
     return daysInJob.flatMap(day => {
         const dayStart = startOfDay(day);
         const dayEnd = endOfDay(day);
 
-        // Define the workday for this specific day
-        const workdayStart = new Date(day.setHours(workdayStartHour, 0, 0, 0));
-        const workdayEnd = new Date(day.setHours(workdayEndHour, 0, 0, 0));
+        const workdayStart = new Date(day.getTime());
+        workdayStart.setHours(workdayStartHour, 0, 0, 0);
 
-        // Calculate the visible start and end times for this day's segment
+        const workdayEnd = new Date(day.getTime());
+        workdayEnd.setHours(workdayEndHour, 0, 0, 0);
+
         const visibleStart = max([jobStart, workdayStart]);
         const visibleEnd = min([jobEnd, workdayEnd]);
-
-        // If the job is single-day, just use its actual times
-        const finalStartTime = isSameDay(jobStart, jobEnd) ? jobStart : visibleStart;
-        const finalEndTime = isSameDay(jobStart, jobEnd) ? jobEnd : visibleEnd;
         
-        if (finalStartTime >= finalEndTime) return []; // Skip rendering if segment is invalid
+        if (visibleStart >= visibleEnd) return [];
 
         const allTechsForJob = [job.technicianId, ...(job.additionalTechnicians || [])].filter(Boolean);
 
@@ -180,13 +171,13 @@ function SchedulingPageContent() {
 
             return {
                 ...job,
-                // Create a unique ID for each segment to avoid key collisions
                 id: `${job.id}_${day.toISOString().split('T')[0]}_${techId}`,
+                originalId: job.id,
                 technicianId: techId,
                 schedule: {
                     ...job.schedule,
-                    start: finalStartTime,
-                    end: finalEndTime,
+                    start: visibleStart,
+                    end: visibleEnd,
                 },
                 customerName: customer?.primaryContact.name || 'Unknown Customer',
                 technicianName: technician?.name || 'Unassigned',
@@ -199,7 +190,7 @@ function SchedulingPageContent() {
 
 
   const scheduledJobs = enrichedJobs.filter(job => job.status !== 'unscheduled');
-  const unscheduledJobs = enrichedJobs.filter(job => job.status === 'unscheduled' && !job.isGhost);
+  const unscheduledJobs = enrichedJobs.filter(job => job.status === 'unscheduled');
 
   if (loading) {
     return <div className="p-4">Loading Schedule...</div>;

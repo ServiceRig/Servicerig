@@ -32,7 +32,7 @@ const getStatusColor = (status: Job['status']) => {
 };
 
 interface DraggableJobProps {
-    job: Job & { isGhost?: boolean };
+    job: Job & { isGhost?: boolean; originalId: string };
     children?: React.ReactNode;
     onStatusChange?: (jobId: string, status: Job['status']) => void;
     onJobDrop?: (jobId: string, technicianId: string, startTime: Date) => void;
@@ -63,8 +63,8 @@ const formatDuration = (seconds: number) => {
 export const DraggableJob: React.FC<DraggableJobProps> = ({ job, children, onStatusChange, isCompact, startHour = 7, onJobDrop }) => {
     const [{ isDragging }, drag] = useDrag(() => ({
         type: ItemTypes.JOB,
-        item: { id: job.id },
-        canDrag: !job.isGhost, // Prevent ghost jobs from being dragged
+        item: { id: job.originalId }, // Use the original ID for the drag item
+        canDrag: !job.isGhost,
         collect: (monitor) => ({
             isDragging: !!monitor.isDragging(),
         }),
@@ -92,11 +92,10 @@ export const DraggableJob: React.FC<DraggableJobProps> = ({ job, children, onSta
 
     const handleStatusChange = (newStatus: Job['status']) => {
         if (onStatusChange) {
-            onStatusChange(job.id, newStatus);
+            onStatusChange(job.originalId, newStatus);
         }
     }
     
-    // This is for the unscheduled job cards in the side panel
     if (children) {
         return (
             <div ref={drag} style={{ opacity: isDragging ? 0.5 : 1 }}>
@@ -156,7 +155,7 @@ export const DraggableJob: React.FC<DraggableJobProps> = ({ job, children, onSta
                     <DialogHeader>
                         <DialogTitle>{job.title}</DialogTitle>
                         <DialogDescription>
-                            Job ID: {job.id.toUpperCase()}
+                            Job ID: {job.originalId.toUpperCase()}
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
@@ -206,7 +205,7 @@ export const DraggableJob: React.FC<DraggableJobProps> = ({ job, children, onSta
                     </div>
                      <div className="mt-6 flex justify-end gap-2">
                         <Button asChild variant="outline">
-                            <Link href={`/dashboard/jobs/${job.id}`}>View Full Job Details</Link>
+                            <Link href={`/dashboard/jobs/${job.originalId}`}>View Full Job Details</Link>
                         </Button>
                     </div>
                 </DialogContent>
