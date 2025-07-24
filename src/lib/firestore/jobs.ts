@@ -51,23 +51,16 @@ export async function getJobsByCustomerId(customerId: string): Promise<Job[]> {
  * @returns The newly created job object.
  */
 export async function addJob(jobData: Omit<Job, 'id' | 'createdAt' | 'updatedAt'>): Promise<Job> {
-    const jobId = `job_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-    const job: Job = {
+    const newJob: Job = {
         ...jobData,
-        id: jobId,
+        id: `job_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
         createdAt: new Date(),
         updatedAt: new Date(),
     };
-    console.log("=== ADDING JOB TO MOCKDATA ===");
-    console.log("Job being added:", job);
-    console.log("MockData jobs before:", mockData.jobs.length);
     
-    mockData.jobs.unshift(job);
+    mockData.jobs.unshift(newJob);
     
-    console.log("MockData jobs after:", mockData.jobs.length);
-    console.log("Last job in mockData:", mockData.jobs[0]);
-    
-    return job;
+    return newJob;
 }
 
 /**

@@ -9,6 +9,7 @@ import { mockData } from "@/lib/mock-data";
 import { Job, Customer, Technician, GoogleCalendarEvent } from "@/lib/types";
 import { useEffect, useState, useCallback, createContext, useContext, useMemo } from "react";
 import { addDays, eachDayOfInterval, startOfDay, endOfDay, max, min, isSameDay, setHours, setMinutes, getHours, getMinutes, isBefore, format } from 'date-fns';
+import { updateJob } from '@/lib/firestore/jobs';
 
 // Create a context for schedule view state
 interface ScheduleViewContextType {
@@ -53,11 +54,9 @@ function SchedulingPageContent() {
   
   const handleJobCreated = (newJob: Job) => {
     setJobs(prevJobs => [...prevJobs, newJob]);
-    // Also update the central mock data source
-    mockData.jobs.push(newJob);
   };
   
-  const moveJob = useCallback((jobId: string, newTechnicianId: string, newStartTime: Date) => {
+const moveJob = useCallback((jobId: string, newTechnicianId: string, newStartTime: Date) => {
     setJobs(prevJobs => {
         const jobToMoveIndex = prevJobs.findIndex(j => j.id === jobId);
         if (jobToMoveIndex === -1) {
@@ -88,13 +87,11 @@ function SchedulingPageContent() {
             schedule: { ...jobToMove.schedule, start: snappedStartTime, end: newEndTime, unscheduled: false },
             status: 'scheduled' as Job['status']
         };
-
+        
         newJobs[jobToMoveIndex] = updatedJob;
 
-        const mockDataIndex = mockData.jobs.findIndex((j: Job) => j.id === jobId);
-        if (mockDataIndex !== -1) {
-            mockData.jobs[mockDataIndex] = updatedJob;
-        }
+        // Also update the central mock data source
+        updateJob(updatedJob);
 
         return newJobs;
     });
@@ -116,13 +113,11 @@ function SchedulingPageContent() {
       const newJobs = [...prevJobs];
       newJobs[jobIndex] = updatedJob;
 
-       const mockDataIndex = mockData.jobs.findIndex((j: Job) => j.id === jobId);
-        if (mockDataIndex !== -1) {
-            mockData.jobs[mockDataIndex] = updatedJob;
-        }
+      updateJob(updatedJob);
+
       return newJobs;
     });
-  }, [setJobs]);
+  }, []);
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [activeView, setActiveView] = useState('week');
