@@ -52,18 +52,22 @@ export default function InventoryPage() {
 
 
     const onDataUpdate = useCallback((updates: Partial<{
-        inventoryItems: InventoryItem[];
+        inventory: InventoryItem[];
         equipment: Equipment[];
         equipmentLogs: EquipmentLogType[];
+        jobs: Job[];
     }>) => {
-        if (updates.inventoryItems) {
-            setInventoryItems(updates.inventoryItems);
+        if (updates.inventory) {
+            setInventoryItems([...updates.inventory]);
         }
         if (updates.equipment) {
-            setEquipment(updates.equipment);
+            setEquipment([...updates.equipment]);
         }
         if (updates.equipmentLogs) {
-            setEquipmentLogs(updates.equipmentLogs);
+            setEquipmentLogs([...updates.equipmentLogs]);
+        }
+        if (updates.jobs) {
+            setJobs([...updates.jobs]);
         }
     }, []);
 
@@ -134,7 +138,7 @@ export default function InventoryPage() {
                         jobs,
                         partRequests,
                         technicians,
-                        onDataUpdate, // Pass the central update handler
+                        onDataUpdate, 
                     };
 
                     return (

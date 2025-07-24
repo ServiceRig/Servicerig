@@ -123,24 +123,50 @@ function SchedulingPageContent() {
     const { startHour, endHour } = mockData.scheduleSettings;
 
     const enrichedJobsAndEvents = useMemo(() => {
-        const enrichedJobs = (jobs ?? []).map(job => {
-             const customer = customers.find(c => c.id === job.customerId);
-             const technician = technicians.find(t => t.id === job.technicianId);
-             return {
-                ...job,
-                originalId: job.id,
-                customerName: customer?.primaryContact.name || 'Unknown Customer',
-                technicianName: technician?.name || 'Unassigned',
-                color: technician?.color || '#A0A0A0',
-                isGhost: false, // Simplified for now
-                type: 'job'
-             }
-        });
+    const enrichedJobs = (jobs ?? []).flatMap(job => {
+        const customer = customers.find(c => c.id === job.customerId);
         
-        const enrichedEvents = (googleEvents || []).map(event => ({ ...event, type: 'google_event' }));
+        // Handle multi-day jobs by creating "ghost" events for display
+        const jobStartDate = new Date(job.schedule.start);
+        const jobEndDate = new Date(job.schedule.end);
+        
+        if (!isSameDay(jobStartDate, jobEndDate)) {
+            const dateRange = eachDayOfInterval({ start: jobStartDate, end: jobEndDate });
+            return dateRange.map((date, index) => {
+                const isPrimary = index === 0;
+                const technician = technicians.find(t => t.id === job.technicianId);
 
-        return [...enrichedJobs, ...enrichedEvents];
-    }, [jobs, customers, technicians, googleEvents]);
+                return {
+                    ...job,
+                    originalId: job.id,
+                    id: `${job.id}-ghost-${index}`,
+                    schedule: { ...job.schedule, start: date, end: date }, // Confine to single day for display
+                    customerName: customer?.primaryContact.name || 'Unknown Customer',
+                    technicianName: technician?.name || 'Unassigned',
+                    color: technician?.color || '#A0A0A0',
+                    isGhost: !isPrimary,
+                    type: 'job'
+                };
+            });
+        }
+        
+        // Handle single-day jobs
+        const technician = technicians.find(t => t.id === job.technicianId);
+        return [{
+            ...job,
+            originalId: job.id,
+            customerName: customer?.primaryContact.name || 'Unknown Customer',
+            technicianName: technician?.name || 'Unassigned',
+            color: technician?.color || '#A0A0A0',
+            isGhost: false,
+            type: 'job'
+        }];
+    });
+
+    const enrichedEvents = (googleEvents || []).map(event => ({ ...event, type: 'google_event' }));
+
+    return [...enrichedJobs, ...enrichedEvents];
+}, [jobs, customers, technicians, googleEvents]);
 
 
   const scheduledItems = enrichedJobsAndEvents.filter(item => (item.type === 'job' && item.status !== 'unscheduled') || item.type === 'google_event');
