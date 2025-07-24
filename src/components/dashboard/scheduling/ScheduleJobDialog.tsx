@@ -183,46 +183,33 @@ export function ScheduleJobDialog({ onJobCreated }: ScheduleJobDialogProps) {
     
         if (hasDifferentTimes) {
             console.log("Creating multi-segment job with segments:", timeSegments);
-            const allTechsForJob = [primaryTechnicianId, ...Array.from(additionalTechnicians)].filter(Boolean);
-            console.log("All technicians for job:", allTechsForJob);
-    
             try {
-                let createdJobsCount = 0;
                 for (const segment of timeSegments) {
-                    for (const techId of allTechsForJob) {
-                        const [startH, startM] = segment.startTime.split(':').map(Number);
-                        const [endH, endM] = segment.endTime.split(':').map(Number);
-                        const finalStartDate = setMinutes(setHours(new Date(segment.date), startH), startM);
-                        const finalEndDate = setMinutes(setHours(new Date(segment.date), endH), endM);
+                    const [startH, startM] = segment.startTime.split(':').map(Number);
+                    const [endH, endM] = segment.endTime.split(':').map(Number);
+                    const finalStartDate = setMinutes(setHours(new Date(segment.date), startH), startM);
+                    const finalEndDate = setMinutes(setHours(new Date(segment.date), endH), endM);
     
-                        const jobTitle = techId === primaryTechnicianId
-                            ? `${trade} Service for ${selectedCustomer.primaryContact.name} (Day ${timeSegments.indexOf(segment) + 1})`
-                            : `${trade} Service for ${selectedCustomer.primaryContact.name} (Day ${timeSegments.indexOf(segment) + 1} - Additional Tech)`;
+                    const newJob: Omit<Job, 'id' | 'createdAt' | 'updatedAt'> = {
+                        customerId: selectedCustomer.id,
+                        technicianId: primaryTechnicianId,
+                        additionalTechnicians: Array.from(additionalTechnicians),
+                        equipmentId: selectedEquipmentId,
+                        status: 'scheduled',
+                        title: `${trade} Service for ${selectedCustomer.primaryContact.name}`,
+                        description,
+                        details: { serviceType: trade, trade, category },
+                        schedule: { start: finalStartDate, end: finalEndDate, arrivalWindow, multiDay: true, unscheduled: false },
+                        duration: (finalEndDate.getTime() - finalStartDate.getTime()) / (1000 * 60),
+                    };
     
-                        const newJob: Omit<Job, 'id' | 'createdAt' | 'updatedAt'> = {
-                            customerId: selectedCustomer.id,
-                            technicianId: techId,
-                            additionalTechnicians: [], // Handled by creating separate jobs
-                            equipmentId: selectedEquipmentId,
-                            status: 'scheduled',
-                            title: jobTitle,
-                            description: `${description} - Day ${timeSegments.indexOf(segment) + 1}`,
-                            details: { serviceType: trade, trade, category },
-                            schedule: { start: finalStartDate, end: finalEndDate, arrivalWindow, multiDay: true, unscheduled: false },
-                            duration: (finalEndDate.getTime() - finalStartDate.getTime()) / (1000 * 60),
-                        };
-    
-                        console.log(`Creating job for tech ${techId} on segment ${timeSegments.indexOf(segment) + 1}:`, newJob);
-                        const createdJob = await addJob(newJob);
-                        console.log(`Job created:`, createdJob);
-                        onJobCreated(createdJob);
-                        createdJobsCount++;
-                    }
+                    const createdJob = await addJob(newJob);
+                    onJobCreated(createdJob);
                 }
     
                 toast({
                     title: 'Multi-Day Job Scheduled',
-                    description: `Created ${createdJobsCount} total job entries for ${selectedCustomer.primaryContact.name}.`
+                    description: `Created ${timeSegments.length} jobs for ${selectedCustomer.primaryContact.name}.`
                 });
                 resetForm();
                 setIsOpen(false);
