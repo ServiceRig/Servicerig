@@ -1,3 +1,4 @@
+
 /**
  * Import function triggers from their respective submodules:
  *
@@ -11,6 +12,7 @@
 // import * as logger from "firebase-functions/logger";
 import * as quickbooks from "./quickbooks-sync";
 import * as xero from "./xero-sync";
+import * as googleCalendar from "./google-calendar-sync";
 
 // Export all functions from the quickbooks-sync file
 export const qboAuthRedirect = quickbooks.qboAuthRedirect;
@@ -21,6 +23,11 @@ export const syncInvoiceToQuickBooks = quickbooks.syncInvoiceToQuickBooks;
 export const xeroAuthRedirect = xero.xeroAuthRedirect;
 export const xeroAuthCallback = xero.xeroAuthCallback;
 export const syncInvoiceToXero = xero.syncInvoiceToXero;
+
+// Export all functions from the google-calendar-sync file
+export const googleCalendarAuthRedirect = googleCalendar.googleCalendarAuthRedirect;
+export const googleCalendarAuthCallback = googleCalendar.googleCalendarAuthCallback;
+export const syncToGoogleCalendar = googleCalendar.syncToGoogleCalendar;
 
 
 // Start writing functions

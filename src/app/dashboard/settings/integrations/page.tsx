@@ -1,16 +1,41 @@
 
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Link as LinkIcon } from "lucide-react";
+import { Link as LinkIcon, Calendar } from "lucide-react";
 import Image from "next/image";
 
 export default function IntegrationsPage() {
+    // In a real app, this would come from the logged-in user's context
+    const userId = 'admin1'; 
+    const googleAuthUrl = `/googleCalendarAuthRedirect?userId=${userId}`;
+
     return (
         <div className="space-y-6 max-w-2xl">
             <div>
                 <h1 className="text-3xl font-bold">Integrations</h1>
                 <p className="text-muted-foreground">Connect ServiceRig with other platforms to streamline your workflow.</p>
             </div>
+            <Card>
+                <CardHeader>
+                     <div className="flex items-center gap-4">
+                        <Calendar className="h-8 w-8 text-blue-500" />
+                        <div>
+                             <CardTitle>Google Calendar</CardTitle>
+                             <CardDescription>Enable two-way sync for your job schedule.</CardDescription>
+                        </div>
+                    </div>
+                </CardHeader>
+                <CardContent className="flex items-center justify-between p-6 border-t">
+                    <p className="text-sm text-muted-foreground">Status: <span className="font-semibold text-destructive">Not Connected</span></p>
+                    <Button asChild>
+                        <a href={googleAuthUrl} target="_blank" rel="noopener noreferrer">
+                            <LinkIcon className="mr-2 h-4 w-4" />
+                            Connect to Google Calendar
+                        </a>
+                    </Button>
+                </CardContent>
+            </Card>
             <Card>
                 <CardHeader>
                     <div className="flex items-center gap-4">
