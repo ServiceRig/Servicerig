@@ -87,11 +87,18 @@ function SchedulingPageContent() {
 
         const newEndTime = new Date(snappedStartTime.getTime() + durationMs);
         
-        const updatedJob = { ...jobToMove, technicianId: newTechnicianId, schedule: { ...jobToMove.schedule, start: snappedStartTime, end: newEndTime }, status: 'scheduled' };
+        const updatedJob = { ...jobToMove, technicianId: newTechnicianId, schedule: { ...jobToMove.schedule, start: snappedStartTime, end: newEndTime }, status: 'scheduled' as Job['status'] };
         
         const newJobs = [...prevJobs];
         newJobs[jobToMoveIndex] = updatedJob;
         
+        // This is the key fix: update the local state immediately.
+        // Also update the mockData so changes persist across reloads in dev.
+        const mockDataIndex = mockData.jobs.findIndex((j: Job) => j.id === jobId);
+        if (mockDataIndex !== -1) {
+            mockData.jobs[mockDataIndex] = updatedJob;
+        }
+
         return newJobs;
     });
   }, [setJobs]);
@@ -170,7 +177,7 @@ function SchedulingPageContent() {
 
 
   const scheduledItems = enrichedJobsAndEvents.filter(item => (item.type === 'job' && item.status !== 'unscheduled') || item.type === 'google_event');
-  const unscheduledJobs = enrichedJobsAndEvents.filter(item => item.type === 'job' && item.status === 'unscheduled');
+  const unscheduledJobs = enrichedJobsAndEvents.filter((item): item is Job & { originalId: string, type: 'job' } => item.type === 'job' && item.status === 'unscheduled');
 
   if (loading) {
     return <div className="p-4">Loading Schedule...</div>;
