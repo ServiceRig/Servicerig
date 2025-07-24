@@ -1,4 +1,5 @@
 
+
 // This file contains the TypeScript types for your Firestore collections.
 
 // A generic type for Firestore Timestamps. In Firestore, these are objects,
@@ -70,7 +71,7 @@ export type TaxZone = {
 // Customer model from /customers/{customerId}
 export type Customer = {
   id:string;
-  primaryContact: { firstName: string; lastName: string; email: string; phone: string };
+  primaryContact: { firstName: string; lastName: string; name: string; email: string; phone: string };
   companyInfo: { name: string; address: { street: string; city: string; state: string; zipCode: string; }; };
   taxRegion?: string; // For tax jurisdiction
   notes?: string;
@@ -122,6 +123,7 @@ export type Job = {
   usedParts?: UsedPart[];
   color?: string;
   isAutoCreated?: boolean;
+  linkedGoogleEventId?: string;
   // For UI enrichment
   customerName?: string;
   technicianName?: string;
