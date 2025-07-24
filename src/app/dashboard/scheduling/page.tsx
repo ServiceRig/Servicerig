@@ -70,8 +70,9 @@ function SchedulingPageContent() {
             console.error(`Job with id ${jobId} not found!`);
             return prevJobs;
         }
-
-        const jobToMove = prevJobs[jobToMoveIndex];
+        
+        const newJobs = [...prevJobs];
+        const jobToMove = { ...newJobs[jobToMoveIndex] };
         
         const minutes = newStartTime.getMinutes();
         const roundedMinutes = Math.round(minutes / 15) * 15;
@@ -87,13 +88,15 @@ function SchedulingPageContent() {
 
         const newEndTime = new Date(snappedStartTime.getTime() + durationMs);
         
-        const updatedJob = { ...jobToMove, technicianId: newTechnicianId, schedule: { ...jobToMove.schedule, start: snappedStartTime, end: newEndTime }, status: 'scheduled' as Job['status'] };
+        const updatedJob = { 
+            ...jobToMove, 
+            technicianId: newTechnicianId, 
+            schedule: { ...jobToMove.schedule, start: snappedStartTime, end: newEndTime, unscheduled: false }, 
+            status: 'scheduled' as Job['status'] 
+        };
         
-        const newJobs = [...prevJobs];
         newJobs[jobToMoveIndex] = updatedJob;
         
-        // This is the key fix: update the local state immediately.
-        // Also update the mockData so changes persist across reloads in dev.
         const mockDataIndex = mockData.jobs.findIndex((j: Job) => j.id === jobId);
         if (mockDataIndex !== -1) {
             mockData.jobs[mockDataIndex] = updatedJob;
@@ -140,7 +143,6 @@ function SchedulingPageContent() {
         if (!isSameDay(jobStartDate, jobEndDate)) {
             const dateRange = eachDayOfInterval({ start: jobStartDate, end: jobEndDate });
             return dateRange.map((date, index) => {
-                const isPrimary = index === 0;
                 const technician = technicians.find(t => t.id === job.technicianId);
 
                 return {
@@ -151,7 +153,7 @@ function SchedulingPageContent() {
                     customerName: customer?.primaryContact.name || 'Unknown Customer',
                     technicianName: technician?.name || 'Unassigned',
                     color: technician?.color || '#A0A0A0',
-                    isGhost: !isPrimary,
+                    isGhost: index > 0, // Only the first day is not a ghost
                     type: 'job'
                 };
             });
