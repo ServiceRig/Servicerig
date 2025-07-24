@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Customer } from "@/lib/types";
-import { Mail, Phone, MapPin, Pencil, AlertTriangle } from "lucide-react";
+import { Mail, Phone, MapPin, Pencil, AlertTriangle, MessageSquare } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
 
@@ -16,13 +16,15 @@ const getTagStyles = (tag: string) => {
 }
 
 export function CustomerHeader({ customer }: { customer: Customer }) {
+  const fullAddress = `${customer.companyInfo.address.street}, ${customer.companyInfo.address.city}, ${customer.companyInfo.address.state} ${customer.companyInfo.address.zipCode}`;
+  
   return (
     <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
       <div className="space-y-4 flex-grow">
         <div className="flex items-start gap-4">
             <div>
                  <h1 className="text-3xl font-bold flex items-center gap-3">
-                    {customer.primaryContact.name}
+                    {customer.primaryContact.firstName} {customer.primaryContact.lastName}
                     {customer.hasOpenInvoices && <Badge variant="destructive">Unpaid Invoices</Badge>}
                 </h1>
                 <p className="text-lg text-muted-foreground">{customer.companyInfo.name}</p>
@@ -56,7 +58,7 @@ export function CustomerHeader({ customer }: { customer: Customer }) {
         <div className="flex items-start gap-4 text-sm text-muted-foreground">
              <MapPin className="h-5 w-5 mt-1" />
             <div>
-                 <p>{customer.companyInfo.address}</p>
+                 <p>{fullAddress}</p>
                  <Image 
                     src="https://placehold.co/400x200.png"
                     data-ai-hint="map usa"
@@ -69,10 +71,22 @@ export function CustomerHeader({ customer }: { customer: Customer }) {
         </div>
       </div>
 
-      <Button variant="outline" className="flex-shrink-0">
-        <Pencil className="mr-2 h-4 w-4" />
-        Edit Profile
-      </Button>
+      <div className="flex flex-col sm:flex-row md:flex-col gap-2 flex-shrink-0">
+          <Button variant="outline" className="justify-start">
+            <Pencil className="mr-2 h-4 w-4" />
+            Edit Profile
+          </Button>
+          <Button variant="outline" className="justify-start" asChild>
+            <a href={`tel:${customer.primaryContact.phone}`}>
+                <Phone className="mr-2 h-4 w-4" /> Call Customer
+            </a>
+          </Button>
+          <Button variant="outline" className="justify-start" asChild>
+            <a href={`sms:${customer.primaryContact.phone}`}>
+                <MessageSquare className="mr-2 h-4 w-4" /> Text Customer
+            </a>
+          </Button>
+      </div>
     </div>
   );
 }

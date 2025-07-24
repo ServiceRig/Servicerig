@@ -1,5 +1,4 @@
 
-
 import { Customer, Invoice, Job, Technician, UserRole, Equipment, Estimate, EstimateTemplate, PricebookItem, InventoryItem, Payment, ServiceAgreement, Refund, TaxLine, PaymentPlan, Deposit, ChangeOrder, AuditLogEntry, TaxZone, PartRequest, ShoppingListItem, PurchaseOrder, PurchaseOrderPart, EquipmentLog, PartUsageLog, User, Vendor } from './types';
 
 const getDay = (day: number) => {
@@ -298,8 +297,8 @@ export const mockData: { [key: string]: any } = {
   customers: [
     {
       id: 'cust1',
-      primaryContact: { name: 'Alice Williams', email: 'alice@example.com', phone: '123-456-7890' },
-      companyInfo: { name: 'Innovate Inc.', address: '123 Tech Park, Silicon Valley, CA 94000' },
+      primaryContact: { firstName: 'Alice', lastName: 'Williams', email: 'alice@example.com', phone: '123-456-7890' },
+      companyInfo: { name: 'Innovate Inc.', address: { street: '123 Tech Park', city: 'Silicon Valley', state: 'CA', zipCode: '94000' } },
       taxRegion: 'ca-sv',
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -312,8 +311,8 @@ export const mockData: { [key: string]: any } = {
     },
     {
       id: 'cust2',
-      primaryContact: { name: 'Bob Davis', email: 'bob@example.com', phone: '234-567-8901' },
-      companyInfo: { name: 'Solutions Corp.', address: '456 Business Blvd, Metropolis, IL 62960' },
+      primaryContact: { firstName: 'Bob', lastName: 'Davis', email: 'bob@example.com', phone: '234-567-8901' },
+      companyInfo: { name: 'Solutions Corp.', address: { street: '456 Business Blvd', city: 'Metropolis', state: 'IL', zipCode: '62960' } },
       taxRegion: 'il-metro',
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -327,8 +326,8 @@ export const mockData: { [key: string]: any } = {
     },
       {
       id: 'cust3',
-      primaryContact: { name: 'Charlie Miller', email: 'charlie@example.com', phone: '345-678-9012' },
-      companyInfo: { name: 'Gadgets & More', address: '789 Market St, Gotham, NY 10001' },
+      primaryContact: { firstName: 'Charlie', lastName: 'Miller', email: 'charlie@example.com', phone: '345-678-9012' },
+      companyInfo: { name: 'Gadgets & More', address: { street: '789 Market St', city: 'Gotham', state: 'NY', zipCode: '10001' } },
       taxRegion: 'ny-gotham',
       createdAt: new Date(),
       updatedAt: new Date(),
