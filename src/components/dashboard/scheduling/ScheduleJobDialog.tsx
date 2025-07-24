@@ -180,77 +180,117 @@ export function ScheduleJobDialog({ onJobCreated }: ScheduleJobDialogProps) {
             toast({ variant: 'destructive', title: 'Missing Fields', description: 'Please fill out all required fields.' });
             return;
         }
-
-        try {
-            if (hasDifferentTimes) {
-                // Multi-segment job logic
-                for (const segment of timeSegments) {
+    
+        if (hasDifferentTimes) {
+            // Multi-segment job logic
+            console.log("Creating multi-segment job with segments:", timeSegments);
+            console.log("Primary technician:", primaryTechnicianId);
+            console.log("Additional technicians:", Array.from(additionalTechnicians));
+    
+            try {
+                const createdJobs = [];
+                for (let i = 0; i < timeSegments.length; i++) {
+                    const segment = timeSegments[i];
+                    console.log(`Processing segment ${i + 1}:`, segment);
+    
                     const [startH, startM] = segment.startTime.split(':').map(Number);
                     const [endH, endM] = segment.endTime.split(':').map(Number);
-                    const finalStartDate = setMinutes(setHours(segment.date, startH), startM);
-                    const finalEndDate = setMinutes(setHours(segment.date, endH), endM);
-
-                    const newJob: Omit<Job, 'id' | 'createdAt' | 'updatedAt'> = {
+    
+                    const finalStartDate = setMinutes(setHours(new Date(segment.date), startH), startM);
+                    const finalEndDate = setMinutes(setHours(new Date(segment.date), endH), endM);
+                    console.log(`Segment ${i + 1} times:`, { finalStartDate, finalEndDate });
+    
+                    // Create a job for the primary technician
+                    const primaryJob: Omit<Job, 'id' | 'createdAt' | 'updatedAt'> = {
                         customerId: selectedCustomer.id,
                         technicianId: primaryTechnicianId,
-                        additionalTechnicians: Array.from(additionalTechnicians),
+                        additionalTechnicians: [], // Handled separately
                         equipmentId: selectedEquipmentId,
                         status: 'scheduled',
-                        title: `${trade} Service for ${selectedCustomer.primaryContact.name}`,
-                        description,
+                        title: `${trade} Service for ${selectedCustomer.primaryContact.name} (Day ${i + 1})`,
+                        description: `${description} - Day ${i + 1} of ${timeSegments.length}`,
                         details: { serviceType: trade, trade, category },
                         schedule: { start: finalStartDate, end: finalEndDate, arrivalWindow, multiDay: true, unscheduled: false },
                         duration: (finalEndDate.getTime() - finalStartDate.getTime()) / (1000 * 60),
                     };
-                    const createdJob = await addJob(newJob);
-                    onJobCreated(createdJob);
+                    console.log(`Creating primary job for segment ${i + 1}:`, primaryJob);
+                    const createdPrimaryJob = await addJob(primaryJob);
+                    console.log(`Primary job created:`, createdPrimaryJob);
+                    createdJobs.push(createdPrimaryJob);
+                    onJobCreated(createdPrimaryJob);
+    
+                    // Create separate jobs for additional technicians
+                    for (const techId of additionalTechnicians) {
+                        const additionalJob: Omit<Job, 'id' | 'createdAt' | 'updatedAt'> = {
+                            ...primaryJob,
+                            technicianId: techId,
+                            title: `${trade} Service for ${selectedCustomer.primaryContact.name} (Day ${i + 1} - Additional Tech)`,
+                        };
+                        console.log(`Creating additional tech job for ${techId} on segment ${i + 1}:`, additionalJob);
+                        const createdAdditionalJob = await addJob(additionalJob);
+                        console.log(`Additional tech job created:`, createdAdditionalJob);
+                        createdJobs.push(createdAdditionalJob);
+                        onJobCreated(createdAdditionalJob);
+                    }
                 }
-                toast({ title: 'Multi-Day Job Scheduled', description: `${timeSegments.length} job segments have been created for ${selectedCustomer.primaryContact.name}.` });
-            } else {
-                // Single day/range job logic
-                if (!startDate) {
-                    toast({ variant: 'destructive', title: 'Invalid Dates', description: 'Please select a valid start date.' });
-                    return;
-                }
-                const finalEndDateValue = endDate || startDate;
+    
+                console.log("All jobs created successfully:", createdJobs);
+                toast({
+                    title: 'Multi-Day Job Scheduled',
+                    description: `Created ${createdJobs.length} jobs for ${selectedCustomer.primaryContact.name} across ${timeSegments.length} days.`
+                });
+                resetForm();
+                setIsOpen(false);
+    
+            } catch (error) {
+                console.error("Error creating multi-segment job:", error);
+                toast({ variant: 'destructive', title: 'Error', description: 'Failed to schedule multi-day job.' });
+            }
+        } else {
+            // Single day/range job logic
+            if (!startDate) {
+                toast({ variant: 'destructive', title: 'Invalid Dates', description: 'Please select a valid start date.' });
+                return;
+            }
+            const finalEndDateValue = endDate || startDate;
 
-                const [startH, startM] = startTime.split(':').map(Number);
-                const [endH, endM] = endTime.split(':').map(Number);
+            const [startH, startM] = startTime.split(':').map(Number);
+            const [endH, endM] = endTime.split(':').map(Number);
 
-                const finalStartDate = setMinutes(setHours(startDate, startH), startM);
-                const finalEndDate = setMinutes(setHours(finalEndDateValue, endH), endM);
-                
-                if (finalEndDate < finalStartDate) {
-                    toast({ variant: 'destructive', title: 'Invalid Times', description: 'End time cannot be before the start time.' });
-                    return;
-                }
+            const finalStartDate = setMinutes(setHours(startDate, startH), startM);
+            const finalEndDate = setMinutes(setHours(finalEndDateValue, endH), endM);
+            
+            if (finalEndDate < finalStartDate) {
+                toast({ variant: 'destructive', title: 'Invalid Times', description: 'End time cannot be before the start time.' });
+                return;
+            }
 
-                const newJob: Omit<Job, 'id' | 'createdAt' | 'updatedAt'> = {
-                    customerId: selectedCustomer.id,
-                    technicianId: primaryTechnicianId,
-                    additionalTechnicians: Array.from(additionalTechnicians),
-                    equipmentId: selectedEquipmentId,
-                    status: isUnscheduled ? 'unscheduled' : 'scheduled',
-                    title: `${trade} Service for ${selectedCustomer.primaryContact.name}`,
-                    description,
-                    details: { serviceType: trade, trade, category },
-                    schedule: { start: finalStartDate, end: finalEndDate, arrivalWindow: isUnscheduled ? undefined : arrivalWindow, multiDay: finalStartDate.toDateString() !== finalEndDate.toDateString(), unscheduled: isUnscheduled },
-                    duration: (finalEndDate.getTime() - finalStartDate.getTime()) / (1000 * 60),
-                };
-                
+            const newJob: Omit<Job, 'id' | 'createdAt' | 'updatedAt'> = {
+                customerId: selectedCustomer.id,
+                technicianId: primaryTechnicianId,
+                additionalTechnicians: Array.from(additionalTechnicians),
+                equipmentId: selectedEquipmentId,
+                status: isUnscheduled ? 'unscheduled' : 'scheduled',
+                title: `${trade} Service for ${selectedCustomer.primaryContact.name}`,
+                description,
+                details: { serviceType: trade, trade, category },
+                schedule: { start: finalStartDate, end: finalEndDate, arrivalWindow: isUnscheduled ? undefined : arrivalWindow, multiDay: finalStartDate.toDateString() !== finalEndDate.toDateString(), unscheduled: isUnscheduled },
+                duration: (finalEndDate.getTime() - finalStartDate.getTime()) / (1000 * 60),
+            };
+            
+            try {
                 console.log("Creating job with data:", newJob);
                 const createdJob = await addJob(newJob);
                 console.log("Job created successfully:", createdJob);
                 console.log("Calling onJobCreated with:", createdJob);
                 onJobCreated(createdJob);
                 toast({ title: 'Job Scheduled', description: `Job for ${selectedCustomer.primaryContact.name} has been created.` });
+                resetForm();
+                setIsOpen(false);
+            } catch (error) {
+                console.error("Error creating job:", error);
+                toast({ variant: 'destructive', title: 'Error', description: 'Failed to schedule job.' });
             }
-
-            resetForm();
-            setIsOpen(false);
-        } catch (error) {
-            console.error("Error creating job:", error);
-            toast({ variant: 'destructive', title: 'Error', description: 'Failed to schedule job.' });
         }
     };
 
