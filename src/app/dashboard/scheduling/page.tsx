@@ -123,69 +123,22 @@ function SchedulingPageContent() {
     const { startHour, endHour } = mockData.scheduleSettings;
 
     const enrichedJobsAndEvents = useMemo(() => {
-        console.log("=== CALCULATING ENRICHED JOBS & EVENTS ===");
-        console.log("Input jobs:", jobs.length);
-        console.log("Input events:", googleEvents.length);
-
-        const enrichedJobs = (jobs ?? []).flatMap(job => {
-            if (job.status === 'unscheduled') {
-                const customer = customers.find(c => c.id === job.customerId);
-                return [{
-                    ...job,
-                    originalId: job.id,
-                    customerName: customer?.primaryContact.name || 'Unknown Customer',
-                    technicianName: 'Unassigned',
-                    color: '#A0A0A0',
-                    isGhost: false,
-                    type: 'job'
-                }];
-            }
-            
-            const customer = customers.find(c => c.id === job.customerId);
-            const jobStart = new Date(job.schedule.start);
-            const jobEnd = new Date(job.schedule.end);
-
-            if (isBefore(jobEnd, jobStart)) return [];
-
-            const jobInterval = { start: startOfDay(jobStart), end: endOfDay(jobEnd) };
-            const daysInJob = eachDayOfInterval(jobInterval);
-            
-            return daysInJob.flatMap(day => {
-                const dayStart = startOfDay(day);
-                
-                const segmentStart = new Date(day);
-                segmentStart.setHours(jobStart.getHours(), jobStart.getMinutes());
-                
-                const segmentEnd = new Date(day);
-                segmentEnd.setHours(jobEnd.getHours(), jobEnd.getMinutes());
-                
-                if (isBefore(segmentEnd, segmentStart)) return [];
-                
-                const allTechsForJob = [job.technicianId, ...(job.additionalTechnicians || [])].filter(Boolean);
-
-                return allTechsForJob.map((techId, index) => {
-                    const isPrimary = index === 0;
-                    const technician = technicians.find(t => t.id === techId);
-                    const enrichedJob = {
-                        ...job,
-                        id: `${job.id}-${format(day, 'yyyy-MM-dd')}-${techId}`,
-                        originalId: job.id,
-                        technicianId: techId,
-                        schedule: { ...job.schedule, start: segmentStart, end: segmentEnd },
-                        customerName: customer?.primaryContact.name || 'Unknown Customer',
-                        technicianName: technician?.name || 'Unassigned',
-                        color: technician?.color || '#A0A0A0',
-                        isGhost: !isPrimary,
-                        type: 'job'
-                    };
-                    return enrichedJob;
-                });
-            });
+        const enrichedJobs = (jobs ?? []).map(job => {
+             const customer = customers.find(c => c.id === job.customerId);
+             const technician = technicians.find(t => t.id === job.technicianId);
+             return {
+                ...job,
+                originalId: job.id,
+                customerName: customer?.primaryContact.name || 'Unknown Customer',
+                technicianName: technician?.name || 'Unassigned',
+                color: technician?.color || '#A0A0A0',
+                isGhost: false, // Simplified for now
+                type: 'job'
+             }
         });
         
         const enrichedEvents = (googleEvents || []).map(event => ({ ...event, type: 'google_event' }));
 
-        console.log("Enriched items:", enrichedJobs.length + enrichedEvents.length);
         return [...enrichedJobs, ...enrichedEvents];
     }, [jobs, customers, technicians, googleEvents]);
 
