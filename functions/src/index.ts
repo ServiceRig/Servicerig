@@ -13,6 +13,7 @@
 import * as quickbooks from "./quickbooks-sync";
 import * as xero from "./xero-sync";
 import * as googleCalendar from "./google-calendar-sync";
+import * as gmail from "./gmail-sync";
 
 // Export all functions from the quickbooks-sync file
 export const qboAuthRedirect = quickbooks.qboAuthRedirect;
@@ -29,6 +30,11 @@ export const googleCalendarAuthRedirect = googleCalendar.googleCalendarAuthRedir
 export const googleCalendarAuthCallback = googleCalendar.googleCalendarAuthCallback;
 export const syncToGoogleCalendar = googleCalendar.syncToGoogleCalendar;
 export const pollGoogleCalendar = googleCalendar.pollGoogleCalendar;
+
+// Export all functions from the gmail-sync file
+export const gmailAuthRedirect = gmail.gmailAuthRedirect;
+export const gmailAuthCallback = gmail.gmailAuthCallback;
+export const checkForNewLeads = gmail.checkForNewLeads;
 
 
 // Start writing functions

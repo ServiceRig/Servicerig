@@ -3,7 +3,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Link as LinkIcon, Calendar, CreditCard } from "lucide-react";
+import { Link as LinkIcon, Calendar, CreditCard, Mail } from "lucide-react";
 import Image from "next/image";
 import Link from 'next/link';
 import { useRole } from "@/hooks/use-role";
@@ -12,6 +12,7 @@ export default function IntegrationsPage() {
     // In a real app, this would come from the logged-in user's context
     const userId = 'admin1'; 
     const googleAuthUrl = `/googleCalendarAuthRedirect?userId=${userId}`;
+    const gmailAuthUrl = `/gmailAuthRedirect?userId=${userId}`;
     const { role } = useRole();
 
     const getHref = (path: string) => {
@@ -26,6 +27,26 @@ export default function IntegrationsPage() {
                 <h1 className="text-3xl font-bold">Integrations</h1>
                 <p className="text-muted-foreground">Connect ServiceRig with other platforms to streamline your workflow.</p>
             </div>
+             <Card>
+                <CardHeader>
+                     <div className="flex items-center gap-4">
+                        <Mail className="h-8 w-8 text-red-500" />
+                        <div>
+                             <CardTitle>Gmail for Leads</CardTitle>
+                             <CardDescription>Automatically create unscheduled jobs from incoming emails.</CardDescription>
+                        </div>
+                    </div>
+                </CardHeader>
+                <CardContent className="flex items-center justify-between p-6 border-t">
+                    <p className="text-sm text-muted-foreground">Status: <span className="font-semibold text-destructive">Not Connected</span></p>
+                    <Button asChild>
+                        <a href={gmailAuthUrl} target="_blank" rel="noopener noreferrer">
+                            <LinkIcon className="mr-2 h-4 w-4" />
+                            Connect to Gmail
+                        </a>
+                    </Button>
+                </CardContent>
+            </Card>
             <Card>
                 <CardHeader>
                      <div className="flex items-center gap-4">
