@@ -176,7 +176,7 @@ export function ScheduleJobDialog({ onJobCreated }: ScheduleJobDialogProps) {
     };
     
     const handleSave = async () => {
-        if (!selectedCustomer || !trade || !description || (!isUnscheduled && !primaryTechnicianId && !hasDifferentTimes)) {
+        if (!selectedCustomer || !trade || !description || (!isUnscheduled && !hasDifferentTimes && !primaryTechnicianId)) {
             toast({ variant: 'destructive', title: 'Missing Fields', description: 'Please fill out all required fields.' });
             return;
         }
@@ -264,7 +264,7 @@ export function ScheduleJobDialog({ onJobCreated }: ScheduleJobDialogProps) {
                 </Button>
             </DialogTrigger>
             <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
-                <DialogHeader>
+                 <DialogHeader>
                     <DialogTitle>Schedule a New Job</DialogTitle>
                     <DialogDescription>Fill in the details to add a new job to the schedule.</DialogDescription>
                 </DialogHeader>
