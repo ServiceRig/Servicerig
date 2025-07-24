@@ -7,7 +7,7 @@ import { mockData } from '@/lib/mock-data';
 import { Button } from '@/components/ui/button';
 import { UserRole } from '@/lib/types';
 import { useRole } from '@/hooks/use-role';
-import { Phone, MessageSquare } from 'lucide-react';
+import { Phone, MessageSquare, PlusCircle } from 'lucide-react';
 
 export default function CustomersPage() {
   const { role } = useRole();
@@ -18,9 +18,17 @@ export default function CustomersPage() {
 
   return (
      <Card>
-      <CardHeader>
-        <CardTitle>Customers</CardTitle>
-        <CardDescription>Manage your customer relationships.</CardDescription>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+            <CardTitle>Customers</CardTitle>
+            <CardDescription>Manage your customer relationships.</CardDescription>
+        </div>
+        <Button asChild>
+            <Link href={`/dashboard/customers/new?role=${role || 'admin'}`}>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add Customer
+            </Link>
+        </Button>
       </CardHeader>
       <CardContent>
           <Table>

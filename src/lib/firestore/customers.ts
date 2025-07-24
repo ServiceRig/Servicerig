@@ -1,3 +1,4 @@
+
 // In a real app, you would import the firestore instance:
 // import { db } from './firebase'; 
 // import { doc, getDoc, collection, getDocs } from 'firebase/firestore';
@@ -39,6 +40,18 @@ export async function getAllCustomers(): Promise<Customer[]> {
     await new Promise(resolve => setTimeout(resolve, 300));
     
     return customers;
+}
+
+export async function addCustomer(customerData: Omit<Customer, 'id' | 'createdAt' | 'updatedAt'>): Promise<Customer> {
+    const newCustomer: Customer = {
+        id: `cust_${Date.now()}`,
+        ...customerData,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+    };
+    mockData.customers.unshift(newCustomer);
+    await new Promise(resolve => setTimeout(resolve, 100));
+    return newCustomer;
 }
 
 /**

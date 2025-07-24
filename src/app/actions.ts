@@ -11,7 +11,7 @@ import type { Estimate, GbbTier, LineItem, PricebookItem, Job, Invoice, Equipmen
 import { addEstimateTemplate, updateEstimateTemplate } from "@/lib/firestore/templates";
 import { mockData } from "@/lib/mock-data";
 import { addPricebookItem } from "@/lib/firestore/pricebook";
-import { getCustomerById, updateCustomerInDb } from "@/lib/firestore/customers";
+import { getCustomerById, updateCustomerInDb, addCustomer as addCustomerToDb } from "@/lib/firestore/customers";
 import { analyzeInvoice } from "@/ai/flows/analyze-invoice";
 import { addInvoice as addInvoiceToDb, updateInvoice as updateInvoiceInDb } from "@/lib/firestore/invoices";
 
@@ -1392,6 +1392,78 @@ export async function updateCustomer(prevState: UpdateCustomerState, formData: F
     return { success: false, message: 'An unexpected error occurred.' };
   }
 }
+
+const addCustomerSchema = z.object({
+  firstName: z.string().min(1, 'First name is required'),
+  lastName: z.string().min(1, 'Last name is required'),
+  companyName: z.string(),
+  email: z.string().email('Invalid email address'),
+  phone: z.string().min(1, 'Phone number is required'),
+  street: z.string(),
+  city: z.string(),
+  state: z.string(),
+  zipCode: z.string(),
+  role: z.string().optional(),
+});
+
+type AddCustomerState = {
+  success: boolean;
+  message: string;
+  errors?: any;
+}
+
+export async function addCustomer(prevState: AddCustomerState, formData: FormData): Promise<AddCustomerState> {
+    const validatedFields = addCustomerSchema.safeParse({
+        firstName: formData.get('firstName'),
+        lastName: formData.get('lastName'),
+        companyName: formData.get('companyName'),
+        email: formData.get('email'),
+        phone: formData.get('phone'),
+        street: formData.get('street'),
+        city: formData.get('city'),
+        state: formData.get('state'),
+        zipCode: formData.get('zipCode'),
+        role: formData.get('role'),
+    });
+
+    if (!validatedFields.success) {
+        return { success: false, message: 'Invalid data provided.', errors: validatedFields.error.flatten().fieldErrors };
+    }
+
+    try {
+        const { firstName, lastName, companyName, email, phone, street, city, state, zipCode } = validatedFields.data;
+
+        const newCustomer: Omit<Customer, 'id' | 'createdAt' | 'updatedAt'> = {
+            primaryContact: {
+                firstName,
+                lastName,
+                name: `${firstName} ${lastName}`,
+                email,
+                phone,
+            },
+            companyInfo: {
+                name: companyName,
+                address: {
+                    street,
+                    city,
+                    state,
+                    zipCode,
+                },
+            },
+            taxRegion: 'no-tax',
+            hasOpenInvoices: false,
+        };
+
+        await addCustomerToDb(newCustomer);
+    } catch (error) {
+        console.error("Error adding customer:", error);
+        return { success: false, message: 'An unexpected error occurred while adding the customer.' };
+    }
     
+    revalidatePath('/dashboard/customers');
+    redirect(`/dashboard/customers?role=${validatedFields.data.role || 'admin'}`);
+}
+    
+
 
 
