@@ -34,7 +34,8 @@ export const ScheduleViewProvider = ({ children }: { children: React.ReactNode }
     );
 };
 
-function SchedulingPageContent({ jobs, setJobs }: { jobs: Job[], setJobs: React.Dispatch<React.SetStateAction<Job[]>>}) {
+function SchedulingPageContent() {
+  const [jobs, setJobs] = useState<Job[]>(mockData.jobs as Job[]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [technicians, setTechnicians] = useState<Technician[]>([]);
   const [loading, setLoading] = useState(true);
@@ -55,9 +56,9 @@ function SchedulingPageContent({ jobs, setJobs }: { jobs: Job[], setJobs: React.
             console.log("Job already exists, not adding duplicate");
             return prevJobs;
         }
-        return [newJob, ...prevJobs];
+        return [...prevJobs, newJob];
     });
-  }, [setJobs]);
+  }, []);
   
   const moveJob = useCallback((jobId: string, newTechnicianId: string, newStartTime: Date) => {
     setJobs(prevJobs => {
@@ -210,8 +211,8 @@ function SchedulingPageContent({ jobs, setJobs }: { jobs: Job[], setJobs: React.
 
 
 export default function SchedulingPage() {
-    const [jobs, setJobs] = useState<Job[]>(mockData.jobs as Job[]);
     return (
-        <SchedulingPageContent jobs={jobs} setJobs={setJobs} />
+        <SchedulingPageContent />
     )
 }
+

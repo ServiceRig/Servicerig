@@ -212,7 +212,7 @@ const WeeklyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDa
                                             {jobs
                                                 .filter(job => job.technicianId === tech.id && isSameDay(new Date(job.schedule.start), day))
                                                 .map(job => (
-                                                     <DraggableJob key={`${job.id}-${job.technicianId}-${new Date(job.schedule.start).getTime()}`} job={job} onStatusChange={onJobStatusChange} onJobDrop={onJobDrop} isCompact startHour={startHour} />
+                                                     <DraggableJob key={job.id} job={job} onStatusChange={onJobStatusChange} onJobDrop={onJobDrop} isCompact startHour={startHour} />
                                                 ))}
                                         </div>
                                     </div>
