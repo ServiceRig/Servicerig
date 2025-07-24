@@ -127,6 +127,7 @@ export type Job = {
   // For UI enrichment
   customerName?: string;
   technicianName?: string;
+  isGhost?: boolean;
   details: {
     serviceType: string;
     trade: 'Plumbing' | 'HVAC' | 'Electrical' | 'Other';

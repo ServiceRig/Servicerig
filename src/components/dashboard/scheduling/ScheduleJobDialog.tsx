@@ -47,9 +47,11 @@ const initialNewCustomerState = {
 
 interface ScheduleJobDialogProps {
     onJobCreated: (newJob: Job) => void;
+    initialJobData?: Partial<Job>;
+    triggerButton?: React.ReactElement;
 }
 
-export function ScheduleJobDialog({ onJobCreated }: ScheduleJobDialogProps) {
+export function ScheduleJobDialog({ onJobCreated, initialJobData, triggerButton }: ScheduleJobDialogProps) {
     const [isOpen, setIsOpen] = useState(false);
     const { toast } = useToast();
     
@@ -83,6 +85,23 @@ export function ScheduleJobDialog({ onJobCreated }: ScheduleJobDialogProps) {
     const [allCustomers, setAllCustomers] = useState<Customer[]>(mockData.customers as Customer[]);
     const allTechnicians = mockData.technicians as Technician[];
     const allEquipment = mockData.equipment as Equipment[];
+
+    useEffect(() => {
+        if (initialJobData) {
+            setDescription(initialJobData.description || '');
+            if (initialJobData.schedule?.start) {
+                const start = new Date(initialJobData.schedule.start);
+                setStartDate(start);
+                setStartTime(format(start, 'HH:mm'));
+            }
+             if (initialJobData.schedule?.end) {
+                const end = new Date(initialJobData.schedule.end);
+                setEndDate(end);
+                setEndTime(format(end, 'HH:mm'));
+            }
+        }
+    }, [initialJobData]);
+
 
     useEffect(() => {
         if (selectedCustomer) {
@@ -270,10 +289,12 @@ export function ScheduleJobDialog({ onJobCreated }: ScheduleJobDialogProps) {
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
-                <Button>
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Schedule Job
-                </Button>
+                {triggerButton ? React.cloneElement(triggerButton, { onClick: () => setIsOpen(true) }) : (
+                    <Button>
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Schedule Job
+                    </Button>
+                )}
             </DialogTrigger>
             <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
                  <DialogHeader>

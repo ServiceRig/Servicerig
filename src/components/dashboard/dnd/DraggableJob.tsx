@@ -13,6 +13,7 @@ import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ScheduleJobDialog } from '../scheduling/ScheduleJobDialog';
 
 const getStatusColor = (status?: Job['status']) => {
     if (!status) return 'bg-blue-200 border-blue-400 text-blue-800'; // Default for Google Events
@@ -40,6 +41,7 @@ interface DraggableJobProps {
     children?: React.ReactNode;
     onStatusChange?: (jobId: string, status: Job['status']) => void;
     onJobDrop?: (jobId: string, technicianId: string, startTime: Date) => void;
+    onJobCreated?: (newJob: Job) => void;
     isCompact?: boolean;
     startHour?: number;
 }
@@ -64,7 +66,7 @@ const formatDuration = (seconds: number) => {
 }
 
 
-export const DraggableJob: React.FC<DraggableJobProps> = ({ item, children, onStatusChange, isCompact, startHour = 7, onJobDrop }) => {
+export const DraggableJob: React.FC<DraggableJobProps> = ({ item, children, onStatusChange, isCompact, startHour = 7, onJobDrop, onJobCreated }) => {
     const [{ isDragging }, drag] = useDrag(() => ({
         type: ItemTypes.JOB,
         item: { id: item.type === 'job' ? item.originalId : item.eventId }, // Use the original ID for the drag item
@@ -76,6 +78,7 @@ export const DraggableJob: React.FC<DraggableJobProps> = ({ item, children, onSt
     
     const [elapsedTime, setElapsedTime] = useState(0);
     const [isActive, setIsActive] = useState(false);
+    const [isConvertToJobOpen, setIsConvertToJobOpen] = useState(false);
 
     useEffect(() => {
         if (item.type !== 'job') return;
@@ -145,6 +148,16 @@ export const DraggableJob: React.FC<DraggableJobProps> = ({ item, children, onSt
             <p className="truncate text-white/80">{item.type === 'job' ? item.technicianName : 'Google Event'}</p>
         </div>
     );
+    
+    const initialJobDataFromEvent = item.type === 'google_event' ? {
+        title: item.summary,
+        description: item.description,
+        schedule: {
+            start: new Date(item.start),
+            end: new Date(item.end),
+        }
+    } : undefined;
+
 
     return (
         <div
@@ -214,7 +227,11 @@ export const DraggableJob: React.FC<DraggableJobProps> = ({ item, children, onSt
                             <div><p className="text-sm text-muted-foreground">Description</p><p className="font-medium whitespace-pre-wrap">{item.description || 'No description provided.'}</p></div>
                              <div className="mt-6 flex justify-end gap-2">
                                 <Button variant="outline"><LinkIcon className="mr-2 h-4 w-4" /> Open in Google Calendar</Button>
-                                <Button><Edit className="mr-2 h-4 w-4" /> Convert to Job</Button>
+                                {onJobCreated && (
+                                     <ScheduleJobDialog onJobCreated={onJobCreated} initialJobData={initialJobDataFromEvent} triggerButton={
+                                         <Button><Edit className="mr-2 h-4 w-4" /> Convert to Job</Button>
+                                     } />
+                                )}
                             </div>
                         </div>
                     )}
