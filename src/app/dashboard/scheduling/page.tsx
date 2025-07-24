@@ -57,48 +57,49 @@ function SchedulingPageContent() {
     mockData.jobs.push(newJob);
   };
   
-  const moveJob = useCallback((jobId: string, newTechnicianId: string, newStartTime: Date) => {
-    setJobs(prevJobs => {
-        const jobToMoveIndex = prevJobs.findIndex(j => j.id === jobId);
-        if (jobToMoveIndex === -1) {
-            console.error(`Job with id ${jobId} not found!`);
-            return prevJobs;
-        }
-        
-        const newJobs = [...prevJobs];
-        const jobToMove = { ...newJobs[jobToMoveIndex] };
-        
-        const minutes = newStartTime.getMinutes();
-        const roundedMinutes = Math.round(minutes / 15) * 15;
-        const snappedStartTime = new Date(newStartTime);
-        snappedStartTime.setMinutes(roundedMinutes, 0, 0);
+    const moveJob = useCallback((jobId: string, newTechnicianId: string, newStartTime: Date) => {
+        setJobs(prevJobs => {
+            const jobToMoveIndex = prevJobs.findIndex(j => j.id === jobId);
+            if (jobToMoveIndex === -1) {
+                console.error(`Job with id ${jobId} not found!`);
+                return prevJobs;
+            }
 
-        let durationMs: number;
-        if (jobToMove.status === 'unscheduled' || !jobToMove.schedule.end) {
-            durationMs = 60 * 60 * 1000;
-        } else {
-            durationMs = new Date(jobToMove.schedule.end).getTime() - new Date(jobToMove.schedule.start).getTime();
-        }
+            const newJobs = [...prevJobs];
+            const jobToMove = { ...newJobs[jobToMoveIndex] };
 
-        const newEndTime = new Date(snappedStartTime.getTime() + durationMs);
-        
-        const updatedJob = { 
-            ...jobToMove, 
-            technicianId: newTechnicianId, 
-            schedule: { ...jobToMove.schedule, start: snappedStartTime, end: newEndTime, unscheduled: false }, 
-            status: 'scheduled' as Job['status'] 
-        };
-        
-        newJobs[jobToMoveIndex] = updatedJob;
-        
-        const mockDataIndex = mockData.jobs.findIndex((j: Job) => j.id === jobId);
-        if (mockDataIndex !== -1) {
-            mockData.jobs[mockDataIndex] = updatedJob;
-        }
+            const minutes = newStartTime.getMinutes();
+            const roundedMinutes = Math.round(minutes / 15) * 15;
+            const snappedStartTime = new Date(newStartTime);
+            snappedStartTime.setMinutes(roundedMinutes, 0, 0);
 
-        return newJobs;
-    });
-  }, [setJobs]);
+            let durationMs: number;
+            if (jobToMove.status === 'unscheduled' || !jobToMove.schedule.end) {
+                durationMs = 60 * 60 * 1000; // Default to 1 hour
+            } else {
+                durationMs = new Date(jobToMove.schedule.end).getTime() - new Date(jobToMove.schedule.start).getTime();
+            }
+
+            const newEndTime = new Date(snappedStartTime.getTime() + durationMs);
+
+            const updatedJob = {
+                ...jobToMove,
+                technicianId: newTechnicianId,
+                schedule: { ...jobToMove.schedule, start: snappedStartTime, end: newEndTime, unscheduled: false },
+                status: 'scheduled' as Job['status']
+            };
+
+            newJobs[jobToMoveIndex] = updatedJob;
+
+            // Also update the central mock data source
+            const mockDataIndex = mockData.jobs.findIndex((j: Job) => j.id === jobId);
+            if (mockDataIndex !== -1) {
+                mockData.jobs[mockDataIndex] = updatedJob;
+            }
+
+            return newJobs;
+        });
+    }, []);
 
   const updateJobStatus = useCallback((jobId: string, newStatus: Job['status']) => {
     setJobs(prevJobs => {
@@ -136,44 +137,53 @@ function SchedulingPageContent() {
     const { startHour, endHour } = mockData.scheduleSettings;
 
     const enrichedJobsAndEvents = useMemo(() => {
-      const enrichedJobs = (jobs || []).flatMap(job => {
-          const customer = customers.find(c => c.id === job.customerId);
-          const allTechniciansForJob = [job.technicianId, ...(job.additionalTechnicians || [])].filter(Boolean);
+        const enrichedJobs = (jobs || []).flatMap(job => {
+            const customer = customers.find(c => c.id === job.customerId);
+            const allTechniciansForJob = [job.technicianId, ...(job.additionalTechnicians || [])].filter(Boolean);
 
-          // Handle single-day jobs
-          if (allTechniciansForJob.length === 0) {
-              const technician = technicians.find(t => t.id === job.technicianId);
-              return [{
-                  ...job,
-                  originalId: job.id,
-                  customerName: customer?.primaryContact.name || 'Unknown Customer',
-                  technicianName: technician?.name || 'Unassigned',
-                  color: technician?.color || '#A0A0A0',
-                  isGhost: false,
-                  type: 'job' as const
-              }];
-          }
+            if (allTechniciansForJob.length === 0 && job.status !== 'unscheduled') {
+                 return [{
+                    ...job,
+                    originalId: job.id,
+                    customerName: customer?.primaryContact.name || 'Unknown Customer',
+                    technicianName: 'Unassigned',
+                    technicianId: 'unassigned',
+                    color: '#A0A0A0',
+                    isGhost: false,
+                    type: 'job' as const
+                }];
+            }
+            
+            if (job.status === 'unscheduled') {
+                return [{
+                    ...job,
+                    originalId: job.id,
+                    customerName: customer?.primaryContact.name || 'Unknown Customer',
+                    technicianName: 'Unassigned',
+                    type: 'job' as const
+                }];
+            }
 
-          return allTechniciansForJob.map((techId, index) => {
-              const technician = technicians.find(t => t.id === techId);
-              const isPrimary = index === 0;
-              return {
-                  ...job,
-                  originalId: job.id,
-                  id: isPrimary ? job.id : `${job.id}-ghost-${techId}`,
-                  customerName: customer?.primaryContact.name || 'Unknown Customer',
-                  technicianName: technician?.name || 'Unassigned',
-                  technicianId: techId,
-                  color: technician?.color || '#A0A0A0',
-                  isGhost: !isPrimary,
-                  type: 'job' as const
-              };
-          });
-      });
+            return allTechniciansForJob.map((techId, index) => {
+                const technician = technicians.find(t => t.id === techId);
+                const isPrimary = index === 0;
+                return {
+                    ...job,
+                    originalId: job.id,
+                    id: isPrimary ? job.id : `${job.id}-ghost-${techId}`,
+                    customerName: customer?.primaryContact.name || 'Unknown Customer',
+                    technicianName: technician?.name || 'Unassigned',
+                    technicianId: techId,
+                    color: technician?.color || '#A0A0A0',
+                    isGhost: !isPrimary,
+                    type: 'job' as const
+                };
+            });
+        });
 
-      const enrichedEvents = (googleEvents || []).map(event => ({ ...event, type: 'google_event' as const }));
+        const enrichedEvents = (googleEvents || []).map(event => ({ ...event, type: 'google_event' as const }));
 
-      return [...enrichedJobs, ...enrichedEvents];
+        return [...enrichedJobs, ...enrichedEvents];
     }, [jobs, customers, technicians, googleEvents]);
 
 
@@ -212,4 +222,3 @@ export default function SchedulingPage() {
         <SchedulingPageContent />
     )
 }
-
