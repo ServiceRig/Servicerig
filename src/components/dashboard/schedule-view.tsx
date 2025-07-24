@@ -202,7 +202,7 @@ const WeeklyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDa
                                                     return (
                                                         <TimeSlot
                                                             key={`${hour}-${minute}`}
-                                                            technicianId={tech.id === 'unassigned' ? '' : tech.id}
+                                                            technicianId={tech.id}
                                                             startTime={slotTime}
                                                             onDrop={onJobDrop}
                                                             startHour={startHour}
@@ -211,10 +211,7 @@ const WeeklyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDa
                                                 })
                                             )}
                                             {jobs
-                                                .filter(job => {
-                                                    const techMatch = tech.id === 'unassigned' ? !job.technicianId || job.technicianId === '' || job.technicianId === 'unassigned' : job.technicianId === tech.id;
-                                                    return techMatch && isSameDay(new Date(job.schedule.start), day);
-                                                })
+                                                .filter(job => job.technicianId === tech.id && isSameDay(new Date(job.schedule.start), day))
                                                 .map(job => (
                                                      <DraggableJob key={job.id} job={job} onStatusChange={onJobStatusChange} onJobDrop={onJobDrop} isCompact startHour={startHour} />
                                                 ))}
