@@ -178,10 +178,10 @@ const WeeklyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDa
     const gridOffset = 78;
 
     return (
-        <div className="flex h-full">
-            <TimeAxis startHour={startHour} endHour={endHour}/>
-            <ScrollArea className="flex-grow" viewportClassName="h-full">
-                <div className={cn("grid grid-cols-7 relative", isFitToScreen ? "w-full" : "min-w-[2000px]")}>
+        <ScrollArea className="h-full" viewportClassName="h-full">
+            <div className="flex h-full">
+                <TimeAxis startHour={startHour} endHour={endHour}/>
+                <div className={cn("grid grid-cols-7 relative flex-grow", isFitToScreen ? "w-full" : "min-w-[2000px]")}>
                     {weekDays.map((day) => (
                         <div key={day.toISOString()} className="border-l flex flex-col">
                             <div className="text-center font-semibold py-2 border-b sticky top-0 bg-background z-20">
@@ -230,8 +230,8 @@ const WeeklyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDa
                         ))}
                     </div>
                 </div>
-            </ScrollArea>
-        </div>
+            </div>
+        </ScrollArea>
     );
 };
 
