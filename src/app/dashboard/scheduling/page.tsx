@@ -1,11 +1,12 @@
 
+
 'use client';
 
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { ScheduleView } from "@/components/dashboard/schedule-view";
 import { mockData } from "@/lib/mock-data";
-import { Job, Customer, Technician } from "@/lib/types";
+import { Job, Customer, Technician, GoogleCalendarEvent } from "@/lib/types";
 import { useEffect, useState, useCallback, createContext, useContext, useMemo } from "react";
 import { addDays, eachDayOfInterval, startOfDay, endOfDay, max, min, isSameDay, setHours, setMinutes, getHours, getMinutes, isBefore, format } from 'date-fns';
 
@@ -38,12 +39,14 @@ function SchedulingPageContent() {
   const [jobs, setJobs] = useState<Job[]>(mockData.jobs as Job[]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [technicians, setTechnicians] = useState<Technician[]>([]);
+  const [googleEvents, setGoogleEvents] = useState<GoogleCalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setTimeout(() => {
         setCustomers(mockData.customers as Customer[]);
         setTechnicians(mockData.technicians as Technician[]);
+        setGoogleEvents(mockData.googleCalendarEvents as GoogleCalendarEvent[]);
         setLoading(false);
     }, 500);
   }, []);
@@ -117,13 +120,14 @@ function SchedulingPageContent() {
     setCurrentDate(prevDate => addDays(prevDate, increment * sign));
   };
   
-    const { startHour: workdayStartHour, endHour: workdayEndHour } = mockData.scheduleSettings;
+    const { startHour, endHour } = mockData.scheduleSettings;
 
-    const enrichedJobs = useMemo(() => {
-        console.log("=== CALCULATING ENRICHED JOBS ===");
+    const enrichedJobsAndEvents = useMemo(() => {
+        console.log("=== CALCULATING ENRICHED JOBS & EVENTS ===");
         console.log("Input jobs:", jobs.length);
+        console.log("Input events:", googleEvents.length);
 
-        const enriched = (jobs ?? []).flatMap(job => {
+        const enrichedJobs = (jobs ?? []).flatMap(job => {
             if (job.status === 'unscheduled') {
                 const customer = customers.find(c => c.id === job.customerId);
                 return [{
@@ -133,6 +137,7 @@ function SchedulingPageContent() {
                     technicianName: 'Unassigned',
                     color: '#A0A0A0',
                     isGhost: false,
+                    type: 'job'
                 }];
             }
             
@@ -160,34 +165,32 @@ function SchedulingPageContent() {
 
                 return allTechsForJob.map((techId, index) => {
                     const technician = technicians.find(t => t.id === techId);
-                    const isPrimary = index === 0;
-
                     const enrichedJob = {
                         ...job,
                         id: `${job.id}-${format(day, 'yyyy-MM-dd')}-${techId}`,
                         originalId: job.id,
                         technicianId: techId,
-                        schedule: {
-                            ...job.schedule,
-                            start: segmentStart,
-                            end: segmentEnd,
-                        },
+                        schedule: { ...job.schedule, start: segmentStart, end: segmentEnd },
                         customerName: customer?.primaryContact.name || 'Unknown Customer',
                         technicianName: technician?.name || 'Unassigned',
                         color: technician?.color || '#A0A0A0',
                         isGhost: !isPrimary,
+                        type: 'job'
                     };
                     return enrichedJob;
                 });
             });
         });
-        console.log("Enriched jobs:", enriched.length);
-        return enriched;
-    }, [jobs, customers, technicians]);
+        
+        const enrichedEvents = (googleEvents || []).map(event => ({ ...event, type: 'google_event' }));
+
+        console.log("Enriched items:", enrichedJobs.length + enrichedEvents.length);
+        return [...enrichedJobs, ...enrichedEvents];
+    }, [jobs, customers, technicians, googleEvents]);
 
 
-  const scheduledJobs = enrichedJobs.filter(job => job.status !== 'unscheduled');
-  const unscheduledJobs = enrichedJobs.filter(job => job.status === 'unscheduled');
+  const scheduledItems = enrichedJobsAndEvents.filter(item => (item.type === 'job' && item.status !== 'unscheduled') || item.type === 'google_event');
+  const unscheduledJobs = enrichedJobsAndEvents.filter(item => item.type === 'job' && item.status === 'unscheduled');
 
   if (loading) {
     return <div className="p-4">Loading Schedule...</div>;
@@ -197,7 +200,7 @@ function SchedulingPageContent() {
     <DndProvider backend={HTML5Backend}>
       <div className="flex h-[calc(100vh-8rem)] flex-col">
           <ScheduleView
-              jobs={scheduledJobs}
+              items={scheduledItems}
               unscheduledJobs={unscheduledJobs}
               technicians={technicians}
               onJobDrop={moveJob}

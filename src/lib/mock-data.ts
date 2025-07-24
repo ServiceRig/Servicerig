@@ -1,5 +1,5 @@
 
-import { Customer, Invoice, Job, Technician, UserRole, Equipment, Estimate, EstimateTemplate, PricebookItem, InventoryItem, Payment, ServiceAgreement, Refund, TaxLine, PaymentPlan, Deposit, ChangeOrder, AuditLogEntry, TaxZone, PartRequest, ShoppingListItem, PurchaseOrder, PurchaseOrderPart, EquipmentLog, PartUsageLog, User, Vendor } from './types';
+import { Customer, Invoice, Job, Technician, UserRole, Equipment, Estimate, EstimateTemplate, PricebookItem, InventoryItem, Payment, ServiceAgreement, Refund, TaxLine, PaymentPlan, Deposit, ChangeOrder, AuditLogEntry, TaxZone, PartRequest, ShoppingListItem, PurchaseOrder, PurchaseOrderPart, EquipmentLog, PartUsageLog, User, Vendor, GoogleCalendarEvent } from './types';
 
 const getDay = (day: number) => {
     const newDate = new Date();
@@ -12,6 +12,34 @@ const getDay = (day: number) => {
 // Wrapping our mock data in a single object makes it mutable across requests
 // in a Node.js development server environment. This simulates a persistent store.
 export const mockData: { [key: string]: any } = {
+  googleCalendarEvents: [
+      {
+          eventId: 'gcal_event_1',
+          calendarId: 'primary',
+          start: new Date(getDay(2).setHours(15, 0, 0, 0)),
+          end: new Date(getDay(2).setHours(16, 0, 0, 0)),
+          summary: 'Follow-up with Johnson',
+          description: 'Call to discuss the new quote.',
+          createdBy: 'user@gmail.com',
+          status: 'confirmed',
+          source: 'google',
+          syncedAt: new Date(),
+          matchedTechnicianId: 'tech1' // Manually match to a tech for display
+      },
+       {
+          eventId: 'gcal_event_2',
+          calendarId: 'primary',
+          start: new Date(getDay(4).setHours(11, 0, 0, 0)),
+          end: new Date(getDay(4).setHours(11, 30, 0, 0)),
+          summary: 'Pick up supplies from Ferguson',
+          description: 'PO #po2 parts are ready',
+          createdBy: 'user@gmail.com',
+          status: 'confirmed',
+          source: 'google',
+          syncedAt: new Date(),
+          matchedTechnicianId: 'tech2'
+      }
+  ] as GoogleCalendarEvent[],
   scheduleSettings: {
     startHour: 5,
     endHour: 19,
