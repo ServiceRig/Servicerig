@@ -1,5 +1,4 @@
 
-
 'use client';
 import { useState, useMemo, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -17,7 +16,7 @@ import type { Customer, Equipment, Job, Technician } from '@/lib/types';
 import { format, setHours, setMinutes } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { addJob } from '@/lib/firestore/jobs';
-import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 const timeOptions = Array.from({ length: 96 }, (_, i) => { // 96 quarters in a day
     const totalMinutes = i * 15;
@@ -118,11 +117,7 @@ export function ScheduleJobDialog({ onJobCreated }: ScheduleJobDialogProps) {
         const segment = { ...newSegments[index] };
     
         if (field === 'date' && value instanceof Date) {
-            const originalTime = newSegments[index].date;
-            const newDate = new Date(value);
-            // Preserve the time part from the original date to avoid timezone shifts
-            newDate.setHours(originalTime.getHours(), originalTime.getMinutes(), originalTime.getSeconds(), originalTime.getMilliseconds());
-            segment.date = newDate;
+            segment.date = value;
         } else if (typeof value === 'string') {
             (segment as any)[field] = value;
         }
