@@ -250,7 +250,7 @@ export function ScheduleJobDialog({ onJobCreated }: ScheduleJobDialogProps) {
                     Schedule Job
                 </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col" onOpenAutoFocus={(e) => e.preventDefault()}>
+            <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
                 <DialogHeader>
                     <DialogTitle>Schedule a New Job</DialogTitle>
                     <DialogDescription>Fill in the details to add a new job to the schedule.</DialogDescription>
