@@ -57,49 +57,48 @@ function SchedulingPageContent() {
     mockData.jobs.push(newJob);
   };
   
-    const moveJob = useCallback((jobId: string, newTechnicianId: string, newStartTime: Date) => {
-        setJobs(prevJobs => {
-            const jobToMoveIndex = prevJobs.findIndex(j => j.id === jobId);
-            if (jobToMoveIndex === -1) {
-                console.error(`Job with id ${jobId} not found!`);
-                return prevJobs;
-            }
+  const moveJob = useCallback((jobId: string, newTechnicianId: string, newStartTime: Date) => {
+    setJobs(prevJobs => {
+        const jobToMoveIndex = prevJobs.findIndex(j => j.id === jobId);
+        if (jobToMoveIndex === -1) {
+            console.error(`Job with id ${jobId} not found!`);
+            return prevJobs;
+        }
 
-            const newJobs = [...prevJobs];
-            const jobToMove = { ...newJobs[jobToMoveIndex] };
+        const newJobs = [...prevJobs];
+        const jobToMove = { ...newJobs[jobToMoveIndex] };
 
-            const minutes = newStartTime.getMinutes();
-            const roundedMinutes = Math.round(minutes / 15) * 15;
-            const snappedStartTime = new Date(newStartTime);
-            snappedStartTime.setMinutes(roundedMinutes, 0, 0);
+        const minutes = newStartTime.getMinutes();
+        const roundedMinutes = Math.round(minutes / 15) * 15;
+        const snappedStartTime = new Date(newStartTime);
+        snappedStartTime.setMinutes(roundedMinutes, 0, 0);
 
-            let durationMs: number;
-            if (jobToMove.status === 'unscheduled' || !jobToMove.schedule.end) {
-                durationMs = 60 * 60 * 1000; // Default to 1 hour
-            } else {
-                durationMs = new Date(jobToMove.schedule.end).getTime() - new Date(jobToMove.schedule.start).getTime();
-            }
+        let durationMs: number;
+        if (jobToMove.status === 'unscheduled' || !jobToMove.schedule.end) {
+            durationMs = 60 * 60 * 1000; // Default to 1 hour
+        } else {
+            durationMs = new Date(jobToMove.schedule.end).getTime() - new Date(jobToMove.schedule.start).getTime();
+        }
 
-            const newEndTime = new Date(snappedStartTime.getTime() + durationMs);
+        const newEndTime = new Date(snappedStartTime.getTime() + durationMs);
 
-            const updatedJob = {
-                ...jobToMove,
-                technicianId: newTechnicianId,
-                schedule: { ...jobToMove.schedule, start: snappedStartTime, end: newEndTime, unscheduled: false },
-                status: 'scheduled' as Job['status']
-            };
+        const updatedJob = {
+            ...jobToMove,
+            technicianId: newTechnicianId,
+            schedule: { ...jobToMove.schedule, start: snappedStartTime, end: newEndTime, unscheduled: false },
+            status: 'scheduled' as Job['status']
+        };
 
-            newJobs[jobToMoveIndex] = updatedJob;
+        newJobs[jobToMoveIndex] = updatedJob;
 
-            // Also update the central mock data source
-            const mockDataIndex = mockData.jobs.findIndex((j: Job) => j.id === jobId);
-            if (mockDataIndex !== -1) {
-                mockData.jobs[mockDataIndex] = updatedJob;
-            }
+        const mockDataIndex = mockData.jobs.findIndex((j: Job) => j.id === jobId);
+        if (mockDataIndex !== -1) {
+            mockData.jobs[mockDataIndex] = updatedJob;
+        }
 
-            return newJobs;
-        });
-    }, []);
+        return newJobs;
+    });
+}, []);
 
   const updateJobStatus = useCallback((jobId: string, newStatus: Job['status']) => {
     setJobs(prevJobs => {
@@ -166,16 +165,15 @@ function SchedulingPageContent() {
 
             return allTechniciansForJob.map((techId, index) => {
                 const technician = technicians.find(t => t.id === techId);
-                const isPrimary = index === 0;
                 return {
                     ...job,
                     originalId: job.id,
-                    id: isPrimary ? job.id : `${job.id}-ghost-${techId}`,
+                    id: index === 0 ? job.id : `${job.id}-ghost-${techId}`,
                     customerName: customer?.primaryContact.name || 'Unknown Customer',
                     technicianName: technician?.name || 'Unassigned',
                     technicianId: techId,
                     color: technician?.color || '#A0A0A0',
-                    isGhost: !isPrimary,
+                    isGhost: index !== 0,
                     type: 'job' as const
                 };
             });
