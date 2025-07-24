@@ -16,7 +16,7 @@ import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, PlusCircle } from 
 import { Calendar } from '../ui/calendar';
 import { format, addDays, startOfWeek, isSameDay } from 'date-fns';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
-import { useScheduleView } from '@/app/dashboard/scheduling/page';
+import { useScheduleView } from '@/hooks/use-schedule-view';
 import { useRole } from '@/hooks/use-role';
 import { ScheduleJobDialog } from './scheduling/ScheduleJobDialog';
 import { useDrop } from 'react-dnd';
