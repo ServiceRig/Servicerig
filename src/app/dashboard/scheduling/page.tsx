@@ -53,34 +53,38 @@ function SchedulingPageContent() {
     await fetchData();
   }, [toast, fetchData]);
 
-  const moveJob = useCallback(async (jobId: string, newTechnicianId: string, newStartTime: Date) => {
+ const moveJob = useCallback(async (jobId: string, newTechnicianId: string, newStartTime: Date) => {
     const jobToMove = jobs.find(j => j.id === jobId);
     if (!jobToMove) {
         console.error("Job to move not found in state!");
         return;
     }
 
-    const updatedJob = {
+    const updatedJob: Job = {
         ...jobToMove,
         technicianId: newTechnicianId,
         schedule: {
             ...jobToMove.schedule,
             start: newStartTime,
-            end: new Date(newStartTime.getTime() + (jobToMove.duration || 60) * 60 * 1000), // Recalculate end time
-            unscheduled: false
+            end: new Date(newStartTime.getTime() + (jobToMove.duration || 60) * 60 * 1000),
+            unscheduled: false,
         },
-        status: 'scheduled' as const,
-        updatedAt: new Date()
+        status: 'scheduled',
+        updatedAt: new Date(),
     };
     
-    await updateJob(updatedJob); // Update the "database"
-    await fetchData(); // Re-fetch all data to ensure UI sync
+    // Update the "database"
+    await updateJob(updatedJob); 
+    
+    // Optimistically update local state for immediate UI feedback
+    setJobs(prevJobs => prevJobs.map(j => j.id === jobId ? updatedJob : j));
 
     toast({
         title: "Job Rescheduled",
         description: `Job "${updatedJob.title}" has been moved.`
     });
-}, [jobs, fetchData, toast]);
+}, [jobs, toast]);
+
 
   // Handle job status changes
   const updateJobStatus = useCallback(async (jobId: string, newStatus: Job['status']) => {
