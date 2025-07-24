@@ -255,210 +255,208 @@ export function ScheduleJobDialog({ onJobCreated }: ScheduleJobDialogProps) {
                     <DialogTitle>Schedule a New Job</DialogTitle>
                     <DialogDescription>Fill in the details to add a new job to the schedule.</DialogDescription>
                 </DialogHeader>
-                <div className="flex-grow overflow-y-auto pr-6 -mr-6 pl-1 -ml-1">
-                    <div className="space-y-6">
-                        {/* Customer Section */}
-                        <div className="p-4 border rounded-lg">
-                            <h3 className="font-semibold mb-4">Customer</h3>
-                            {isCreatingCustomer ? (
-                                <div className="space-y-4">
-                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div className="space-y-2"><Label>Full Name</Label><Input value={newCustomerData.name} onChange={e => handleNewCustomerInputChange('name', e.target.value)} /></div>
-                                        <div className="space-y-2"><Label>Email</Label><Input type="email" value={newCustomerData.email} onChange={e => handleNewCustomerInputChange('email', e.target.value)} /></div>
-                                        <div className="space-y-2"><Label>Phone</Label><Input value={newCustomerData.phone} onChange={e => handleNewCustomerInputChange('phone', e.target.value)} /></div>
-                                        <div className="space-y-2"><Label>Address</Label><Input value={newCustomerData.address} onChange={e => handleNewCustomerInputChange('address', e.target.value)} /></div>
-                                     </div>
-                                      <div className="flex gap-2">
-                                        <Button onClick={handleSaveNewCustomer}>Save Customer</Button>
-                                        <Button variant="ghost" onClick={() => setIsCreatingCustomer(false)}>Cancel</Button>
-                                     </div>
+                <div className="flex-grow overflow-y-auto space-y-6 p-1">
+                    {/* Customer Section */}
+                    <div className="p-4 border rounded-lg">
+                        <h3 className="font-semibold mb-4">Customer</h3>
+                        {isCreatingCustomer ? (
+                            <div className="space-y-4">
+                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-2"><Label>Full Name</Label><Input value={newCustomerData.name} onChange={e => handleNewCustomerInputChange('name', e.target.value)} /></div>
+                                    <div className="space-y-2"><Label>Email</Label><Input type="email" value={newCustomerData.email} onChange={e => handleNewCustomerInputChange('email', e.target.value)} /></div>
+                                    <div className="space-y-2"><Label>Phone</Label><Input value={newCustomerData.phone} onChange={e => handleNewCustomerInputChange('phone', e.target.value)} /></div>
+                                    <div className="space-y-2"><Label>Address</Label><Input value={newCustomerData.address} onChange={e => handleNewCustomerInputChange('address', e.target.value)} /></div>
+                                 </div>
+                                  <div className="flex gap-2">
+                                    <Button onClick={handleSaveNewCustomer}>Save Customer</Button>
+                                    <Button variant="ghost" onClick={() => setIsCreatingCustomer(false)}>Cancel</Button>
+                                 </div>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label>Select Customer</Label>
+                                    <Select onValueChange={handleSelectCustomer} value={selectedCustomer?.id || ''}>
+                                        <SelectTrigger><SelectValue placeholder="Search by name, phone..." /></SelectTrigger>
+                                        <SelectContent>
+                                            {allCustomers.map(c => <SelectItem key={c.id} value={c.id}>{c.primaryContact.name}</SelectItem>)}
+                                        </SelectContent>
+                                    </Select>
                                 </div>
-                            ) : (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label>Select Customer</Label>
-                                        <Select onValueChange={handleSelectCustomer} value={selectedCustomer?.id || ''}>
-                                            <SelectTrigger><SelectValue placeholder="Search by name, phone..." /></SelectTrigger>
+                                <Button variant="outline" className="self-end" onClick={() => setIsCreatingCustomer(true)}><UserPlus className="mr-2 h-4 w-4"/> New Customer</Button>
+
+                                {selectedCustomer && (
+                                    <div className="space-y-2 md:col-span-2">
+                                        <Label>Customer Equipment (Optional)</Label>
+                                        <Select value={selectedEquipmentId} onValueChange={setSelectedEquipmentId}>
+                                            <SelectTrigger><SelectValue placeholder="Select equipment..." /></SelectTrigger>
                                             <SelectContent>
-                                                {allCustomers.map(c => <SelectItem key={c.id} value={c.id}>{c.primaryContact.name}</SelectItem>)}
+                                                {customerEquipment.map(eq => <SelectItem key={eq.id} value={eq.id}>{eq.name} ({eq.serial})</SelectItem>)}
                                             </SelectContent>
                                         </Select>
                                     </div>
-                                    <Button variant="outline" className="self-end" onClick={() => setIsCreatingCustomer(true)}><UserPlus className="mr-2 h-4 w-4"/> New Customer</Button>
+                                )}
+                            </div>
+                        )}
+                    </div>
 
-                                    {selectedCustomer && (
-                                        <div className="space-y-2 md:col-span-2">
-                                            <Label>Customer Equipment (Optional)</Label>
-                                            <Select value={selectedEquipmentId} onValueChange={setSelectedEquipmentId}>
-                                                <SelectTrigger><SelectValue placeholder="Select equipment..." /></SelectTrigger>
-                                                <SelectContent>
-                                                    {customerEquipment.map(eq => <SelectItem key={eq.id} value={eq.id}>{eq.name} ({eq.serial})</SelectItem>)}
-                                                </SelectContent>
-                                            </Select>
+                    {/* Job Details Section */}
+                     <div className="p-4 border rounded-lg">
+                         <h3 className="font-semibold mb-4">Job Details</h3>
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                             <div className="space-y-2">
+                                <Label>Service Sector</Label>
+                                <Select value={trade} onValueChange={(v) => setTrade(v as any)}>
+                                    <SelectTrigger><SelectValue/></SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="Plumbing">Plumbing</SelectItem>
+                                        <SelectItem value="HVAC">HVAC</SelectItem>
+                                        <SelectItem value="Electrical">Electrical</SelectItem>
+                                        <SelectItem value="Other">Other</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                             </div>
+                              <div className="space-y-2">
+                                  <Label>Service Category</Label>
+                                  <Input value={category} onChange={e => setCategory(e.target.value)} placeholder="e.g. Drain Cleaning, AC Repair" />
+                              </div>
+                               <div className="space-y-2 md:col-span-2">
+                                   <Label>Service Description</Label>
+                                   <Textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Describe the work to be done..."/>
+                               </div>
+                         </div>
+                     </div>
+                     
+                     {/* Technician Assignment */}
+                    <div className="p-4 border rounded-lg">
+                         <h3 className="font-semibold mb-4">Technician Assignment</h3>
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                  <Label>Primary Technician</Label>
+                                  <Select value={primaryTechnicianId} onValueChange={setPrimaryTechnicianId}>
+                                      <SelectTrigger><SelectValue placeholder="Select primary tech"/></SelectTrigger>
+                                      <SelectContent>
+                                          {allTechnicians.map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+                                      </SelectContent>
+                                  </Select>
+                              </div>
+                              <div className="space-y-2">
+                                  <Label>Additional Technicians</Label>
+                                  {/* This is a simplified multi-select */}
+                                  <div className="flex flex-wrap gap-2 p-2 border rounded-md">
+                                      {allTechnicians.filter(t => t.id !== primaryTechnicianId).map(t => (
+                                          <Button key={t.id} type="button" variant={additionalTechnicians.has(t.id) ? 'default' : 'outline'} size="sm" onClick={() => handleMultiTechSelect(t.id)}>{t.name}</Button>
+                                      ))}
+                                  </div>
+                              </div>
+                         </div>
+                     </div>
+
+                    {/* Scheduling Options */}
+                    <div className="p-4 border rounded-lg">
+                        <h3 className="font-semibold mb-4">Scheduling</h3>
+                         <div className="flex items-center space-x-2 mb-4">
+                            <Checkbox id="unscheduled" checked={isUnscheduled} onCheckedChange={(checked) => setIsUnscheduled(!!checked)} />
+                            <Label htmlFor="unscheduled">Add to Unscheduled Jobs list</Label>
+                        </div>
+                         <div className="flex items-center space-x-2 mb-4">
+                            <Checkbox id="different-times" checked={hasDifferentTimes} onCheckedChange={(checked) => setHasDifferentTimes(!!checked)} />
+                            <Label htmlFor="different-times">Different Times on Days</Label>
+                        </div>
+                        <div className={cn("space-y-4", (isUnscheduled) && "opacity-50 pointer-events-none")}>
+                            {!hasDifferentTimes ? (
+                                <>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    <div className="space-y-2">
+                                        <Label>Start Date</Label>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <Button type="button" variant="outline" className="w-full justify-start text-left font-normal">
+                                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                                    {startDate ? format(startDate, "PPP") : <span>Pick a date</span>}
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={startDate} onSelect={setStartDate} initialFocus /></PopoverContent>
+                                        </Popover>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label>End Date</Label>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                 <Button type="button" variant="outline" className="w-full justify-start text-left font-normal">
+                                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                                    {endDate ? format(endDate, "PPP") : <span>Pick a date</span>}
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={endDate} onSelect={setEndDate} initialFocus /></PopoverContent>
+                                        </Popover>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label>Start Time</Label>
+                                        <Select value={startTime} onValueChange={setStartTime}><SelectTrigger><SelectValue/></SelectTrigger>
+                                            <SelectContent>{timeOptions.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label>End Time</Label>
+                                        <Select value={endTime} onValueChange={setEndTime}><SelectTrigger><SelectValue/></SelectTrigger>
+                                            <SelectContent>{timeOptions.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
+                                        </Select>
+                                    </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                    <Label>Arrival Window</Label>
+                                    <Select value={arrivalWindow} onValueChange={setArrivalWindow}><SelectTrigger><SelectValue placeholder="Select window"/></SelectTrigger>
+                                        <SelectContent>{arrivalWindows.map(w => <SelectItem key={w} value={w}>{w}</SelectItem>)}</SelectContent>
+                                    </Select>
+                                </div>
+                            </>
+                            ) : (
+                                <div className="space-y-4">
+                                    {timeSegments.map((segment, index) => (
+                                        <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-2 items-end p-2 border rounded-md">
+                                            <div className="space-y-1">
+                                                <Label>Date</Label>
+                                                <Popover>
+                                                    <PopoverTrigger asChild>
+                                                        <Button type="button" variant={'outline'} className={cn("w-full justify-start text-left font-normal")}>
+                                                            <CalendarIcon className="mr-2 h-4 w-4" />
+                                                            {segment.date ? format(segment.date, "PPP") : <span>Pick a date</span>}
+                                                        </Button>
+                                                    </PopoverTrigger>
+                                                    <PopoverContent className="w-auto p-0" align="start">
+                                                        <Calendar
+                                                            mode="single"
+                                                            selected={segment.date}
+                                                            onSelect={(date) => date && handleSegmentChange(index, 'date', date)}
+                                                            initialFocus
+                                                        />
+                                                    </PopoverContent>
+                                                </Popover>
+                                            </div>
+                                             <div className="space-y-1">
+                                                <Label>Start Time</Label>
+                                                <Select value={segment.startTime} onValueChange={v => handleSegmentChange(index, 'startTime', v)}><SelectTrigger><SelectValue/></SelectTrigger>
+                                                    <SelectContent>{timeOptions.map(t => <SelectItem key={`start-${index}-${t.value}`} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
+                                                </Select>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <Label>End Time</Label>
+                                                <Select value={segment.endTime} onValueChange={v => handleSegmentChange(index, 'endTime', v)}><SelectTrigger><SelectValue/></SelectTrigger>
+                                                    <SelectContent>{timeOptions.map(t => <SelectItem key={`end-${index}-${t.value}`} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
+                                                </Select>
+                                            </div>
+                                            <Button type="button" variant="ghost" size="icon" onClick={() => removeSegment(index)} disabled={timeSegments.length <= 1}>
+                                                <Trash2 className="h-4 w-4"/>
+                                            </Button>
                                         </div>
-                                    )}
+                                    ))}
+                                    <Button type="button" variant="link" onClick={addSegment}><PlusCircle className="mr-2 h-4 w-4"/> Add Another Time Slot</Button>
                                 </div>
                             )}
                         </div>
-
-                        {/* Job Details Section */}
-                         <div className="p-4 border rounded-lg">
-                             <h3 className="font-semibold mb-4">Job Details</h3>
-                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                 <div className="space-y-2">
-                                    <Label>Service Sector</Label>
-                                    <Select value={trade} onValueChange={(v) => setTrade(v as any)}>
-                                        <SelectTrigger><SelectValue/></SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="Plumbing">Plumbing</SelectItem>
-                                            <SelectItem value="HVAC">HVAC</SelectItem>
-                                            <SelectItem value="Electrical">Electrical</SelectItem>
-                                            <SelectItem value="Other">Other</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                 </div>
-                                  <div className="space-y-2">
-                                      <Label>Service Category</Label>
-                                      <Input value={category} onChange={e => setCategory(e.target.value)} placeholder="e.g. Drain Cleaning, AC Repair" />
-                                  </div>
-                                   <div className="space-y-2 md:col-span-2">
-                                       <Label>Service Description</Label>
-                                       <Textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Describe the work to be done..."/>
-                                   </div>
-                             </div>
-                         </div>
-                         
-                         {/* Technician Assignment */}
-                        <div className="p-4 border rounded-lg">
-                             <h3 className="font-semibold mb-4">Technician Assignment</h3>
-                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                  <div className="space-y-2">
-                                      <Label>Primary Technician</Label>
-                                      <Select value={primaryTechnicianId} onValueChange={setPrimaryTechnicianId}>
-                                          <SelectTrigger><SelectValue placeholder="Select primary tech"/></SelectTrigger>
-                                          <SelectContent>
-                                              {allTechnicians.map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
-                                          </SelectContent>
-                                      </Select>
-                                  </div>
-                                  <div className="space-y-2">
-                                      <Label>Additional Technicians</Label>
-                                      {/* This is a simplified multi-select */}
-                                      <div className="flex flex-wrap gap-2 p-2 border rounded-md">
-                                          {allTechnicians.filter(t => t.id !== primaryTechnicianId).map(t => (
-                                              <Button key={t.id} type="button" variant={additionalTechnicians.has(t.id) ? 'default' : 'outline'} size="sm" onClick={() => handleMultiTechSelect(t.id)}>{t.name}</Button>
-                                          ))}
-                                      </div>
-                                  </div>
-                             </div>
-                         </div>
-
-                        {/* Scheduling Options */}
-                        <div className="p-4 border rounded-lg">
-                            <h3 className="font-semibold mb-4">Scheduling</h3>
-                             <div className="flex items-center space-x-2 mb-4">
-                                <Checkbox id="unscheduled" checked={isUnscheduled} onCheckedChange={(checked) => setIsUnscheduled(!!checked)} />
-                                <Label htmlFor="unscheduled">Add to Unscheduled Jobs list</Label>
-                            </div>
-                             <div className="flex items-center space-x-2 mb-4">
-                                <Checkbox id="different-times" checked={hasDifferentTimes} onCheckedChange={(checked) => setHasDifferentTimes(!!checked)} />
-                                <Label htmlFor="different-times">Different Times on Days</Label>
-                            </div>
-                            <div className={cn("space-y-4", (isUnscheduled) && "opacity-50 pointer-events-none")}>
-                                {!hasDifferentTimes ? (
-                                    <>
-                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                        <div className="space-y-2">
-                                            <Label>Start Date</Label>
-                                            <Popover>
-                                                <PopoverTrigger asChild>
-                                                    <Button type="button" variant="outline" className="w-full justify-start text-left font-normal">
-                                                        <CalendarIcon className="mr-2 h-4 w-4" />
-                                                        {startDate ? format(startDate, "PPP") : <span>Pick a date</span>}
-                                                    </Button>
-                                                </PopoverTrigger>
-                                                <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={startDate} onSelect={setStartDate} initialFocus /></PopoverContent>
-                                            </Popover>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label>End Date</Label>
-                                            <Popover>
-                                                <PopoverTrigger asChild>
-                                                     <Button type="button" variant="outline" className="w-full justify-start text-left font-normal">
-                                                        <CalendarIcon className="mr-2 h-4 w-4" />
-                                                        {endDate ? format(endDate, "PPP") : <span>Pick a date</span>}
-                                                    </Button>
-                                                </PopoverTrigger>
-                                                <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={endDate} onSelect={setEndDate} initialFocus /></PopoverContent>
-                                            </Popover>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label>Start Time</Label>
-                                            <Select value={startTime} onValueChange={setStartTime}><SelectTrigger><SelectValue/></SelectTrigger>
-                                                <SelectContent>{timeOptions.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
-                                            </Select>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label>End Time</Label>
-                                            <Select value={endTime} onValueChange={setEndTime}><SelectTrigger><SelectValue/></SelectTrigger>
-                                                <SelectContent>{timeOptions.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
-                                            </Select>
-                                        </div>
-                                        </div>
-                                        <div className="space-y-2">
-                                        <Label>Arrival Window</Label>
-                                        <Select value={arrivalWindow} onValueChange={setArrivalWindow}><SelectTrigger><SelectValue placeholder="Select window"/></SelectTrigger>
-                                            <SelectContent>{arrivalWindows.map(w => <SelectItem key={w} value={w}>{w}</SelectItem>)}</SelectContent>
-                                        </Select>
-                                    </div>
-                                </>
-                                ) : (
-                                    <div className="space-y-4">
-                                        {timeSegments.map((segment, index) => (
-                                            <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-2 items-end p-2 border rounded-md">
-                                                <div className="space-y-1">
-                                                    <Label>Date</Label>
-                                                    <Popover>
-                                                        <PopoverTrigger asChild>
-                                                            <Button type="button" variant={'outline'} className={cn("w-full justify-start text-left font-normal")}>
-                                                                <CalendarIcon className="mr-2 h-4 w-4" />
-                                                                {segment.date ? format(segment.date, "PPP") : <span>Pick a date</span>}
-                                                            </Button>
-                                                        </PopoverTrigger>
-                                                        <PopoverContent className="w-auto p-0" align="start">
-                                                            <Calendar
-                                                                mode="single"
-                                                                selected={segment.date}
-                                                                onSelect={(date) => date && handleSegmentChange(index, 'date', date)}
-                                                                initialFocus
-                                                            />
-                                                        </PopoverContent>
-                                                    </Popover>
-                                                </div>
-                                                 <div className="space-y-1">
-                                                    <Label>Start Time</Label>
-                                                    <Select value={segment.startTime} onValueChange={v => handleSegmentChange(index, 'startTime', v)}><SelectTrigger><SelectValue/></SelectTrigger>
-                                                        <SelectContent>{timeOptions.map(t => <SelectItem key={`start-${index}-${t.value}`} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
-                                                    </Select>
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <Label>End Time</Label>
-                                                    <Select value={segment.endTime} onValueChange={v => handleSegmentChange(index, 'endTime', v)}><SelectTrigger><SelectValue/></SelectTrigger>
-                                                        <SelectContent>{timeOptions.map(t => <SelectItem key={`end-${index}-${t.value}`} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
-                                                    </Select>
-                                                </div>
-                                                <Button type="button" variant="ghost" size="icon" onClick={() => removeSegment(index)} disabled={timeSegments.length <= 1}>
-                                                    <Trash2 className="h-4 w-4"/>
-                                                </Button>
-                                            </div>
-                                        ))}
-                                        <Button type="button" variant="link" onClick={addSegment}><PlusCircle className="mr-2 h-4 w-4"/> Add Another Time Slot</Button>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
                     </div>
+
                 </div>
                 <DialogFooter>
                     <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
