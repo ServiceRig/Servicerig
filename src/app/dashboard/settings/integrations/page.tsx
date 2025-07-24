@@ -2,13 +2,22 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Link as LinkIcon, Calendar } from "lucide-react";
+import { Link as LinkIcon, Calendar, CreditCard } from "lucide-react";
 import Image from "next/image";
+import Link from 'next/link';
+import { useRole } from "@/hooks/use-role";
 
 export default function IntegrationsPage() {
     // In a real app, this would come from the logged-in user's context
     const userId = 'admin1'; 
     const googleAuthUrl = `/googleCalendarAuthRedirect?userId=${userId}`;
+    const { role } = useRole();
+
+    const getHref = (path: string) => {
+        let roleParam = role ? `role=${role}` : '';
+        return `${path}?${roleParam}`;
+    }
+
 
     return (
         <div className="space-y-6 max-w-2xl">
@@ -33,6 +42,26 @@ export default function IntegrationsPage() {
                             <LinkIcon className="mr-2 h-4 w-4" />
                             Connect to Google Calendar
                         </a>
+                    </Button>
+                </CardContent>
+            </Card>
+             <Card>
+                <CardHeader>
+                    <div className="flex items-center gap-4">
+                        <CreditCard className="h-8 w-8 text-indigo-500" />
+                        <div>
+                             <CardTitle>Stripe</CardTitle>
+                             <CardDescription>Connect to Stripe to process credit card and ACH payments.</CardDescription>
+                        </div>
+                    </div>
+                </CardHeader>
+                <CardContent className="flex items-center justify-between p-6 border-t">
+                    <p className="text-sm text-muted-foreground">Status: <span className="font-semibold text-destructive">Not Connected</span></p>
+                    <Button asChild>
+                        <Link href={getHref('/dashboard/settings/stripe')}>
+                            <LinkIcon className="mr-2 h-4 w-4" />
+                            Manage Connection
+                        </Link>
                     </Button>
                 </CardContent>
             </Card>
