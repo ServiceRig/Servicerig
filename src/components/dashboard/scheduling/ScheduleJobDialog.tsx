@@ -369,26 +369,30 @@ export function ScheduleJobDialog({ onJobCreated }: ScheduleJobDialogProps) {
                                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                     <div className="space-y-2">
                                         <Label>Start Date</Label>
-                                        <Popover>
+                                        <Popover modal={true}>
                                             <PopoverTrigger asChild>
                                                 <Button type="button" variant="outline" className="w-full justify-start text-left font-normal">
                                                     <CalendarIcon className="mr-2 h-4 w-4" />
                                                     {startDate ? format(startDate, "PPP") : <span>Pick a date</span>}
                                                 </Button>
                                             </PopoverTrigger>
-                                            <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={startDate} onSelect={setStartDate} initialFocus /></PopoverContent>
+                                            <PopoverContent className="w-auto p-0" side="bottom" align="start">
+                                                <Calendar mode="single" selected={startDate} onSelect={setStartDate} initialFocus />
+                                            </PopoverContent>
                                         </Popover>
                                     </div>
                                     <div className="space-y-2">
                                         <Label>End Date</Label>
-                                        <Popover>
+                                        <Popover modal={true}>
                                             <PopoverTrigger asChild>
                                                  <Button type="button" variant="outline" className="w-full justify-start text-left font-normal">
                                                     <CalendarIcon className="mr-2 h-4 w-4" />
                                                     {endDate ? format(endDate, "PPP") : <span>Pick a date</span>}
                                                 </Button>
                                             </PopoverTrigger>
-                                            <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={endDate} onSelect={setEndDate} initialFocus /></PopoverContent>
+                                            <PopoverContent className="w-auto p-0" side="bottom" align="start">
+                                                <Calendar mode="single" selected={endDate} onSelect={setEndDate} initialFocus />
+                                            </PopoverContent>
                                         </Popover>
                                     </div>
                                     <div className="space-y-2">
@@ -417,14 +421,14 @@ export function ScheduleJobDialog({ onJobCreated }: ScheduleJobDialogProps) {
                                         <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-2 items-end p-2 border rounded-md">
                                             <div className="space-y-1">
                                                 <Label>Date</Label>
-                                                <Popover>
+                                                <Popover modal={true}>
                                                     <PopoverTrigger asChild>
                                                         <Button type="button" variant={'outline'} className={cn("w-full justify-start text-left font-normal")}>
                                                             <CalendarIcon className="mr-2 h-4 w-4" />
                                                             {segment.date ? format(segment.date, "PPP") : <span>Pick a date</span>}
                                                         </Button>
                                                     </PopoverTrigger>
-                                                    <PopoverContent className="w-auto p-0" align="start">
+                                                    <PopoverContent className="w-auto p-0" side="bottom" align="start">
                                                         <Calendar
                                                             mode="single"
                                                             selected={segment.date}
