@@ -152,7 +152,7 @@ function SchedulingPageContent({ jobs, setJobs }: { jobs: Job[], setJobs: React.
 
                 return {
                     ...job,
-                    id: `${job.id}_${format(day, 'yyyy-MM-dd')}_${techId}`,
+                    id: `${job.id}-${format(day, 'yyyy-MM-dd')}-${techId}`,
                     originalId: job.id,
                     technicianId: techId,
                     schedule: {
