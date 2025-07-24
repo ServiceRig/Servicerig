@@ -1,4 +1,5 @@
 
+
 'use client';
 import React, { useState, useEffect } from 'react';
 import { useDrag } from 'react-dnd';
@@ -78,7 +79,6 @@ export const DraggableJob: React.FC<DraggableJobProps> = ({ item, children, onSt
     
     const [elapsedTime, setElapsedTime] = useState(0);
     const [isActive, setIsActive] = useState(false);
-    const [isConvertToJobOpen, setIsConvertToJobOpen] = useState(false);
 
     useEffect(() => {
         if (item.type !== 'job') return;
@@ -228,9 +228,13 @@ export const DraggableJob: React.FC<DraggableJobProps> = ({ item, children, onSt
                              <div className="mt-6 flex justify-end gap-2">
                                 <Button variant="outline"><LinkIcon className="mr-2 h-4 w-4" /> Open in Google Calendar</Button>
                                 {onJobCreated && (
-                                     <ScheduleJobDialog onJobCreated={onJobCreated} initialJobData={initialJobDataFromEvent} triggerButton={
-                                         <Button><Edit className="mr-2 h-4 w-4" /> Convert to Job</Button>
-                                     } />
+                                     <ScheduleJobDialog
+                                        onJobCreated={onJobCreated}
+                                        initialJobData={initialJobDataFromEvent}
+                                        triggerButton={
+                                            <Button><Edit className="mr-2 h-4 w-4" /> Convert to Job</Button>
+                                        }
+                                     />
                                 )}
                             </div>
                         </div>

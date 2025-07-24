@@ -124,10 +124,10 @@ export type Job = {
   color?: string;
   isAutoCreated?: boolean;
   linkedGoogleEventId?: string;
+  isGhost?: boolean;
   // For UI enrichment
   customerName?: string;
   technicianName?: string;
-  isGhost?: boolean;
   details: {
     serviceType: string;
     trade: 'Plumbing' | 'HVAC' | 'Electrical' | 'Other';

@@ -1,4 +1,5 @@
 
+
 'use client';
 import { useState, useMemo, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -47,7 +48,7 @@ const initialNewCustomerState = {
 
 interface ScheduleJobDialogProps {
     onJobCreated: (newJob: Job) => void;
-    initialJobData?: Partial<Job>;
+    initialJobData?: Partial<Job & {schedule: Partial<Job['schedule']>}>;
     triggerButton?: React.ReactElement;
 }
 
@@ -61,6 +62,7 @@ export function ScheduleJobDialog({ onJobCreated, initialJobData, triggerButton 
     const [selectedEquipmentId, setSelectedEquipmentId] = useState<string>('');
     const [trade, setTrade] = useState<'Plumbing' | 'HVAC' | 'Electrical' | 'Other'>('Other');
     const [category, setCategory] = useState('');
+    const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [primaryTechnicianId, setPrimaryTechnicianId] = useState<string>('');
     const [additionalTechnicians, setAdditionalTechnicians] = useState<Set<string>>(new Set());
@@ -87,7 +89,8 @@ export function ScheduleJobDialog({ onJobCreated, initialJobData, triggerButton 
     const allEquipment = mockData.equipment as Equipment[];
 
     useEffect(() => {
-        if (initialJobData) {
+        if (isOpen && initialJobData) {
+            setTitle(initialJobData.title || '');
             setDescription(initialJobData.description || '');
             if (initialJobData.schedule?.start) {
                 const start = new Date(initialJobData.schedule.start);
@@ -100,7 +103,7 @@ export function ScheduleJobDialog({ onJobCreated, initialJobData, triggerButton 
                 setEndTime(format(end, 'HH:mm'));
             }
         }
-    }, [initialJobData]);
+    }, [initialJobData, isOpen]);
 
 
     useEffect(() => {
@@ -181,6 +184,7 @@ export function ScheduleJobDialog({ onJobCreated, initialJobData, triggerButton 
         setTrade('Other');
         setCategory('');
         setDescription('');
+        setTitle('');
         setPrimaryTechnicianId('');
         setAdditionalTechnicians(new Set());
         setStartDate(new Date());
@@ -215,7 +219,7 @@ export function ScheduleJobDialog({ onJobCreated, initialJobData, triggerButton 
                         additionalTechnicians: Array.from(additionalTechnicians),
                         equipmentId: selectedEquipmentId,
                         status: 'scheduled',
-                        title: `${trade} Service for ${selectedCustomer.primaryContact.name}`,
+                        title: title || `${trade} Service for ${selectedCustomer.primaryContact.name}`,
                         description,
                         details: { serviceType: trade, trade, category },
                         schedule: { start: finalStartDate, end: finalEndDate, arrivalWindow, multiDay: true, unscheduled: false },
@@ -262,7 +266,7 @@ export function ScheduleJobDialog({ onJobCreated, initialJobData, triggerButton 
                 additionalTechnicians: Array.from(additionalTechnicians),
                 equipmentId: selectedEquipmentId,
                 status: isUnscheduled ? 'unscheduled' : 'scheduled',
-                title: `${trade} Service for ${selectedCustomer.primaryContact.name}`,
+                title: title || `${trade} Service for ${selectedCustomer.primaryContact.name}`,
                 description,
                 details: { serviceType: trade, trade, category },
                 schedule: { start: finalStartDate, end: finalEndDate, arrivalWindow: isUnscheduled ? undefined : arrivalWindow, multiDay: finalStartDate.toDateString() !== finalEndDate.toDateString(), unscheduled: isUnscheduled },
@@ -349,28 +353,34 @@ export function ScheduleJobDialog({ onJobCreated, initialJobData, triggerButton 
                     {/* Job Details Section */}
                      <div className="p-4 border rounded-lg">
                          <h3 className="font-semibold mb-4">Job Details</h3>
-                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                             <div className="space-y-2">
-                                <Label>Service Sector</Label>
-                                <Select value={trade} onValueChange={(v) => setTrade(v as any)}>
-                                    <SelectTrigger><SelectValue/></SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="Plumbing">Plumbing</SelectItem>
-                                        <SelectItem value="HVAC">HVAC</SelectItem>
-                                        <SelectItem value="Electrical">Electrical</SelectItem>
-                                        <SelectItem value="Other">Other</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                             </div>
-                              <div className="space-y-2">
-                                  <Label>Service Category</Label>
-                                  <Input value={category} onChange={e => setCategory(e.target.value)} placeholder="e.g. Drain Cleaning, AC Repair" />
-                              </div>
-                               <div className="space-y-2 md:col-span-2">
-                                   <Label>Service Description</Label>
-                                   <Textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Describe the work to be done..."/>
-                               </div>
-                         </div>
+                         <div className="space-y-4">
+                            <div className="space-y-2">
+                                <Label>Job Title</Label>
+                                <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g., Annual HVAC Maintenance"/>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label>Service Sector</Label>
+                                    <Select value={trade} onValueChange={(v) => setTrade(v as any)}>
+                                        <SelectTrigger><SelectValue/></SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="Plumbing">Plumbing</SelectItem>
+                                            <SelectItem value="HVAC">HVAC</SelectItem>
+                                            <SelectItem value="Electrical">Electrical</SelectItem>
+                                            <SelectItem value="Other">Other</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Service Category</Label>
+                                    <Input value={category} onChange={e => setCategory(e.target.value)} placeholder="e.g. Drain Cleaning, AC Repair" />
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Service Description</Label>
+                                <Textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Describe the work to be done..."/>
+                            </div>
+                        </div>
                      </div>
                      
                      {/* Technician Assignment */}
