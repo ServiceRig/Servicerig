@@ -1,3 +1,4 @@
+
 // seed.js
 const admin = require("firebase-admin");
 const fs = require("fs");
@@ -25,6 +26,7 @@ async function main() {
   await importCollection("/home/user/studio/firestore-seed/gbbEstimates.json", "gbbEstimates");
   await importCollection("/home/user/studio/firestore-seed/automations.json", "automations");
   await importCollection("/home/user/studio/firestore-seed/timesheets.json", "timesheets");
+  await importCollection("/home/user/studio/firestore-seed/plumbing-pricebook.json", "pricebook");
 }
 
 main();
