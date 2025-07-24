@@ -12,7 +12,7 @@ import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 import { google } from "googleapis";
 import { defineSecret } from "firebase-functions/params";
-import type { Job } from '../../src/lib/types';
+import type { Job, Customer } from '../../src/lib/types';
 
 
 // Define required secrets for Google OAuth
@@ -30,14 +30,16 @@ const SCOPES = ["https://www.googleapis.com/auth/calendar.events"];
 
 /**
  * Creates and configures a Google OAuth2 client.
- * @param {functions.Request} req - The function's request object to build the redirect URI.
  * @return {google.auth.OAuth2} An OAuth2 client instance.
  */
 function getOauthClient() {
     // In a real production app, the hostname should be dynamically determined
-    // or configured via environment variables.
-    const hostname = "localhost:9199"; // Placeholder for local testing
-    const redirectUri = `http://${hostname}/googleCalendarAuthCallback`;
+    // or configured via environment variables. For Firebase Hosting, this is often
+    // derived from the project ID.
+    const functionsHost = process.env.FUNCTION_TARGET === 'emulator' ? 
+        'http://localhost:5001' : 'https://us-central1-your-project-id.cloudfunctions.net';
+    
+    const redirectUri = `${functionsHost}/googleCalendarAuthCallback`;
     
     return new google.auth.OAuth2(
         googleClientId.value(),
@@ -117,10 +119,16 @@ export const syncToGoogleCalendar = functions
     .runWith({ secrets: [googleClientId, googleClientSecret] })
     .https.onCall(async (data, context) => {
     
-    const { jobId, userId } = data; // Assuming userId is passed for whom to sync
+    // Authenticate the call if necessary, e.g., using context.auth
+    const userId = context.auth?.uid; // Use the authenticated user's ID
+    if (!userId) {
+        throw new functions.https.HttpsError("unauthenticated", "The function must be called while authenticated.");
+    }
     
-    if (!jobId || !userId) {
-        throw new functions.https.HttpsError("invalid-argument", "The function must be called with a 'jobId' and 'userId'.");
+    const { jobId } = data;
+    
+    if (!jobId) {
+        throw new functions.https.HttpsError("invalid-argument", "The function must be called with a 'jobId'.");
     }
 
     functions.logger.log(`Starting Google Calendar sync for job ${jobId} by user ${userId}`);
@@ -142,7 +150,6 @@ export const syncToGoogleCalendar = functions
         const oauth2Client = getOauthClient();
         oauth2Client.setCredentials({ refresh_token: tokens.refreshToken });
 
-        // Check if the access token is expired and refresh if needed
         if (tokens.expiresAt.toMillis() < Date.now()) {
             functions.logger.log("Access token expired, refreshing...");
             const { credentials } = await oauth2Client.refreshAccessToken();
@@ -160,17 +167,22 @@ export const syncToGoogleCalendar = functions
         }
 
         // 3. Fetch job details from Firestore.
-        const jobDoc = await db.collection("jobs").doc(jobId).get();
+        const jobRef = db.collection("jobs").doc(jobId);
+        const jobDoc = await jobRef.get();
         if (!jobDoc.exists) {
             throw new functions.https.HttpsError("not-found", "Job not found.");
         }
         const jobData = jobDoc.data() as Job;
 
+        const customerDoc = await db.collection("customers").doc(jobData.customerId).get();
+        const customerData = customerDoc.data() as Customer;
+
+
         // 4. Format job details into a Google Calendar event object.
         const calendar = google.calendar({ version: "v3", auth: oauth2Client });
         const event = {
             summary: `ServiceRig: ${jobData.title}`,
-            description: `Customer: ${jobData.customerName || 'N/A'}\nNotes: ${jobData.description}`,
+            description: `Customer: ${customerData.primaryContact.name}\nAddress: ${customerData.companyInfo.address.street}, ${customerData.companyInfo.address.city}\n\nNotes: ${jobData.description}`,
             start: {
                 dateTime: new Date(jobData.schedule.start).toISOString(),
                 timeZone: 'America/Chicago', // Should be dynamic in a real app
@@ -179,12 +191,10 @@ export const syncToGoogleCalendar = functions
                 dateTime: new Date(jobData.schedule.end).toISOString(),
                 timeZone: 'America/Chicago', // Should be dynamic in a real app
             },
-            // In a real app, you'd fetch customer/technician address/email
-            // location: customer.address, 
-            // attendees: [{ email: technician.email }],
+            location: `${customerData.companyInfo.address.street}, ${customerData.companyInfo.address.city}, ${customerData.companyInfo.address.state}`,
         };
 
-        // 5. Use google.calendar('v3').events.insert() to create/update the event.
+        // 5. Use google.calendar('v3').events.insert() or update to create/update the event.
         let googleEvent;
         if (jobData.linkedGoogleEventId) {
             // Update existing event
@@ -205,7 +215,7 @@ export const syncToGoogleCalendar = functions
 
         // 6. Store the returned Google event ID back in the ServiceRig job document.
         if (googleEvent.data.id) {
-            await jobDoc.ref.update({ linkedGoogleEventId: googleEvent.data.id });
+            await jobRef.update({ linkedGoogleEventId: googleEvent.data.id });
             functions.logger.log(`Successfully synced job ${jobId} to Google event ${googleEvent.data.id}`);
         }
 

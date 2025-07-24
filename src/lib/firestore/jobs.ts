@@ -67,16 +67,6 @@ export async function addJob(jobData: Omit<Job, 'id' | 'createdAt' | 'updatedAt'
     console.log("MockData jobs after:", mockData.jobs.length);
     console.log("Last job in mockData:", mockData.jobs[0]);
     
-    // After saving, trigger the sync to Google Calendar
-    try {
-        const syncToGoogleCalendar = httpsCallable(functions, 'syncToGoogleCalendar');
-        await syncToGoogleCalendar({ jobId: job.id, userId: 'admin1' }); // Assuming a static userId for now
-        console.log(`Successfully triggered Google Calendar sync for job ${job.id}`);
-    } catch (error) {
-        console.error("Error triggering Google Calendar sync:", error);
-        // Don't throw, as the job creation itself was successful.
-    }
-    
     return job;
 }
 
