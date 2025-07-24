@@ -1,4 +1,5 @@
 
+
 'use client';
 import { useState, useMemo, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -16,6 +17,7 @@ import type { Customer, Equipment, Job, Technician } from '@/lib/types';
 import { format, setHours, setMinutes } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { addJob } from '@/lib/firestore/jobs';
+import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 
 const timeOptions = Array.from({ length: 96 }, (_, i) => { // 96 quarters in a day
     const totalMinutes = i * 15;
@@ -74,11 +76,6 @@ export function ScheduleJobDialog({ onJobCreated }: ScheduleJobDialogProps) {
     const [hasDifferentTimes, setHasDifferentTimes] = useState(false);
     const [timeSegments, setTimeSegments] = useState([{ date: new Date(), startTime: '08:00', endTime: '10:00' }]);
 
-    // New state for calendar visibility
-    const [showStartDateCalendar, setShowStartDateCalendar] = useState(false);
-    const [showEndDateCalendar, setShowEndDateCalendar] = useState(false);
-
-
     // New Customer State
     const [isCreatingCustomer, setIsCreatingCustomer] = useState(false);
     const [newCustomerData, setNewCustomerData] = useState(initialNewCustomerState);
@@ -118,9 +115,21 @@ export function ScheduleJobDialog({ onJobCreated }: ScheduleJobDialogProps) {
     // Segment handling functions
     const handleSegmentChange = (index: number, field: 'date' | 'startTime' | 'endTime', value: Date | string) => {
         const newSegments = [...timeSegments];
-        (newSegments[index] as any)[field] = value;
+        const segment = { ...newSegments[index] };
+    
+        if (field === 'date' && value instanceof Date) {
+            const originalTime = newSegments[index].date;
+            const newDate = new Date(value);
+            // Preserve the time part from the original date to avoid timezone shifts
+            newDate.setHours(originalTime.getHours(), originalTime.getMinutes(), originalTime.getSeconds(), originalTime.getMilliseconds());
+            segment.date = newDate;
+        } else if (typeof value === 'string') {
+            (segment as any)[field] = value;
+        }
+    
+        newSegments[index] = segment;
         setTimeSegments(newSegments);
-    }
+    };
     const addSegment = () => setTimeSegments([...timeSegments, { date: new Date(), startTime: '08:00', endTime: '10:00' }]);
     const removeSegment = (index: number) => setTimeSegments(timeSegments.filter((_, i) => i !== index));
 
@@ -364,37 +373,29 @@ export function ScheduleJobDialog({ onJobCreated }: ScheduleJobDialogProps) {
                                 {!hasDifferentTimes ? (
                                     <>
                                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                        <div className="space-y-2 relative">
+                                        <div className="space-y-2">
                                             <Label>Start Date</Label>
-                                            <Button type="button" variant="outline" className="w-full justify-start text-left font-normal" onClick={() => setShowStartDateCalendar(!showStartDateCalendar)}>
-                                                <CalendarIcon className="mr-2 h-4 w-4" />
-                                                {startDate ? format(startDate, "PPP") : <span>Pick a date</span>}
-                                            </Button>
-                                            {showStartDateCalendar && (
-                                                <Calendar 
-                                                    mode="single" 
-                                                    selected={startDate} 
-                                                    onSelect={(date) => { setStartDate(date); setShowStartDateCalendar(false); }}
-                                                    initialFocus 
-                                                    className="absolute z-10 bg-background border rounded-md shadow-md"
-                                                />
-                                            )}
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                    <Button type="button" variant="outline" className="w-full justify-start text-left font-normal">
+                                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                                        {startDate ? format(startDate, "PPP") : <span>Pick a date</span>}
+                                                    </Button>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={startDate} onSelect={setStartDate} initialFocus /></PopoverContent>
+                                            </Popover>
                                         </div>
-                                        <div className="space-y-2 relative">
+                                        <div className="space-y-2">
                                             <Label>End Date</Label>
-                                            <Button type="button" variant="outline" className="w-full justify-start text-left font-normal" onClick={() => setShowEndDateCalendar(!showEndDateCalendar)}>
-                                                <CalendarIcon className="mr-2 h-4 w-4" />
-                                                {endDate ? format(endDate, "PPP") : <span>Pick a date</span>}
-                                            </Button>
-                                            {showEndDateCalendar && (
-                                                <Calendar 
-                                                    mode="single" 
-                                                    selected={endDate} 
-                                                    onSelect={(date) => { setEndDate(date); setShowEndDateCalendar(false); }}
-                                                    initialFocus 
-                                                    className="absolute z-10 bg-background border rounded-md shadow-md"
-                                                />
-                                            )}
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                     <Button type="button" variant="outline" className="w-full justify-start text-left font-normal">
+                                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                                        {endDate ? format(endDate, "PPP") : <span>Pick a date</span>}
+                                                    </Button>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={endDate} onSelect={setEndDate} initialFocus /></PopoverContent>
+                                            </Popover>
                                         </div>
                                         <div className="space-y-2">
                                             <Label>Start Time</Label>
@@ -422,7 +423,22 @@ export function ScheduleJobDialog({ onJobCreated }: ScheduleJobDialogProps) {
                                             <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-2 items-end p-2 border rounded-md">
                                                 <div className="space-y-1">
                                                     <Label>Date</Label>
-                                                     <Input type="date" value={format(segment.date, 'yyyy-MM-dd')} onChange={e => handleSegmentChange(index, 'date', new Date(e.target.value))}/>
+                                                    <Popover>
+                                                        <PopoverTrigger asChild>
+                                                            <Button type="button" variant={'outline'} className={cn("w-full justify-start text-left font-normal")}>
+                                                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                                                {segment.date ? format(segment.date, "PPP") : <span>Pick a date</span>}
+                                                            </Button>
+                                                        </PopoverTrigger>
+                                                        <PopoverContent className="w-auto p-0" align="start">
+                                                            <Calendar
+                                                                mode="single"
+                                                                selected={segment.date}
+                                                                onSelect={(date) => date && handleSegmentChange(index, 'date', date)}
+                                                                initialFocus
+                                                            />
+                                                        </PopoverContent>
+                                                    </Popover>
                                                 </div>
                                                  <div className="space-y-1">
                                                     <Label>Start Time</Label>
