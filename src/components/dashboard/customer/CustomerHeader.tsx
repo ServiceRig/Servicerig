@@ -1,10 +1,13 @@
 
 
+'use client';
+import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Customer } from "@/lib/types";
 import { Mail, Phone, MapPin, Pencil, AlertTriangle, MessageSquare } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
+import { EditCustomerDialog } from './EditCustomerDialog';
 
 const getTagStyles = (tag: string) => {
     switch (tag) {
@@ -16,6 +19,7 @@ const getTagStyles = (tag: string) => {
 }
 
 export function CustomerHeader({ customer }: { customer: Customer }) {
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const fullAddress = `${customer.companyInfo.address.street}, ${customer.companyInfo.address.city}, ${customer.companyInfo.address.state} ${customer.companyInfo.address.zipCode}`;
   
   return (
@@ -72,10 +76,16 @@ export function CustomerHeader({ customer }: { customer: Customer }) {
       </div>
 
       <div className="flex flex-col sm:flex-row md:flex-col gap-2 flex-shrink-0">
-          <Button variant="outline" className="justify-start">
-            <Pencil className="mr-2 h-4 w-4" />
-            Edit Profile
-          </Button>
+          <EditCustomerDialog 
+            customer={customer} 
+            isOpen={isEditDialogOpen} 
+            onOpenChange={setIsEditDialogOpen}
+          >
+            <Button variant="outline" className="justify-start">
+              <Pencil className="mr-2 h-4 w-4" />
+              Edit Profile
+            </Button>
+          </EditCustomerDialog>
           <Button variant="outline" className="justify-start" asChild>
             <a href={`tel:${customer.primaryContact.phone}`}>
                 <Phone className="mr-2 h-4 w-4" /> Call Customer

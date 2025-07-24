@@ -40,3 +40,19 @@ export async function getAllCustomers(): Promise<Customer[]> {
     
     return customers;
 }
+
+/**
+ * Updates an existing customer in the mock data.
+ * @param updatedCustomer The customer object with updated fields.
+ */
+export async function updateCustomerInDb(updatedCustomer: Customer): Promise<void> {
+    console.log("Updating customer in DB:", updatedCustomer.id);
+    const index = mockData.customers.findIndex(c => c.id === updatedCustomer.id);
+    if (index !== -1) {
+        mockData.customers[index] = updatedCustomer;
+    } else {
+        console.warn(`Customer with id ${updatedCustomer.id} not found for update, adding it instead.`);
+        mockData.customers.unshift(updatedCustomer);
+    }
+    await new Promise(resolve => setTimeout(resolve, 100));
+}

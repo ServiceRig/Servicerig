@@ -7,11 +7,11 @@ import { addEstimate as addEstimateToDb, getEstimateById, updateEstimate as upda
 import { addJob as addJobToDb, getJobById, updateJob } from "@/lib/firestore/jobs";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import type { Estimate, GbbTier, LineItem, PricebookItem, Job, Invoice, EquipmentLog, Equipment, PurchaseOrder, UsedPart, PurchaseOrderPart, EstimateTemplate, InventoryItem, Vendor } from "@/lib/types";
+import type { Estimate, GbbTier, LineItem, PricebookItem, Job, Invoice, EquipmentLog, Equipment, PurchaseOrder, UsedPart, PurchaseOrderPart, EstimateTemplate, InventoryItem, Vendor, Customer } from "@/lib/types";
 import { addEstimateTemplate, updateEstimateTemplate } from "@/lib/firestore/templates";
 import { mockData } from "@/lib/mock-data";
 import { addPricebookItem } from "@/lib/firestore/pricebook";
-import { getCustomerById } from "@/lib/firestore/customers";
+import { getCustomerById, updateCustomerInDb } from "@/lib/firestore/customers";
 import { analyzeInvoice } from "@/ai/flows/analyze-invoice";
 import { addInvoice as addInvoiceToDb, updateInvoice as updateInvoiceInDb } from "@/lib/firestore/invoices";
 
@@ -1312,5 +1312,86 @@ export async function deleteVendor(prevState: DeleteVendorState, formData: FormD
     }
 }
 
+const updateCustomerSchema = z.object({
+  id: z.string().min(1),
+  firstName: z.string().min(1, 'First name is required'),
+  lastName: z.string().min(1, 'Last name is required'),
+  companyName: z.string(),
+  email: z.string().email('Invalid email address'),
+  phone: z.string().min(1, 'Phone number is required'),
+  street: z.string(),
+  city: z.string(),
+  state: z.string(),
+  zipCode: z.string(),
+});
+
+type UpdateCustomerState = {
+  success: boolean;
+  message: string;
+  errors?: any;
+};
+
+export async function updateCustomer(prevState: UpdateCustomerState, formData: FormData): Promise<UpdateCustomerState> {
+  const validatedFields = updateCustomerSchema.safeParse({
+    id: formData.get('id'),
+    firstName: formData.get('firstName'),
+    lastName: formData.get('lastName'),
+    companyName: formData.get('companyName'),
+    email: formData.get('email'),
+    phone: formData.get('phone'),
+    street: formData.get('street'),
+    city: formData.get('city'),
+    state: formData.get('state'),
+    zipCode: formData.get('zipCode'),
+  });
+
+  if (!validatedFields.success) {
+    return { success: false, message: 'Invalid data provided.', errors: validatedFields.error.flatten().fieldErrors };
+  }
+
+  try {
+    const { id, firstName, lastName, companyName, email, phone, street, city, state, zipCode } = validatedFields.data;
     
+    const customerToUpdate = await getCustomerById(id);
+    if (!customerToUpdate) {
+      return { success: false, message: 'Customer not found.' };
+    }
+    
+    const updatedCustomer: Customer = {
+      ...customerToUpdate,
+      primaryContact: {
+        ...customerToUpdate.primaryContact,
+        firstName,
+        lastName,
+        name: `${firstName} ${lastName}`,
+        email,
+        phone,
+      },
+      companyInfo: {
+        ...customerToUpdate.companyInfo,
+        name: companyName,
+        address: {
+            ...customerToUpdate.companyInfo.address,
+            street,
+            city,
+            state,
+            zipCode
+        }
+      },
+      updatedAt: new Date(),
+    };
+
+    await updateCustomerInDb(updatedCustomer);
+    
+    revalidatePath(`/dashboard/customers/${id}`);
+    
+    return { success: true, message: 'Customer updated successfully.' };
+
+  } catch (error) {
+    console.error("Error updating customer:", error);
+    return { success: false, message: 'An unexpected error occurred.' };
+  }
+}
+    
+
 
