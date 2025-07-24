@@ -70,60 +70,56 @@ function SchedulingPageContent() {
 
   // Handle job movement/dropping
   const moveJob = useCallback((jobId: string, newTechnicianId: string, newStartTime: Date) => {
-    console.log("=== MOVING JOB ===");
-    console.log("Job ID:", jobId);
-    console.log("New Technician ID:", newTechnicianId);
-    console.log("New Start Time:", newStartTime);
-    console.log("Current jobs before move:", jobs.length);
-
+    console.log("🔴 MOVE JOB CALLED");
+    console.log("📋 Job ID:", jobId);
+    console.log("👨‍💼 New Technician ID:", newTechnicianId);
+    console.log("📅 New Start Time:", newStartTime);
+    console.log("📊 Current jobs array:", jobs);
+    console.log("🔢 Current jobs count:", jobs.length);
+    // Check if job exists in current state
+    const existingJob = jobs.find(j => j.id === jobId);
+    console.log("🔍 Found existing job:", existingJob);
+    if (!existingJob) {
+        console.error("❌ JOB NOT FOUND IN CURRENT STATE!");
+        console.log("Available job IDs:", jobs.map(j => j.id));
+        return;
+    }
+    console.log("✅ About to call setJobs...");
     setJobs(prevJobs => {
-      console.log("Inside moveJob setJobs callback");
-      console.log("Previous jobs count:", prevJobs.length);
-      
-      const jobToMove = prevJobs.find(j => j.id === jobId);
-      if (!jobToMove) {
-        console.error("Job not found with ID:", jobId);
-        console.log("Available job IDs:", prevJobs.map(j => j.id));
-        return prevJobs;
-      }
-      
-      console.log("Found job to move:", jobToMove);
+        console.log("🔄 INSIDE setJobs callback");
+        console.log("Previous jobs:", prevJobs.length);
+        
+        const jobIndex = prevJobs.findIndex(j => j.id === jobId);
+        console.log("Job index found:", jobIndex);
 
-      const minutes = newStartTime.getMinutes();
-      const roundedMinutes = Math.round(minutes / 15) * 15;
-      const snappedStartTime = new Date(newStartTime);
-      snappedStartTime.setMinutes(roundedMinutes, 0, 0);
-
-      const durationMs = (jobToMove.duration || 60) * 60 * 1000;
-      const newEndTime = new Date(snappedStartTime.getTime() + durationMs);
-
-      const updatedJob: Job = {
-        ...jobToMove,
-        technicianId: newTechnicianId,
-        schedule: {
-          ...jobToMove.schedule,
-          start: snappedStartTime,
-          end: newEndTime,
-          unscheduled: false
-        },
-        status: 'scheduled',
-        updatedAt: new Date()
-      };
-
-      console.log("Updated job:", updatedJob);
-      
-      // Update the database (don't await to keep UI responsive)
-      updateJob(updatedJob);
-
-      // Return the updated list of jobs for the state
-      return prevJobs.map(j => j.id === jobId ? updatedJob : j);
+        if (jobIndex === -1) {
+            console.error("❌ Job not found in setJobs callback!");
+            return prevJobs;
+        }
+        const jobToMove = prevJobs[jobIndex];
+        console.log("Job to move:", jobToMove);
+        // Create the updated job
+        const updatedJob = {
+            ...jobToMove,
+            technicianId: newTechnicianId,
+            schedule: {
+                ...jobToMove.schedule,
+                start: newStartTime,
+                end: new Date(newStartTime.getTime() + 60 * 60 * 1000), // 1 hour duration
+                unscheduled: false
+            },
+            status: 'scheduled' as const,
+            updatedAt: new Date()
+        };
+        console.log("✨ Updated job:", updatedJob);
+        const newJobs = [...prevJobs];
+        newJobs[jobIndex] = updatedJob;
+        console.log("🎯 New jobs array length:", newJobs.length);
+        console.log("🎯 Updated job in new array:", newJobs[jobIndex]);
+        return newJobs;
     });
-
-    toast({
-      title: "Job Moved",
-      description: "Job has been rescheduled successfully."
-    });
-  }, [jobs.length, toast]);
+    console.log("✅ setJobs has been called, waiting for re-render...");
+}, [jobs]);
 
   // Handle job status changes
   const updateJobStatus = useCallback((jobId: string, newStatus: Job['status']) => {
@@ -168,55 +164,51 @@ function SchedulingPageContent() {
     setCurrentDate(prevDate => addDays(prevDate, increment * sign));
   }, [activeView]);
 
-  const enrichedJobsAndEvents = useMemo(() => {
-    console.log("=== CALCULATING ENRICHED JOBS ===");
-    console.log("Input jobs:", jobs.length);
-    console.log("Input customers:", customers.length);
-
-    const enrichedJobs = jobs.map(job => {
-        const customer = customers.find(c => c.id === job.customerId);
-        const allTechniciansForJob = [job.technicianId, ...(job.additionalTechnicians || [])].filter(Boolean);
-
-        return {
-            ...job,
-            originalId: job.id,
-            customerName: customer?.primaryContact.name || 'Unknown Customer',
-            type: 'job' as const,
-        };
-    }).flatMap(job => {
-        const allTechniciansForJob = [job.technicianId, ...(job.additionalTechnicians || [])].filter(Boolean);
-        
-        if (job.status === 'unscheduled') {
-            return [{ ...job, technicianId: 'unscheduled', technicianName: 'Unassigned', isGhost: false }];
-        }
-        
-        if (allTechniciansForJob.length === 0) {
-             return [{ ...job, technicianId: 'unassigned', technicianName: 'Unassigned', isGhost: false }];
-        }
-        
-        return allTechniciansForJob.map((techId, index) => {
-            const technician = technicians.find(t => t.id === techId);
-            return {
+    const enrichedJobsAndEvents = useMemo(() => {
+        console.log("=== ENRICHED JOBS CALCULATION ===");
+        console.log("Input jobs:", jobs.length);
+        const enrichedJobs = jobs.map(job => {
+            const customer = customers.find(c => c.id === job.customerId);
+            const allTechniciansForJob = [job.technicianId, ...(job.additionalTechnicians || [])].filter(Boolean);
+            
+            const enrichedJob = {
                 ...job,
-                id: index === 0 ? job.id : `${job.id}-ghost-${techId}`,
-                technicianId: techId,
-                technicianName: technician?.name || 'Unassigned',
-                color: technician?.color || '#A0A0A0',
-                isGhost: index !== 0
+                originalId: job.id,
+                customerName: customer?.primaryContact.name || 'Unknown Customer',
+                type: 'job' as const,
             };
-        });
-    });
 
-    const enrichedEvents = googleEvents.map(event => ({ 
-      ...event, 
-      type: 'google_event' as const 
-    }));
+            if (job.status === 'unscheduled') {
+                return [{ ...enrichedJob, technicianId: 'unscheduled', technicianName: 'Unassigned', isGhost: false }];
+            }
 
-    const result = [...enrichedJobs, ...enrichedEvents];
-    console.log("Enriched items total:", result.length);
-    
-    return result;
-  }, [jobs, customers, technicians, googleEvents]);
+            if (allTechniciansForJob.length === 0) {
+                return [{ ...enrichedJob, technicianId: 'unassigned', technicianName: 'Unassigned', isGhost: false }];
+            }
+            
+            return allTechniciansForJob.map((techId, index) => {
+                const technician = technicians.find(t => t.id === techId);
+                return {
+                    ...enrichedJob,
+                    id: index === 0 ? job.id : `${job.id}-ghost-${techId}`,
+                    technicianId: techId,
+                    technicianName: technician?.name || 'Unassigned',
+                    color: technician?.color || '#A0A0A0',
+                    isGhost: index !== 0
+                };
+            });
+        }).flat();
+
+        const enrichedEvents = googleEvents.map(event => ({ 
+            ...event, 
+            type: 'google_event' as const 
+        }));
+
+        const result = [...enrichedJobs, ...enrichedEvents];
+        console.log("Output enriched jobs:", result.length);
+        return result;
+    }, [jobs, customers, technicians, googleEvents]);
+
 
   const scheduledItems = enrichedJobsAndEvents.filter(item => 
     (item.type === 'job' && item.status !== 'unscheduled') || item.type === 'google_event'
@@ -226,9 +218,10 @@ function SchedulingPageContent() {
     item.type === 'job' && item.status === 'unscheduled'
   );
 
-  console.log("=== RENDER SUMMARY ===");
-  console.log("Scheduled items:", scheduledItems.length);
-  console.log("Unscheduled jobs:", unscheduledJobs.length);
+  console.log("🖥️ RENDERING SCHEDULE VIEW WITH:");
+  console.log("Scheduled items count:", scheduledItems.length);
+  console.log("Unscheduled jobs count:", unscheduledJobs.length);
+  console.log("Jobs state count:", jobs.length);
 
   if (loading) {
     return <div className="p-4">Loading Schedule...</div>;
