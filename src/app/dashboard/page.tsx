@@ -15,6 +15,11 @@ import Link from "next/link";
 
 
 const DispatcherDashboard = () => {
+    const { role } = useRole();
+
+    const getHref = (path: string) => {
+        return role ? `${path}?role=${role}` : path;
+    }
 
     const upcomingServices = mockData.serviceAgreements
         .filter(sa => sa.status === 'active' && new Date(sa.billingSchedule.nextDueDate) < new Date(new Date().setDate(new Date().getDate() + 30)))
@@ -31,7 +36,11 @@ const DispatcherDashboard = () => {
             </h1>
             <div className="flex items-center gap-2">
                 <Button variant="outline"><Mic className="mr-2 h-4 w-4" /> Voice Command</Button>
-                <Button className="bg-accent hover:bg-accent/90"><Plus className="mr-2 h-4 w-4" /> Schedule New Job</Button>
+                <Button asChild className="bg-accent hover:bg-accent/90">
+                    <Link href={getHref('/dashboard/scheduling')}>
+                        <Plus className="mr-2 h-4 w-4" /> Schedule New Job
+                    </Link>
+                </Button>
             </div>
         </div>
 
