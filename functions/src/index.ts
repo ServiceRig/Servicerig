@@ -28,6 +28,7 @@ export const syncInvoiceToXero = xero.syncInvoiceToXero;
 export const googleCalendarAuthRedirect = googleCalendar.googleCalendarAuthRedirect;
 export const googleCalendarAuthCallback = googleCalendar.googleCalendarAuthCallback;
 export const syncToGoogleCalendar = googleCalendar.syncToGoogleCalendar;
+export const pollGoogleCalendar = googleCalendar.pollGoogleCalendar;
 
 
 // Start writing functions

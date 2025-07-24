@@ -6,13 +6,14 @@
  * - Google OAuth 2.0 authentication flow (redirect and callback) to get user permissions.
  * - Securely storing and refreshing user tokens in Firestore.
  * - A callable function to trigger the synchronization of a ServiceRig job to Google Calendar.
+ * - A scheduled function to poll Google Calendar for changes and sync them to Firestore.
  */
 
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 import { google } from "googleapis";
 import { defineSecret } from "firebase-functions/params";
-import type { Job, Customer } from '../../src/lib/types';
+import type { Job, Customer, GoogleCalendarEvent } from '../../src/lib/types';
 
 
 // Define required secrets for Google OAuth
@@ -229,3 +230,85 @@ export const syncToGoogleCalendar = functions
         throw new functions.https.HttpsError("unknown", "Failed to sync to Google Calendar.", error.message);
     }
 });
+
+
+/**
+ * Polls Google Calendar for changes and syncs them to Firestore.
+ * This function should be run on a schedule (e.g., every 5 minutes).
+ */
+export const pollGoogleCalendar = functions
+    .runWith({ secrets: [googleClientId, googleClientSecret] })
+    .https.onRequest(async (req, res) => {
+        const userTokensSnapshot = await db.collectionGroup("googleTokens").get();
+
+        if (userTokensSnapshot.empty) {
+            functions.logger.log("No users have authorized Google Calendar sync.");
+            res.status(200).send("No users to sync.");
+            return;
+        }
+
+        const oauth2Client = getOauthClient();
+
+        for (const tokenDoc of userTokensSnapshot.docs) {
+            const userId = tokenDoc.ref.parent.parent?.id;
+            const tokens = tokenDoc.data();
+            if (!userId || !tokens.refreshToken) continue;
+            
+            functions.logger.log(`Polling calendar for user: ${userId}`);
+
+            try {
+                oauth2Client.setCredentials({ refresh_token: tokens.refreshToken });
+                if (tokens.expiresAt.toMillis() < Date.now()) {
+                    const { credentials } = await oauth2Client.refreshAccessToken();
+                    await tokenDoc.ref.update({
+                        accessToken: credentials.access_token,
+                        expiresAt: admin.firestore.Timestamp.fromMillis(credentials.expiry_date!),
+                    });
+                     oauth2Client.setCredentials(credentials);
+                } else {
+                     oauth2Client.setCredentials({ access_token: tokens.accessToken });
+                }
+
+                const calendar = google.calendar({ version: "v3", auth: oauth2Client });
+                const response = await calendar.events.list({
+                    calendarId: 'primary',
+                    timeMin: (new Date()).toISOString(),
+                    maxResults: 50, // Fetch up to 50 upcoming events
+                    singleEvents: true,
+                    orderBy: 'startTime',
+                });
+
+                const events = response.data.items;
+                if (events && events.length > 0) {
+                    const batch = db.batch();
+                    events.forEach(event => {
+                        if (event.id && event.start?.dateTime && event.end?.dateTime) {
+                            const eventRef = db.collection("googleCalendarEvents").doc(event.id);
+                            const normalizedEvent: GoogleCalendarEvent = {
+                                eventId: event.id,
+                                calendarId: 'primary',
+                                start: admin.firestore.Timestamp.fromDate(new Date(event.start.dateTime!)),
+                                end: admin.firestore.Timestamp.fromDate(new Date(event.end.dateTime!)),
+                                summary: event.summary || 'No Title',
+                                description: event.description || '',
+                                createdBy: event.creator?.email || 'Unknown',
+                                status: event.status === 'cancelled' ? 'cancelled' : 'confirmed',
+                                source: 'google',
+                                syncedAt: admin.firestore.FieldValue.serverTimestamp(),
+                            };
+                             batch.set(eventRef, normalizedEvent, { merge: true });
+                        }
+                    });
+                    await batch.commit();
+                    functions.logger.log(`Synced ${events.length} events for user ${userId}.`);
+                } else {
+                    functions.logger.log(`No upcoming events found for user ${userId}.`);
+                }
+
+            } catch (error: any) {
+                functions.logger.error(`Error polling calendar for user ${userId}:`, error.message);
+            }
+        }
+        
+        res.status(200).send("Calendar polling finished.");
+    });

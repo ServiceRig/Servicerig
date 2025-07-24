@@ -597,3 +597,19 @@ export type EstimateTemplate = {
     lineItems: LineItem[];
     gbbTier?: GbbTier | null;
 }
+
+// --- Google Calendar Sync Types ---
+export type GoogleCalendarEvent = {
+    eventId: string;
+    calendarId: string;
+    start: Timestamp | Date;
+    end: Timestamp | Date;
+    summary: string;
+    description: string;
+    createdBy: string;
+    matchedTechnicianId?: string;
+    status: 'confirmed' | 'cancelled';
+    linkedJobId?: string;
+    source: 'google';
+    syncedAt: Timestamp | Date | any; // Any for FieldValue
+}
