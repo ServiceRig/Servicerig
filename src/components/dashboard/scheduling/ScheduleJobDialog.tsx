@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
-import { PlusCircle, UserPlus, Calendar as CalendarIcon } from 'lucide-react';
+import { PlusCircle, UserPlus, Calendar as CalendarIcon, Trash2 } from 'lucide-react';
 import { mockData } from '@/lib/mock-data';
 import type { Customer, Equipment, Job, Technician } from '@/lib/types';
 import { format, setHours, setMinutes } from 'date-fns';
@@ -61,12 +61,18 @@ export function ScheduleJobDialog({ onJobCreated }: ScheduleJobDialogProps) {
     const [description, setDescription] = useState('');
     const [primaryTechnicianId, setPrimaryTechnicianId] = useState<string>('');
     const [additionalTechnicians, setAdditionalTechnicians] = useState<Set<string>>(new Set());
+    
+    // Default single-range scheduling state
     const [startDate, setStartDate] = useState<Date | undefined>(new Date());
     const [endDate, setEndDate] = useState<Date | undefined>(new Date());
     const [startTime, setStartTime] = useState<string>('08:00');
     const [endTime, setEndTime] = useState<string>('10:00');
     const [arrivalWindow, setArrivalWindow] = useState<string>('');
     const [isUnscheduled, setIsUnscheduled] = useState(false);
+
+    // New state for multi-segment scheduling
+    const [hasDifferentTimes, setHasDifferentTimes] = useState(false);
+    const [timeSegments, setTimeSegments] = useState([{ date: new Date(), startTime: '08:00', endTime: '10:00' }]);
 
     // New state for calendar visibility
     const [showStartDateCalendar, setShowStartDateCalendar] = useState(false);
@@ -108,6 +114,15 @@ export function ScheduleJobDialog({ onJobCreated }: ScheduleJobDialogProps) {
             return newSet;
         });
     }
+    
+    // Segment handling functions
+    const handleSegmentChange = (index: number, field: 'date' | 'startTime' | 'endTime', value: Date | string) => {
+        const newSegments = [...timeSegments];
+        (newSegments[index] as any)[field] = value;
+        setTimeSegments(newSegments);
+    }
+    const addSegment = () => setTimeSegments([...timeSegments, { date: new Date(), startTime: '08:00', endTime: '10:00' }]);
+    const removeSegment = (index: number) => setTimeSegments(timeSegments.filter((_, i) => i !== index));
 
     const handleNewCustomerInputChange = (field: keyof typeof initialNewCustomerState, value: string) => {
         setNewCustomerData(prev => ({...prev, [field]: value}));
@@ -152,6 +167,8 @@ export function ScheduleJobDialog({ onJobCreated }: ScheduleJobDialogProps) {
         setArrivalWindow('');
         setIsUnscheduled(false);
         setIsCreatingCustomer(false);
+        setHasDifferentTimes(false);
+        setTimeSegments([{ date: new Date(), startTime: '08:00', endTime: '10:00' }]);
     };
     
     const handleSave = async () => {
@@ -160,54 +177,64 @@ export function ScheduleJobDialog({ onJobCreated }: ScheduleJobDialogProps) {
             return;
         }
         
-        if (!startDate || !endDate) {
-            toast({ variant: 'destructive', title: 'Invalid Dates', description: 'Please select a valid start and end date.' });
-            return;
+        // This part needs to be adapted for multi-segment jobs
+        if (!hasDifferentTimes) {
+            if (!startDate || !endDate) {
+                toast({ variant: 'destructive', title: 'Invalid Dates', description: 'Please select a valid start and end date.' });
+                return;
+            }
+
+            if (endDate < startDate) {
+                toast({ variant: 'destructive', title: 'Invalid Dates', description: 'End date cannot be before the start date.' });
+                return;
+            }
+             const [startH, startM] = startTime.split(':').map(Number);
+            const [endH, endM] = endTime.split(':').map(Number);
+            
+            const finalStartDate = setMinutes(setHours(startDate!, startH), startM);
+            const finalEndDate = setMinutes(setHours(endDate!, endH), endM);
+
+            const newJob: Omit<Job, 'id' | 'createdAt' | 'updatedAt'> = {
+                customerId: selectedCustomer.id,
+                technicianId: primaryTechnicianId,
+                additionalTechnicians: Array.from(additionalTechnicians),
+                equipmentId: selectedEquipmentId,
+                status: isUnscheduled ? 'unscheduled' : 'scheduled',
+                title: `${trade} Service for ${selectedCustomer.primaryContact.name}`,
+                description,
+                details: {
+                    serviceType: trade,
+                    trade,
+                    category,
+                },
+                schedule: {
+                    start: finalStartDate,
+                    end: finalEndDate,
+                    arrivalWindow: isUnscheduled ? undefined : arrivalWindow,
+                    multiDay: finalStartDate.toDateString() !== finalEndDate.toDateString(),
+                    unscheduled: isUnscheduled,
+                },
+                duration: (finalEndDate.getTime() - finalStartDate.getTime()) / (1000 * 60),
+            };
+
+             try {
+                const createdJob = await addJob(newJob);
+                toast({ title: 'Job Scheduled', description: `Job for ${selectedCustomer.primaryContact.name} has been created.` });
+                onJobCreated(createdJob);
+                resetForm();
+                setIsOpen(false);
+            } catch (error) {
+                toast({ variant: 'destructive', title: 'Error', description: 'Failed to schedule job.' });
+            }
+
+        } else {
+             // Logic for handling multiple segments
+             console.log("Saving multi-segment job:", timeSegments);
+             toast({ title: 'Multi-Segment Job Saved (Simulated)', description: 'Feature logic to save multiple segments needs implementation.'});
+             resetForm();
+             setIsOpen(false);
         }
-
-        if (endDate < startDate) {
-            toast({ variant: 'destructive', title: 'Invalid Dates', description: 'End date cannot be before the start date.' });
-            return;
-        }
-
-        const [startH, startM] = startTime.split(':').map(Number);
-        const [endH, endM] = endTime.split(':').map(Number);
-
-        const finalStartDate = setMinutes(setHours(startDate!, startH), startM);
-        const finalEndDate = setMinutes(setHours(endDate!, endH), endM);
-
-        const newJob: Omit<Job, 'id' | 'createdAt' | 'updatedAt'> = {
-            customerId: selectedCustomer.id,
-            technicianId: primaryTechnicianId,
-            additionalTechnicians: Array.from(additionalTechnicians),
-            equipmentId: selectedEquipmentId,
-            status: isUnscheduled ? 'unscheduled' : 'scheduled',
-            title: `${trade} Service for ${selectedCustomer.primaryContact.name}`,
-            description,
-            details: {
-                serviceType: trade,
-                trade,
-                category,
-            },
-            schedule: {
-                start: finalStartDate,
-                end: finalEndDate,
-                arrivalWindow: isUnscheduled ? undefined : arrivalWindow,
-                multiDay: finalStartDate.toDateString() !== finalEndDate.toDateString(),
-                unscheduled: isUnscheduled,
-            },
-            duration: (finalEndDate.getTime() - finalStartDate.getTime()) / (1000 * 60),
-        };
-
-        try {
-            const createdJob = await addJob(newJob);
-            toast({ title: 'Job Scheduled', description: `Job for ${selectedCustomer.primaryContact.name} has been created.` });
-            onJobCreated(createdJob);
-            resetForm();
-            setIsOpen(false);
-        } catch (error) {
-            toast({ variant: 'destructive', title: 'Error', description: 'Failed to schedule job.' });
-        }
+       
     }
 
 
@@ -329,59 +356,94 @@ export function ScheduleJobDialog({ onJobCreated }: ScheduleJobDialogProps) {
                                 <Checkbox id="unscheduled" checked={isUnscheduled} onCheckedChange={(checked) => setIsUnscheduled(!!checked)} />
                                 <Label htmlFor="unscheduled">Add to Unscheduled Jobs list</Label>
                             </div>
-                            <div className={cn("space-y-4", isUnscheduled && "opacity-50 pointer-events-none")}>
-                               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                  <div className="space-y-2 relative">
-                                      <Label>Start Date</Label>
-                                      <Button type="button" variant="outline" className="w-full justify-start text-left font-normal" onClick={() => setShowStartDateCalendar(!showStartDateCalendar)}>
-                                          <CalendarIcon className="mr-2 h-4 w-4" />
-                                          {startDate ? format(startDate, "PPP") : <span>Pick a date</span>}
-                                      </Button>
-                                      {showStartDateCalendar && (
-                                          <Calendar 
-                                              mode="single" 
-                                              selected={startDate} 
-                                              onSelect={(date) => { setStartDate(date); setShowStartDateCalendar(false); }}
-                                              initialFocus 
-                                              className="absolute z-10 bg-background border rounded-md shadow-md"
-                                          />
-                                      )}
-                                  </div>
-                                   <div className="space-y-2 relative">
-                                      <Label>End Date</Label>
-                                      <Button type="button" variant="outline" className="w-full justify-start text-left font-normal" onClick={() => setShowEndDateCalendar(!showEndDateCalendar)}>
-                                          <CalendarIcon className="mr-2 h-4 w-4" />
-                                          {endDate ? format(endDate, "PPP") : <span>Pick a date</span>}
-                                      </Button>
-                                      {showEndDateCalendar && (
-                                          <Calendar 
-                                              mode="single" 
-                                              selected={endDate} 
-                                              onSelect={(date) => { setEndDate(date); setShowEndDateCalendar(false); }}
-                                              initialFocus 
-                                              className="absolute z-10 bg-background border rounded-md shadow-md"
-                                          />
-                                      )}
-                                  </div>
-                                  <div className="space-y-2">
-                                      <Label>Start Time</Label>
-                                      <Select value={startTime} onValueChange={setStartTime}><SelectTrigger><SelectValue/></SelectTrigger>
-                                          <SelectContent>{timeOptions.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
-                                      </Select>
-                                  </div>
-                                   <div className="space-y-2">
-                                      <Label>End Time</Label>
-                                       <Select value={endTime} onValueChange={setEndTime}><SelectTrigger><SelectValue/></SelectTrigger>
-                                          <SelectContent>{timeOptions.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
-                                      </Select>
-                                  </div>
-                               </div>
-                                <div className="space-y-2">
-                                   <Label>Arrival Window</Label>
-                                   <Select value={arrivalWindow} onValueChange={setArrivalWindow}><SelectTrigger><SelectValue placeholder="Select window"/></SelectTrigger>
-                                       <SelectContent>{arrivalWindows.map(w => <SelectItem key={w} value={w}>{w}</SelectItem>)}</SelectContent>
-                                   </Select>
-                               </div>
+                             <div className="flex items-center space-x-2 mb-4">
+                                <Checkbox id="different-times" checked={hasDifferentTimes} onCheckedChange={(checked) => setHasDifferentTimes(!!checked)} />
+                                <Label htmlFor="different-times">Different Times on Days</Label>
+                            </div>
+                            <div className={cn("space-y-4", (isUnscheduled) && "opacity-50 pointer-events-none")}>
+                                {!hasDifferentTimes ? (
+                                    <>
+                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                        <div className="space-y-2 relative">
+                                            <Label>Start Date</Label>
+                                            <Button type="button" variant="outline" className="w-full justify-start text-left font-normal" onClick={() => setShowStartDateCalendar(!showStartDateCalendar)}>
+                                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                                {startDate ? format(startDate, "PPP") : <span>Pick a date</span>}
+                                            </Button>
+                                            {showStartDateCalendar && (
+                                                <Calendar 
+                                                    mode="single" 
+                                                    selected={startDate} 
+                                                    onSelect={(date) => { setStartDate(date); setShowStartDateCalendar(false); }}
+                                                    initialFocus 
+                                                    className="absolute z-10 bg-background border rounded-md shadow-md"
+                                                />
+                                            )}
+                                        </div>
+                                        <div className="space-y-2 relative">
+                                            <Label>End Date</Label>
+                                            <Button type="button" variant="outline" className="w-full justify-start text-left font-normal" onClick={() => setShowEndDateCalendar(!showEndDateCalendar)}>
+                                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                                {endDate ? format(endDate, "PPP") : <span>Pick a date</span>}
+                                            </Button>
+                                            {showEndDateCalendar && (
+                                                <Calendar 
+                                                    mode="single" 
+                                                    selected={endDate} 
+                                                    onSelect={(date) => { setEndDate(date); setShowEndDateCalendar(false); }}
+                                                    initialFocus 
+                                                    className="absolute z-10 bg-background border rounded-md shadow-md"
+                                                />
+                                            )}
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>Start Time</Label>
+                                            <Select value={startTime} onValueChange={setStartTime}><SelectTrigger><SelectValue/></SelectTrigger>
+                                                <SelectContent>{timeOptions.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>End Time</Label>
+                                            <Select value={endTime} onValueChange={setEndTime}><SelectTrigger><SelectValue/></SelectTrigger>
+                                                <SelectContent>{timeOptions.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
+                                            </Select>
+                                        </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                        <Label>Arrival Window</Label>
+                                        <Select value={arrivalWindow} onValueChange={setArrivalWindow}><SelectTrigger><SelectValue placeholder="Select window"/></SelectTrigger>
+                                            <SelectContent>{arrivalWindows.map(w => <SelectItem key={w} value={w}>{w}</SelectItem>)}</SelectContent>
+                                        </Select>
+                                    </div>
+                                </>
+                                ) : (
+                                    <div className="space-y-4">
+                                        {timeSegments.map((segment, index) => (
+                                            <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-2 items-end p-2 border rounded-md">
+                                                <div className="space-y-1">
+                                                    <Label>Date</Label>
+                                                     <Input type="date" value={format(segment.date, 'yyyy-MM-dd')} onChange={e => handleSegmentChange(index, 'date', new Date(e.target.value))}/>
+                                                </div>
+                                                 <div className="space-y-1">
+                                                    <Label>Start Time</Label>
+                                                    <Select value={segment.startTime} onValueChange={v => handleSegmentChange(index, 'startTime', v)}><SelectTrigger><SelectValue/></SelectTrigger>
+                                                        <SelectContent>{timeOptions.map(t => <SelectItem key={`start-${index}-${t.value}`} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
+                                                    </Select>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <Label>End Time</Label>
+                                                    <Select value={segment.endTime} onValueChange={v => handleSegmentChange(index, 'endTime', v)}><SelectTrigger><SelectValue/></SelectTrigger>
+                                                        <SelectContent>{timeOptions.map(t => <SelectItem key={`end-${index}-${t.value}`} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
+                                                    </Select>
+                                                </div>
+                                                <Button type="button" variant="ghost" size="icon" onClick={() => removeSegment(index)} disabled={timeSegments.length <= 1}>
+                                                    <Trash2 className="h-4 w-4"/>
+                                                </Button>
+                                            </div>
+                                        ))}
+                                        <Button type="button" variant="link" onClick={addSegment}><PlusCircle className="mr-2 h-4 w-4"/> Add Another Time Slot</Button>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
