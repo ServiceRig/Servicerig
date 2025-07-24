@@ -212,7 +212,7 @@ const WeeklyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDa
                                             )}
                                             {jobs
                                                 .filter(job => {
-                                                    const techMatch = tech.id === 'unassigned' ? !job.technicianId || job.technicianId === '' : job.technicianId === tech.id;
+                                                    const techMatch = tech.id === 'unassigned' ? !job.technicianId || job.technicianId === '' || job.technicianId === 'unassigned' : job.technicianId === tech.id;
                                                     return techMatch && isSameDay(new Date(job.schedule.start), day);
                                                 })
                                                 .map(job => (
