@@ -164,6 +164,7 @@ function SchedulingPageContent() {
                 const allTechsForJob = [job.technicianId, ...(job.additionalTechnicians || [])].filter(Boolean);
 
                 return allTechsForJob.map((techId, index) => {
+                    const isPrimary = index === 0;
                     const technician = technicians.find(t => t.id === techId);
                     const enrichedJob = {
                         ...job,
