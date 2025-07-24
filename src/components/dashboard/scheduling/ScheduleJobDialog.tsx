@@ -221,12 +221,16 @@ export function ScheduleJobDialog({ onJobCreated }: ScheduleJobDialogProps) {
             };
     
             try {
+                console.log("Creating job with data:", newJob);
                 const createdJob = await addJob(newJob);
+                console.log("Job created successfully:", createdJob);
+                console.log("Calling onJobCreated with:", createdJob);
                 onJobCreated(createdJob);
                 toast({ title: 'Job Scheduled', description: `Job for ${selectedCustomer.primaryContact.name} has been created.` });
                 resetForm();
                 setIsOpen(false);
             } catch (error) {
+                console.error("Error creating job:", error);
                 toast({ variant: 'destructive', title: 'Error', description: 'Failed to schedule job.' });
             }
         } else {
@@ -263,12 +267,16 @@ export function ScheduleJobDialog({ onJobCreated }: ScheduleJobDialogProps) {
             };
     
             try {
+                console.log("Creating job with data:", newJob);
                 const createdJob = await addJob(newJob);
+                console.log("Job created successfully:", createdJob);
+                console.log("Calling onJobCreated with:", createdJob);
                 onJobCreated(createdJob);
                 toast({ title: 'Multi-Day Job Scheduled', description: `Job for ${selectedCustomer.primaryContact.name} has been created.` });
                 resetForm();
                 setIsOpen(false);
             } catch (error) {
+                console.error("Error creating job:", error);
                 toast({ variant: 'destructive', title: 'Error', description: 'Failed to schedule job.' });
             }
         }

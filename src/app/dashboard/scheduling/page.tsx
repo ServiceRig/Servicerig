@@ -48,12 +48,8 @@ function SchedulingPageContent({ jobs, setJobs }: { jobs: Job[], setJobs: React.
   }, []);
   
   const handleJobCreated = useCallback((newJob: Job) => {
-    setJobs(prevJobs => {
-        if (prevJobs.some(job => job.id === newJob.id)) {
-            return prevJobs;
-        }
-        return [newJob, ...prevJobs];
-    });
+    console.log("Received new job in schedule page:", newJob);
+    setJobs(prevJobs => [newJob, ...prevJobs]);
   }, [setJobs]);
   
   const moveJob = useCallback((jobId: string, newTechnicianId: string, newStartTime: Date) => {
@@ -210,4 +206,3 @@ export default function SchedulingPage() {
         <SchedulingPageContent jobs={jobs} setJobs={setJobs} />
     )
 }
-

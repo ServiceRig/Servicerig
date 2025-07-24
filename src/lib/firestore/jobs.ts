@@ -1,4 +1,3 @@
-
 // In a real app, you would import the firestore instance:
 // import { db } from './firebase';
 // import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
@@ -50,14 +49,15 @@ export async function getJobsByCustomerId(customerId: string): Promise<Job[]> {
  * @returns The newly created job object.
  */
 export async function addJob(jobData: Omit<Job, 'id' | 'createdAt' | 'updatedAt'>): Promise<Job> {
-    console.log("Adding job to DB:", jobData.title);
     const newJob: Job = {
         ...jobData,
         id: `job_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
         createdAt: new Date(),
         updatedAt: new Date(),
     }
+    
     mockData.jobs.unshift(newJob);
+    console.log("Job added to mockData:", newJob);
     await new Promise(resolve => setTimeout(resolve, 100));
     return newJob;
 }
@@ -77,5 +77,3 @@ export async function updateJob(updatedJob: Job): Promise<void> {
     }
     await new Promise(resolve => setTimeout(resolve, 100));
 }
-
-    
