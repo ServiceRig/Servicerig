@@ -212,7 +212,7 @@ const WeeklyView = ({ jobs, technicians, onJobDrop, onJobStatusChange, currentDa
                                             {jobs
                                                 .filter(job => job.technicianId === tech.id && isSameDay(new Date(job.schedule.start), day))
                                                 .map(job => (
-                                                     <DraggableJob key={job.id} job={job} onStatusChange={onJobStatusChange} onJobDrop={onJobDrop} isCompact startHour={startHour} />
+                                                     <DraggableJob key={`${job.originalId}-${job.technicianId}-${new Date(job.schedule.start).getTime()}`} job={job} onStatusChange={onJobStatusChange} onJobDrop={onJobDrop} isCompact startHour={startHour} />
                                                 ))}
                                         </div>
                                     </div>
@@ -250,6 +250,9 @@ export function ScheduleView({
   activeView,
   onActiveViewChange,
 }: ScheduleViewProps) {
+    console.log("=== SCHEDULE VIEW RENDER ===");
+    console.log("Jobs received by ScheduleView:", jobs.length);
+    console.log("Jobs:", jobs);
     const { role } = useRole();
     const { startHour, endHour } = mockData.scheduleSettings;
     const getHref = (path: string) => {

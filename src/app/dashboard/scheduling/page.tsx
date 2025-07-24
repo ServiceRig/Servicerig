@@ -48,17 +48,17 @@ function SchedulingPageContent() {
     }, 500);
   }, []);
   
-  const handleJobCreated = useCallback((newJob: Job) => {
-    console.log("Received new job in schedule page:", newJob);
+  const handleJobCreated = (newJob: Job) => {
+    console.log("=== HANDLE JOB CREATED CALLED ===");
+    console.log("New job received:", newJob);
+    console.log("Current jobs state before:", jobs.length);
+    
     setJobs(prevJobs => {
-        // Check if job already exists
-        if (prevJobs.some(job => job.id === newJob.id)) {
-            console.log("Job already exists, not adding duplicate");
-            return prevJobs;
-        }
-        return [...prevJobs, newJob];
+        const updatedJobs = [...prevJobs, newJob];
+        console.log("Updated jobs state after:", updatedJobs.length);
+        return updatedJobs;
     });
-  }, []);
+  };
   
   const moveJob = useCallback((jobId: string, newTechnicianId: string, newStartTime: Date) => {
     setJobs(prevJobs => {
@@ -120,7 +120,10 @@ function SchedulingPageContent() {
     const { startHour: workdayStartHour, endHour: workdayEndHour } = mockData.scheduleSettings;
 
     const enrichedJobs = useMemo(() => {
-        return (jobs ?? []).flatMap(job => {
+        console.log("=== CALCULATING ENRICHED JOBS ===");
+        console.log("Input jobs:", jobs.length);
+
+        const enriched = (jobs ?? []).flatMap(job => {
             if (job.status === 'unscheduled') {
                 const customer = customers.find(c => c.id === job.customerId);
                 return [{
@@ -159,7 +162,7 @@ function SchedulingPageContent() {
                     const technician = technicians.find(t => t.id === techId);
                     const isPrimary = index === 0;
 
-                    return {
+                    const enrichedJob = {
                         ...job,
                         id: `${job.id}-${format(day, 'yyyy-MM-dd')}-${techId}`,
                         originalId: job.id,
@@ -174,9 +177,12 @@ function SchedulingPageContent() {
                         color: technician?.color || '#A0A0A0',
                         isGhost: !isPrimary,
                     };
+                    return enrichedJob;
                 });
             });
         });
+        console.log("Enriched jobs:", enriched.length);
+        return enriched;
     }, [jobs, customers, technicians]);
 
 
@@ -215,4 +221,3 @@ export default function SchedulingPage() {
         <SchedulingPageContent />
     )
 }
-
