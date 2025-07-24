@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { DndProvider } from 'react-dnd';
@@ -43,76 +44,69 @@ function SchedulingPageContent() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
-
+  
   const handleJobCreated = useCallback(async (newJob: Job) => {
     toast({
       title: "Job Created",
       description: `New job "${newJob.title}" has been added.`
     });
-    // Re-fetch all data to ensure the UI is in sync
+    // Add to local state immediately for responsiveness
+    setJobs(prevJobs => [newJob, ...prevJobs]);
+    // Optionally re-fetch to ensure sync with "DB"
     await fetchData();
   }, [toast, fetchData]);
 
- const moveJob = useCallback(async (jobId: string, newTechnicianId: string, newStartTime: Date) => {
-    const jobToMove = jobs.find(j => j.id === jobId);
-    if (!jobToMove) {
-        console.error("Job to move not found in state!");
+  const handleJobUpdate = useCallback(async (jobId: string, updates: Partial<Job>) => {
+    const jobToUpdate = jobs.find(j => j.id === jobId);
+    if (!jobToUpdate) {
+        console.error("Job to update not found in state!");
         return;
     }
 
-    const updatedJob: Job = {
-        ...jobToMove,
+    const updatedJob = { ...jobToUpdate, ...updates, updatedAt: new Date() };
+    
+    await updateJob(updatedJob);
+    
+    // Optimistically update local state
+    setJobs(prevJobs => prevJobs.map(j => j.id === jobId ? updatedJob : j));
+
+    toast({
+        title: "Job Updated",
+        description: `Job "${updatedJob.title}" has been updated.`
+    });
+  }, [jobs, toast]);
+
+
+ const moveJob = useCallback((jobId: string, newTechnicianId: string, newStartTime: Date) => {
+    const jobToMove = jobs.find(j => j.id === jobId);
+    if (!jobToMove) return;
+
+    const updates: Partial<Job> = {
         technicianId: newTechnicianId,
+        status: 'scheduled',
         schedule: {
             ...jobToMove.schedule,
             start: newStartTime,
             end: new Date(newStartTime.getTime() + (jobToMove.duration || 60) * 60 * 1000),
             unscheduled: false,
-        },
-        status: 'scheduled',
-        updatedAt: new Date(),
+        }
     };
-    
-    // Update the "database"
-    await updateJob(updatedJob); 
-    
-    // Optimistically update local state for immediate UI feedback
-    setJobs(prevJobs => prevJobs.map(j => j.id === jobId ? updatedJob : j));
-
-    toast({
-        title: "Job Rescheduled",
-        description: `Job "${updatedJob.title}" has been moved.`
-    });
-}, [jobs, toast]);
+    handleJobUpdate(jobId, updates);
+}, [jobs, handleJobUpdate]);
 
 
   // Handle job status changes
-  const updateJobStatus = useCallback(async (jobId: string, newStatus: Job['status']) => {
-    const jobToUpdate = jobs.find(j => j.id === jobId);
-    if (!jobToUpdate) {
-        console.error(`Job with id ${jobId} not found for status update.`);
-        return;
-    }
-
-    const updatedJob = { 
-      ...jobToUpdate, 
-      status: newStatus,
-      updatedAt: new Date()
-    };
-
+  const updateJobStatus = useCallback((jobId: string, newStatus: Job['status']) => {
+    let updates: Partial<Job> = { status: newStatus };
     if (newStatus === 'unscheduled') {
-      updatedJob.technicianId = '';
-      updatedJob.schedule.unscheduled = true;
+      updates.technicianId = '';
+      updates.schedule = {
+          ...jobs.find(j => j.id === jobId)!.schedule,
+          unscheduled: true
+      };
     }
-
-    await updateJob(updatedJob);
-    await fetchData();
-
-    toast({
-      title: "Job Status Updated",
-      description: `Job status changed to ${newStatus.replace('_', ' ')}.`
-    });
-  }, [jobs, fetchData, toast]);
+    handleJobUpdate(jobId, updates);
+  }, [jobs, handleJobUpdate]);
 
   // Handle date navigation
   const handleDateNavigation = useCallback((direction: 'prev' | 'next') => {
@@ -126,7 +120,7 @@ function SchedulingPageContent() {
             const customer = customers.find(c => c.id === job.customerId);
             const allTechniciansForJob = [job.technicianId, ...(job.additionalTechnicians || [])].filter(Boolean);
             
-            const enrichedJob = {
+            const enrichedJobBase = {
                 ...job,
                 originalId: job.id,
                 customerName: customer?.primaryContact.name || 'Unknown Customer',
@@ -134,17 +128,17 @@ function SchedulingPageContent() {
             };
 
             if (job.status === 'unscheduled') {
-                return [{ ...enrichedJob, technicianId: 'unscheduled', technicianName: 'Unassigned', isGhost: false }];
+                return [{ ...enrichedJobBase, technicianId: 'unscheduled', technicianName: 'Unassigned', isGhost: false }];
             }
 
             if (allTechniciansForJob.length === 0) {
-                return [{ ...enrichedJob, technicianId: 'unassigned', technicianName: 'Unassigned', isGhost: false }];
+                return [{ ...enrichedJobBase, technicianId: 'unassigned', technicianName: 'Unassigned', isGhost: false }];
             }
             
             return allTechniciansForJob.map((techId, index) => {
                 const technician = technicians.find(t => t.id === techId);
                 return {
-                    ...enrichedJob,
+                    ...enrichedJobBase,
                     id: index === 0 ? job.id : `${job.id}-ghost-${techId}`,
                     technicianId: techId,
                     technicianName: technician?.name || 'Unassigned',
@@ -183,7 +177,7 @@ function SchedulingPageContent() {
           unscheduledJobs={unscheduledJobs}
           technicians={technicians}
           onJobDrop={moveJob}
-          onJobStatusChange={updateJobStatus}
+          onJobUpdate={handleJobUpdate}
           onJobCreated={handleJobCreated}
           currentDate={currentDate}
           onCurrentDateChange={setCurrentDate}

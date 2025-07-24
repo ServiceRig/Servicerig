@@ -31,7 +31,7 @@ interface ScheduleViewProps {
     unscheduledJobs: (Job & { originalId: string })[];
     technicians: Technician[];
     onJobDrop: (jobId: string, technicianId: string, startTime: Date) => void;
-    onJobStatusChange: (jobId: string, status: Job['status']) => void;
+    onJobUpdate: (jobId: string, updates: Partial<Job>) => void;
     onJobCreated: (newJob: Job) => void;
     currentDate: Date;
     onCurrentDateChange: (date: Date) => void;
@@ -46,8 +46,8 @@ const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('');
 }
 
-const UnscheduledJobCard = ({ job }: { job: Job & { originalId: string, type: 'job' } }) => (
-    <DraggableJob item={job}>
+const UnscheduledJobCard = ({ job, onJobUpdate }: { job: Job & { originalId: string, type: 'job' }, onJobUpdate: (jobId: string, updates: Partial<Job>) => void; }) => (
+    <DraggableJob item={job} onJobUpdate={onJobUpdate}>
         <Card className="mb-2 p-2 cursor-grab active:cursor-grabbing">
             <CardHeader className="p-1">
                 <CardTitle className="text-sm font-bold">{job.title}</CardTitle>
@@ -60,11 +60,11 @@ const UnscheduledJobCard = ({ job }: { job: Job & { originalId: string, type: 'j
     </DraggableJob>
 );
 
-const UnscheduledJobsPanel = ({ jobs, onJobStatusChange }: { jobs: (Job & { originalId: string, type: 'job' })[], onJobStatusChange: (jobId: string, status: Job['status']) => void }) => {
+const UnscheduledJobsPanel = ({ jobs, onJobUpdate }: { jobs: (Job & { originalId: string, type: 'job' })[], onJobUpdate: (jobId: string, updates: Partial<Job>) => void }) => {
     const [{ isOver }, drop] = useDrop(() => ({
         accept: ItemTypes.JOB,
         drop: (item: { id: string }) => {
-            onJobStatusChange(item.id, 'unscheduled');
+            onJobUpdate(item.id, { status: 'unscheduled', technicianId: '' });
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
@@ -80,7 +80,7 @@ const UnscheduledJobsPanel = ({ jobs, onJobStatusChange }: { jobs: (Job & { orig
             <CardContent className="flex-grow overflow-hidden">
                 <ScrollArea className="h-full pr-4">
                     {jobs.length > 0 ? (
-                        jobs.map((job, index) => <UnscheduledJobCard key={`${job.id}-${index}`} job={job} />)
+                        jobs.map((job, index) => <UnscheduledJobCard key={`${job.id}-${index}`} job={job} onJobUpdate={onJobUpdate} />)
                     ) : (
                         <div className="text-center text-sm text-muted-foreground h-full flex items-center justify-center">
                             No unscheduled jobs.
@@ -109,7 +109,7 @@ const TimeAxis = ({ startHour, endHour }: { startHour: number, endHour: number }
 };
 
 
-const DailyView = ({ items, technicians, onJobDrop, onJobStatusChange, currentDate, startHour, endHour }: { items: SchedulableItem[], technicians: Technician[], onJobDrop: (jobId: string, techId: string, startTime: Date) => void, onJobStatusChange: (jobId: string, status: Job['status']) => void, currentDate: Date, startHour: number, endHour: number }) => {
+const DailyView = ({ items, technicians, onJobDrop, onJobUpdate, currentDate, startHour, endHour }: { items: SchedulableItem[], technicians: Technician[], onJobDrop: (jobId: string, techId: string, startTime: Date) => void, onJobUpdate: (jobId: string, updates: Partial<Job>) => void, currentDate: Date, startHour: number, endHour: number }) => {
     const [selectedTech, setSelectedTech] = React.useState<string | 'all'>('all');
     
     const filteredItems = items.filter(item => 
@@ -160,7 +160,7 @@ const DailyView = ({ items, technicians, onJobDrop, onJobStatusChange, currentDa
                                     ))}
                                     {hours.slice(1).map(h => <div key={h} className="h-[60px] border-t border-dashed border-gray-300" style={{top: `${(h-startHour)*60}px`, position: 'absolute', width: '100%'}} />)}
                                     {filteredItems.filter(j => j.type === 'job' && j.technicianId === tech.id).map(item => (
-                                         <DraggableJob key={item.id} item={item} onStatusChange={onJobStatusChange} onJobDrop={onJobDrop} startHour={startHour}/>
+                                         <DraggableJob key={item.id} item={item} onJobUpdate={onJobUpdate} startHour={startHour}/>
                                     ))}
                                 </div>
                             </div>
@@ -173,7 +173,7 @@ const DailyView = ({ items, technicians, onJobDrop, onJobStatusChange, currentDa
 };
 
 
-const WeeklyView = ({ items, technicians, onJobDrop, onJobStatusChange, currentDate, startHour, endHour }: { items: SchedulableItem[], technicians: Technician[], onJobDrop: (jobId: string, techId: string, startTime: Date) => void, onJobStatusChange: (jobId: string, status: Job['status']) => void, currentDate: Date, startHour: number, endHour: number }) => {
+const WeeklyView = ({ items, technicians, onJobDrop, onJobUpdate, currentDate, startHour, endHour }: { items: SchedulableItem[], technicians: Technician[], onJobDrop: (jobId: string, techId: string, startTime: Date) => void, onJobUpdate: (jobId: string, updates: Partial<Job>) => void, currentDate: Date, startHour: number, endHour: number }) => {
     const { isFitToScreen } = useScheduleView();
     const weekStartsOn = startOfWeek(currentDate, { weekStartsOn: 1 }); // Monday
     const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStartsOn, i));
@@ -216,7 +216,7 @@ const WeeklyView = ({ items, technicians, onJobDrop, onJobStatusChange, currentD
                                             {items
                                                 .filter(item => (item.type === 'job' && item.technicianId === tech.id || item.type === 'google_event' && item.matchedTechnicianId === tech.id) && isSameDay(new Date(item.start), day))
                                                 .map(item => (
-                                                     <DraggableJob key={`${item.id}-${Math.random()}`} item={item} onStatusChange={onJobStatusChange} onJobDrop={onJobDrop} isCompact startHour={startHour} />
+                                                     <DraggableJob key={`${item.id}-${Math.random()}`} item={item} onJobUpdate={onJobUpdate} isCompact startHour={startHour} />
                                                 ))}
                                         </div>
                                     </div>
@@ -245,7 +245,7 @@ export function ScheduleView({
   unscheduledJobs,
   technicians,
   onJobDrop,
-  onJobStatusChange,
+  onJobUpdate,
   onJobCreated,
   currentDate,
   onCurrentDateChange,
@@ -254,9 +254,6 @@ export function ScheduleView({
   activeView,
   onActiveViewChange,
 }: ScheduleViewProps) {
-    console.log("=== SCHEDULE VIEW RENDER ===");
-    console.log("Jobs received by ScheduleView:", items.length);
-    console.log("Jobs:", items);
     const { role } = useRole();
     const { startHour, endHour } = mockData.scheduleSettings;
     const getHref = (path: string) => {
@@ -268,7 +265,7 @@ export function ScheduleView({
     <div className="flex flex-col md:flex-row gap-4 h-full">
        <div className="w-full md:w-64 flex flex-col gap-4">
         <ScheduleJobDialog onJobCreated={onJobCreated} />
-        <UnscheduledJobsPanel jobs={unscheduledJobs} onJobStatusChange={onJobStatusChange} />
+        <UnscheduledJobsPanel jobs={unscheduledJobs} onJobUpdate={onJobUpdate} />
       </div>
       <Card className="flex-grow h-full flex flex-col">
         <Tabs value={activeView} onValueChange={onActiveViewChange} className="h-full flex flex-col">
@@ -329,10 +326,10 @@ export function ScheduleView({
           </CardHeader>
           <CardContent className="flex-grow overflow-auto p-0">
             <TabsContent value="day" className="h-full mt-0 p-4">
-              <DailyView items={items} technicians={technicians} onJobDrop={onJobDrop} onJobStatusChange={onJobStatusChange} currentDate={currentDate} startHour={startHour} endHour={endHour}/>
+              <DailyView items={items} technicians={technicians} onJobDrop={onJobDrop} onJobUpdate={onJobUpdate} currentDate={currentDate} startHour={startHour} endHour={endHour}/>
             </TabsContent>
             <TabsContent value="week" className="h-full mt-0">
-              <WeeklyView items={items} technicians={technicians} onJobDrop={onJobDrop} onJobStatusChange={onJobStatusChange} currentDate={currentDate} startHour={startHour} endHour={endHour}/>
+              <WeeklyView items={items} technicians={technicians} onJobDrop={onJobDrop} onJobUpdate={onJobUpdate} currentDate={currentDate} startHour={startHour} endHour={endHour}/>
             </TabsContent>
           </CardContent>
         </Tabs>

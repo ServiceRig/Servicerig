@@ -52,8 +52,8 @@ export async function getJobsByCustomerId(customerId: string): Promise<Job[]> {
  */
 export async function addJob(jobData: Omit<Job, 'id' | 'createdAt' | 'updatedAt'>): Promise<Job> {
     const newJob: Job = {
-        ...jobData,
         id: `job_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+        ...jobData,
         createdAt: new Date(),
         updatedAt: new Date(),
     };
@@ -71,7 +71,7 @@ export async function updateJob(updatedJob: Job): Promise<void> {
     console.log("Updating job in DB:", updatedJob.id);
     const index = mockData.jobs.findIndex(j => j.id === updatedJob.id);
     if (index !== -1) {
-        mockData.jobs[index] = updatedJob;
+        mockData.jobs[index] = { ...mockData.jobs[index], ...updatedJob };
     } else {
         console.warn(`Job with id ${updatedJob.id} not found for update, adding it instead.`);
         mockData.jobs.unshift(updatedJob);

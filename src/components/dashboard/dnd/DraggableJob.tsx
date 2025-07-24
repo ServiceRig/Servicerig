@@ -40,11 +40,10 @@ type DraggableItem = (Job & { isGhost?: boolean; originalId: string; type: 'job'
 interface DraggableJobProps {
     item: DraggableItem;
     children?: React.ReactNode;
-    onStatusChange?: (jobId: string, status: Job['status']) => void;
-    onJobDrop?: (jobId: string, technicianId: string, startTime: Date) => void;
-    onJobCreated?: (newJob: Job) => void;
+    onJobUpdate?: (jobId: string, updates: Partial<Job>) => void;
     isCompact?: boolean;
     startHour?: number;
+    onJobCreated?: (newJob: Job) => void;
 }
 
 const InfoRow = ({ icon: Icon, label, children }: { icon: React.ElementType, label: string, children: React.ReactNode }) => (
@@ -67,7 +66,7 @@ const formatDuration = (seconds: number) => {
 }
 
 
-export const DraggableJob: React.FC<DraggableJobProps> = ({ item, children, onStatusChange, isCompact, startHour = 7, onJobDrop, onJobCreated }) => {
+export const DraggableJob: React.FC<DraggableJobProps> = ({ item, children, onJobUpdate, isCompact, startHour = 7, onJobCreated }) => {
     const [{ isDragging }, drag] = useDrag(() => ({
         type: ItemTypes.JOB,
         item: { id: item.type === 'job' ? item.originalId : item.eventId }, // Use the original ID for the drag item
@@ -99,8 +98,8 @@ export const DraggableJob: React.FC<DraggableJobProps> = ({ item, children, onSt
     }, [item]);
 
     const handleStatusChange = (newStatus: Job['status']) => {
-        if (item.type === 'job' && onStatusChange) {
-            onStatusChange(item.originalId, newStatus);
+        if (item.type === 'job' && onJobUpdate) {
+            onJobUpdate(item.originalId, { status: newStatus });
         }
     }
     
