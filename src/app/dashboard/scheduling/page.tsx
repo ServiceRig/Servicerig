@@ -49,7 +49,14 @@ function SchedulingPageContent({ jobs, setJobs }: { jobs: Job[], setJobs: React.
   
   const handleJobCreated = useCallback((newJob: Job) => {
     console.log("Received new job in schedule page:", newJob);
-    setJobs(prevJobs => [newJob, ...prevJobs]);
+    setJobs(prevJobs => {
+        // Check if job already exists
+        if (prevJobs.some(job => job.id === newJob.id)) {
+            console.log("Job already exists, not adding duplicate");
+            return prevJobs;
+        }
+        return [newJob, ...prevJobs];
+    });
   }, [setJobs]);
   
   const moveJob = useCallback((jobId: string, newTechnicianId: string, newStartTime: Date) => {
