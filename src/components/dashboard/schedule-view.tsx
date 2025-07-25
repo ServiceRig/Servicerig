@@ -109,7 +109,7 @@ const UnscheduledJobsPanel = ({
             )}
         >
             <CardHeader>
-                <CardTitle>Unscheduled Jobs</CardTitle>
+                <CardTitle>To Be Scheduled</CardTitle>
                 <CardDescription>{jobs.length} jobs waiting</CardDescription>
             </CardHeader>
             <CardContent className="flex-grow overflow-hidden">
@@ -124,7 +124,7 @@ const UnscheduledJobsPanel = ({
                         ))
                     ) : (
                         <div className="text-center text-sm text-muted-foreground h-full flex items-center justify-center">
-                            No unscheduled jobs.
+                            No jobs to be scheduled.
                         </div>
                     )}
                 </ScrollArea>
@@ -169,17 +169,9 @@ const DailyView = ({
     
     const filteredItems = items.filter(item => {
         if (!isSameDay(new Date(item.start), currentDate)) return false;
-        
         if (selectedTech === 'all') return true;
-
-        if (item.type === 'job') {
-            return item.technicianId === selectedTech || (item.technicianId === 'unassigned' && selectedTech === 'unassigned');
-        }
-
-        if (item.type === 'google_event') {
-            return item.matchedTechnicianId === selectedTech;
-        }
-
+        if (item.type === 'job') return item.technicianId === selectedTech || (item.technicianId === 'unassigned' && selectedTech === 'unassigned');
+        if (item.type === 'google_event') return item.matchedTechnicianId === selectedTech;
         return false;
     });
 
@@ -197,7 +189,7 @@ const DailyView = ({
             return;
         }
         
-        onJobDrop(item, techId, startTime);
+        onJobDrop(item.originalData, techId, startTime);
     }, [onJobDrop]);
 
     return (
@@ -212,6 +204,7 @@ const DailyView = ({
                         {technicians.map(tech => (
                             <SelectItem key={tech.id} value={tech.id}>{tech.name}</SelectItem>
                         ))}
+                         <SelectItem value="unassigned">Unassigned</SelectItem>
                     </SelectContent>
                 </Select>
             </div>
@@ -234,7 +227,7 @@ const DailyView = ({
                                                     key={`${hour}-${minute}`} 
                                                     technicianId={tech.id} 
                                                     startTime={slotTime}
-                                                    onDrop={(jobId, techId, startTime) => handleDrop({ id: jobId }, techId, startTime)}
+                                                    onDrop={(jobData, techId, startTime) => handleDrop(jobData, techId, startTime)}
                                                     startHour={startHour}
                                                 />
                                             )
@@ -305,7 +298,7 @@ const WeeklyView = ({
             return;
         }
         
-        onJobDrop(item, techId, startTime);
+        onJobDrop(item.originalData, techId, startTime);
     }, [onJobDrop]);
 
     return (
@@ -341,7 +334,7 @@ const WeeklyView = ({
                                                                 key={`${day.toISOString()}-${hour}-${minute}`}
                                                                 technicianId={tech.id}
                                                                 startTime={slotTime}
-                                                                onDrop={(jobId, techId, startTime) => handleDrop({id: jobId}, techId, startTime)}
+                                                                onDrop={(jobData, techId, startTime) => handleDrop(jobData, techId, startTime)}
                                                                 startHour={startHour}
                                                             />
                                                         );

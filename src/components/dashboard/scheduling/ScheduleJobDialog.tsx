@@ -413,7 +413,7 @@ export function ScheduleJobDialog({ onJobCreated, initialJobData, triggerButton 
                         <h3 className="font-semibold mb-4">Scheduling</h3>
                          <div className="flex items-center space-x-2 mb-4">
                             <Checkbox id="unscheduled" checked={isUnscheduled} onCheckedChange={(checked) => setIsUnscheduled(!!checked)} />
-                            <Label htmlFor="unscheduled">Add to Unscheduled Jobs list</Label>
+                            <Label htmlFor="unscheduled">Add to "To Be Scheduled" list</Label>
                         </div>
                          <div className="flex items-center space-x-2 mb-4">
                             <Checkbox id="different-times" checked={hasDifferentTimes} onCheckedChange={(checked) => setHasDifferentTimes(!!checked)} />
