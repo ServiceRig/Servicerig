@@ -55,49 +55,56 @@ function SchedulingPageContent() {
     });
   }, [toast]);
 
- const handleJobUpdate = useCallback(async (jobId: string, updates: Partial<Job>) => {
+  const handleJobUpdate = useCallback(async (jobId: string, updates: Partial<Job>) => {
     try {
-        const jobToUpdate = jobs.find(j => j.id === jobId);
-        if (!jobToUpdate) {
-            console.error("Job to update not found:", jobId);
-            return;
+      const jobToUpdate = jobs.find(j => j.id === jobId);
+      if (!jobToUpdate) {
+        console.error("Job to update not found:", jobId);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Could not find the job to update.",
+        });
+        return;
+      }
+  
+      const updatedJob: Job = {
+        ...jobToUpdate,
+        ...updates,
+        schedule: {
+          ...jobToUpdate.schedule,
+          ...updates.schedule,
+        },
+        updatedAt: new Date()
+      };
+      
+      await dbUpdateJob(updatedJob);
+  
+      setJobs(prevJobs => {
+        const jobIndex = prevJobs.findIndex(j => j.id === jobId);
+        if (jobIndex === -1) {
+          // If not found, it might be a new job from an external source, so add it
+          return [updatedJob, ...prevJobs];
         }
-
-        const updatedJob: Job = {
-            ...jobToUpdate,
-            ...updates,
-            schedule: {
-                ...jobToUpdate.schedule,
-                ...updates.schedule,
-            },
-            updatedAt: new Date()
-        };
-        
-        await dbUpdateJob(updatedJob); // Update mock DB
-
-        setJobs(prevJobs => {
-            const jobIndex = prevJobs.findIndex(j => j.id === jobId);
-            if (jobIndex === -1) {
-                return prevJobs; 
-            }
-            const newJobs = [...prevJobs];
-            newJobs[jobIndex] = updatedJob;
-            return newJobs;
-        });
-
-        toast({
-            title: "Job Updated",
-            description: `Job "${updatedJob.title}" has been updated.`
-        });
+        const newJobs = [...prevJobs];
+        newJobs[jobIndex] = updatedJob;
+        return newJobs;
+      });
+  
+      toast({
+        title: "Job Updated",
+        description: `Job "${updatedJob.title}" has been updated.`
+      });
+  
     } catch (error) {
-        console.error("Failed to update job:", error);
-        toast({
-            variant: "destructive",
-            title: "Error",
-            description: "Failed to update the job."
-        });
+      console.error("Failed to update job:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to update the job."
+      });
     }
-}, [jobs, toast]);
+  }, [jobs, toast]);
 
 
   // Handle date navigation
@@ -166,6 +173,7 @@ function SchedulingPageContent() {
 export default function SchedulingPage() {
   return <SchedulingPageContent />;
 }
+
 
 
 
