@@ -199,6 +199,7 @@ function SchedulingPageContent() {
 
   const handleDragHover = useCallback((draggedItem: any, techId: string, time: Date) => {
     const itemData = draggedItem.originalData;
+    if (!itemData) return;
     const durationMs = (new Date(itemData.end).getTime() - new Date(itemData.start).getTime());
     const newEndTime = new Date(time.getTime() + durationMs);
     const tech = technicians.find(t => t.id === techId);
@@ -223,7 +224,6 @@ function SchedulingPageContent() {
 
     if (newStatus === 'unscheduled') {
         updates.schedule = { ...job.schedule, unscheduled: true };
-        // Don't clear technicianId on reschedule
     }
     handleJobUpdate(jobId, updates);
   }, [jobs, handleJobUpdate]);
@@ -335,11 +335,11 @@ function SchedulingPageContent() {
     <DndProvider backend={HTML5Backend}>
       <div className="flex flex-col gap-6">
         {/* Top Section: Schedule and To-Be-Scheduled List */}
-        <div className="grid grid-cols-1 xl:grid-cols-[1fr,3fr] gap-6">
+        <div className="grid grid-cols-1 xl:grid-cols-[350px,1fr] gap-6">
            <div className="xl:col-span-1">
                 <ToBeScheduledList jobs={stagedJobs} />
            </div>
-           <div className="xl:col-span-1">
+           <div className="xl:col-span-1 h-[calc(100vh-8rem)]">
                <ScheduleView
                     items={enrichedJobsAndEvents}
                     technicians={technicians}

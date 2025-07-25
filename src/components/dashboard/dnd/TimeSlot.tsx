@@ -1,4 +1,3 @@
-
 'use client';
 
 import React from 'react';
@@ -12,7 +11,7 @@ interface TimeSlotProps {
   technicianId: string;
   startTime: Date;
   onDrop: (item: any, technicianId: string, startTime: Date) => void;
-  onHover: (techId: string, time: Date) => void;
+  onHover: (item: any, techId: string, time: Date) => void;
   startHour?: number;
 }
 
@@ -25,7 +24,7 @@ export const TimeSlot: React.FC<TimeSlotProps> = ({ technicianId, startTime, onD
     },
     hover: (item, monitor) => {
         if (monitor.isOver({ shallow: true })) {
-            onHover(technicianId, startTime);
+            onHover(item, technicianId, startTime);
         }
     },
     collect: (monitor) => ({
