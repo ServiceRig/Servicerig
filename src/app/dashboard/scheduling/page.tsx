@@ -55,36 +55,36 @@ function SchedulingPageContent() {
     });
   }, [toast]);
 
-  const handleJobUpdate = useCallback((jobId: string, updates: Partial<Job>) => {
-        setJobs(prevJobs => {
-            const jobIndex = prevJobs.findIndex(j => j.id === jobId);
-            if (jobIndex === -1) {
-                console.error("Job not found in state:", jobId);
-                return prevJobs;
-            }
+ const handleJobUpdate = useCallback(async (jobId: string, updates: Partial<Job>) => {
+    const jobToUpdate = jobs.find(j => j.id === jobId);
+    if (!jobToUpdate) {
+      console.error("Job to update not found:", jobId);
+      return;
+    }
 
-            const jobToMove = prevJobs[jobIndex];
-            
-            // Create the updated job by merging previous data with new updates
-            const updatedJob: Job = {
-                ...jobToMove,
-                ...updates,
-                schedule: {
-                    ...jobToMove.schedule,
-                    ...updates.schedule,
-                },
-                updatedAt: new Date()
-            };
+    const updatedJob = {
+      ...jobToUpdate,
+      ...updates,
+      schedule: {
+        ...jobToUpdate.schedule,
+        ...updates.schedule,
+      },
+      updatedAt: new Date()
+    };
+    
+    await dbUpdateJob(updatedJob);
 
-            // Also update the job in our mock database
-            dbUpdateJob(updatedJob);
+    setJobs(prevJobs => {
+      const jobIndex = prevJobs.findIndex(j => j.id === jobId);
+      if (jobIndex === -1) {
+        return prevJobs;
+      }
+      const newJobs = [...prevJobs];
+      newJobs[jobIndex] = updatedJob;
+      return newJobs;
+    });
+  }, [jobs]);
 
-            const newJobs = [...prevJobs];
-            newJobs[jobIndex] = updatedJob;
-            
-            return newJobs;
-        });
-    }, []);
 
   // Handle date navigation
   const handleDateNavigation = useCallback((direction: 'prev' | 'next') => {
@@ -152,5 +152,6 @@ function SchedulingPageContent() {
 export default function SchedulingPage() {
   return <SchedulingPageContent />;
 }
+
 
 
