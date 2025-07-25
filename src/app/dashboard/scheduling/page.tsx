@@ -204,7 +204,6 @@ function SchedulingPageContent() {
     const updates: Partial<Job> = { status: newStatus };
 
     if (newStatus === 'unscheduled') {
-      updates.technicianId = '';
       updates.schedule = { ...job.schedule, unscheduled: true };
     }
     handleJobUpdate(jobId, updates);
