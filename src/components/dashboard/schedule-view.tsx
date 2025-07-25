@@ -4,7 +4,7 @@ import React, { useState, useCallback } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Job, Technician, GoogleCalendarEvent } from "@/lib/types";
+import { Job, Technician, GoogleCalendarEvent, UserRole } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from '../ui/scroll-area';
 import { DraggableJob } from './dnd/DraggableJob';
