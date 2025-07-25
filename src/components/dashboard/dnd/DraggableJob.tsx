@@ -73,10 +73,7 @@ export const DraggableJob: React.FC<DraggableJobProps> = ({
 }) => {
     const [{ isDragging }, drag] = useDrag(() => ({
         type: ItemTypes.JOB,
-        item: { 
-            id: item.type === 'job' ? (item.originalId || item.id) : item.eventId,
-            originalId: item.type === 'job' ? item.originalId : undefined
-        },
+        item: { id: item.id },
         canDrag: item.type === 'job' && !item.isGhost,
         collect: (monitor) => ({
             isDragging: !!monitor.isDragging(),
@@ -142,14 +139,6 @@ export const DraggableJob: React.FC<DraggableJobProps> = ({
         const totalMinutes = hours * 60 + minutes;
         const startMinutes = startHour * 60;
         const position = (totalMinutes - startMinutes) * (60 / 60); // Assuming 1px per minute
-        console.log('⏰ Time calculation:', {
-            time: time.toLocaleTimeString(),
-            hours,
-            minutes,
-            totalMinutes,
-            startMinutes,
-            position
-        });
         return Math.max(0, position); // Ensure we don't return negative positions
     };
     

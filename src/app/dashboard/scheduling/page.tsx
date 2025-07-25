@@ -1,3 +1,4 @@
+
 'use client';
 
 import { DndProvider } from 'react-dnd';
@@ -75,7 +76,7 @@ function SchedulingPageContent() {
   }, [toast]);
 
   // Handle job updates (including drag/drop)
-  const handleJobUpdate = useCallback((jobId: string, updates: Partial<Job>) => {
+    const handleJobUpdate = useCallback((jobId: string, updates: Partial<Job>) => {
         setJobs(prevJobs => {
             const jobIndex = prevJobs.findIndex(j => j.id === jobId);
             if (jobIndex === -1) {
@@ -97,23 +98,20 @@ function SchedulingPageContent() {
             const newJobs = [...prevJobs];
             newJobs[jobIndex] = updatedJob;
             
-            // Also update the mock database directly to ensure persistence across re-renders
-            const dbJobIndex = mockData.jobs.findIndex((j: Job) => j.id === jobId);
-            if (dbJobIndex !== -1) {
-                mockData.jobs[dbJobIndex] = updatedJob;
-            }
+            dbUpdateJob(updatedJob);
 
             return newJobs;
         });
 
         toast({
             title: "Job Updated",
-            description: `Job "${updates.title || jobs.find(j => j.id === jobId)?.title}" has been updated.`
+            description: `Job has been updated.`
         });
-  }, [toast, jobs]);
+  }, [toast]);
+
 
   // Handle job drag and drop specifically
-  const handleJobDrop = useCallback((jobId: string, newTechnicianId: string, newStartTime: Date) => {
+    const handleJobDrop = useCallback((jobId: string, newTechnicianId: string, newStartTime: Date) => {
     const jobToMove = jobs.find(j => j.id === jobId);
     if (!jobToMove) return;
 
@@ -137,8 +135,11 @@ function SchedulingPageContent() {
   // Handle job status changes
   const handleJobStatusChange = useCallback((jobId: string, newStatus: Job['status']) => {
     const updates: Partial<Job> = { status: newStatus };
+    const job = jobs.find(j => j.id === jobId);
+    if (!job) return;
+
     if (newStatus === 'unscheduled') {
-      updates.schedule = { ...jobs.find(j => j.id === jobId)?.schedule, unscheduled: true };
+      updates.schedule = { ...job.schedule, unscheduled: true };
       updates.technicianId = '';
     }
     handleJobUpdate(jobId, updates);
