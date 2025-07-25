@@ -14,7 +14,7 @@ import { generatePrice, GeneratePriceOutput } from '@/ai/flows/generate-price';
 import { addPricebookItemAction } from '@/app/actions';
 import { Alert, AlertTitle, AlertDescription } from '../ui/alert';
 import { useToast } from '@/hooks/use-toast';
-import type { LineItem } from '@/lib/types';
+import type { LineItem, PricebookItem } from '@/lib/types';
 import { useRole } from '@/hooks/use-role';
 
 
@@ -59,12 +59,16 @@ async function generatePriceAction(prevState: ActionState, formData: FormData): 
     }
 }
 
-export function AiPriceGenerator() {
+interface AiPriceGeneratorProps {
+    onItemAdded: (newItem: PricebookItem) => void;
+}
+
+export function AiPriceGenerator({ onItemAdded }: AiPriceGeneratorProps) {
     const router = useRouter();
     const { role } = useRole();
     const { toast } = useToast();
     const [generateState, generateAction] = useActionState(generatePriceAction, { data: null, error: null });
-    const [saveState, saveAction] = useActionState(addPricebookItemAction, { success: false, message: '' });
+    const [saveState, saveAction] = useActionState(addPricebookItemAction, { success: false, message: '', item: undefined });
     
     const [editableResult, setEditableResult] = useState<GeneratePriceOutput | null>(null);
 
@@ -75,14 +79,20 @@ export function AiPriceGenerator() {
     }, [generateState.data]);
 
     useEffect(() => {
-        if (saveState?.message) {
+        if (saveState.success && saveState.item) {
             toast({
-                title: saveState.success ? 'Success' : 'Error',
+                title: 'Success',
                 description: saveState.message,
-                variant: saveState.success ? 'default' : 'destructive',
+            });
+            onItemAdded(saveState.item);
+        } else if (saveState.message) {
+            toast({
+                title: 'Error',
+                description: saveState.message,
+                variant: 'destructive',
             })
         }
-    }, [saveState, toast])
+    }, [saveState, toast, onItemAdded])
 
     const handleFieldChange = (field: keyof GeneratePriceOutput, value: string | number | string[]) => {
         if (editableResult) {

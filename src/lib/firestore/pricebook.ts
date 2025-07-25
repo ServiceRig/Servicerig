@@ -5,7 +5,7 @@ import { mockData } from "@/lib/mock-data";
 import type { PricebookItem } from "@/lib/types";
 
 
-export async function addPricebookItem(itemData: Omit<PricebookItem, 'id' | 'createdAt'>) {
+export async function addPricebookItem(itemData: Omit<PricebookItem, 'id' | 'createdAt'>): Promise<PricebookItem> {
     console.log("Adding new pricebook item:", itemData);
     
     const newItem: PricebookItem = {
@@ -21,5 +21,5 @@ export async function addPricebookItem(itemData: Omit<PricebookItem, 'id' | 'cre
     await new Promise(resolve => setTimeout(resolve, 300));
 
     console.log("Successfully added pricebook item with ID:", newItem.id);
-    return newItem.id;
+    return newItem;
 }

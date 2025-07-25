@@ -10,7 +10,7 @@ import { revalidatePath } from "next/cache";
 import type { Estimate, GbbTier, LineItem, PricebookItem, Job, Invoice, EquipmentLog, Equipment, PurchaseOrder, UsedPart, PurchaseOrderPart, EstimateTemplate, InventoryItem, Vendor, Customer } from "@/lib/types";
 import { addEstimateTemplate, updateEstimateTemplate } from "@/lib/firestore/templates";
 import { mockData } from "@/lib/mock-data";
-import { addPricebookItem } from "@/lib/firestore/pricebook";
+import { addPricebookItem as addPricebookItemToDb } from "@/lib/firestore/pricebook";
 import { getCustomerById, updateCustomerInDb, addCustomer as addCustomerToDb } from "@/lib/firestore/customers";
 import { analyzeInvoice } from "@/ai/flows/analyze-invoice";
 import { addInvoice as addInvoiceToDb, updateInvoice as updateInvoiceInDb } from "@/lib/firestore/invoices";
@@ -614,20 +614,21 @@ export async function updateEstimateTemplateAction(prevState: CreateTemplateStat
 const addPricebookItemSchema = z.object({
     title: z.string().min(1, { message: 'Title is required' }),
     description: z.string(),
-    price: z.number().min(0, { message: 'Price cannot be negative' }),
+    price: z.coerce.number().min(0, { message: 'Price cannot be negative' }),
     trade: z.enum(['Plumbing', 'HVAC', 'Electrical', 'General']),
 });
 
 type AddPricebookItemState = {
     success: boolean;
     message: string;
+    item?: PricebookItem;
 }
 
 export async function addPricebookItemAction(prevState: AddPricebookItemState, formData: FormData): Promise<AddPricebookItemState> {
     const validatedFields = addPricebookItemSchema.safeParse({
         title: formData.get('title'),
         description: formData.get('description'),
-        price: Number(formData.get('price')),
+        price: formData.get('price'),
         trade: formData.get('trade'),
     });
     
@@ -637,13 +638,13 @@ export async function addPricebookItemAction(prevState: AddPricebookItemState, f
     }
     
     try {
-        const newItem: Omit<PricebookItem, 'id' | 'createdAt' | 'inventoryParts'> = {
+        const newItemData: Omit<PricebookItem, 'id' | 'createdAt' | 'inventoryParts'> = {
             ...validatedFields.data,
             isCustom: true,
         };
-        await addPricebookItem({ ...newItem, inventoryParts: [] }); // AI items have no parts by default
+        const createdItem = await addPricebookItemToDb({ ...newItemData, inventoryParts: [] });
         revalidatePath('/dashboard/price-book');
-        return { success: true, message: `Successfully added "${validatedFields.data.title}" to the price book.`};
+        return { success: true, message: `Successfully added "${validatedFields.data.title}" to the price book.`, item: createdItem };
     } catch(e) {
         console.error(e);
         return { success: false, message: 'Failed to add item to price book.' };
@@ -1464,6 +1465,7 @@ export async function addCustomer(prevState: AddCustomerState, formData: FormDat
     redirect(`/dashboard/customers?role=${validatedFields.data.role || 'admin'}`);
 }
     
+
 
 
 
