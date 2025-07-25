@@ -207,7 +207,7 @@ const WeeklyView = ({ items, technicians, onJobDrop, onJobStatusChange, currentD
                                         );
 
                                         return (
-                                            <div key={tech.id} className={cn("relative h-full transition-colors", techIndex > 0 && "border-l border-dashed", isDraggingOverTech && 'bg-accent/20 border-4 border-dashed')} style={{ borderColor: isDraggingOverTech ? tech.color : undefined }}>
+                                            <div key={tech.id} className={cn("relative h-full transition-colors", techIndex > 0 && "border-l border-dashed", isDraggingOverTech && 'bg-accent/20')}>
                                                 <div className="sticky top-[49px] bg-background z-10 text-center text-xs py-1 border-b font-semibold" style={{ color: tech.color }}>
                                                     {getInitials(tech.name)}
                                                 </div>
