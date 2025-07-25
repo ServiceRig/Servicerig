@@ -318,91 +318,89 @@ export function ScheduleView({
     const { startHour, endHour } = mockData.scheduleSettings;
     
     return (
-        <div className="flex flex-col h-full">
-            <Card className="flex-grow h-full flex flex-col">
-                <Tabs value={activeView} onValueChange={onActiveViewChange} className="h-full flex flex-col">
-                    <CardHeader className="flex-row items-center justify-between border-b">
-                        <div className="flex items-center gap-4">
-                            <div>
-                                <CardTitle>Schedule</CardTitle>
-                                <CardDescription>Drag, drop, and resize jobs to schedule your team.</CardDescription>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <TooltipProvider>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <Button variant="outline" size="icon" onClick={onPrevious}>
-                                                <ChevronLeft className="h-4 w-4" />
-                                            </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent><p>Previous</p></TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <Button
-                                            variant={"outline"}
-                                            className={cn("w-[240px] justify-start text-left font-normal", !currentDate && "text-muted-foreground")}
-                                        >
-                                            <CalendarIcon className="mr-2 h-4 w-4" />
-                                            {currentDate ? format(currentDate, "PPP") : <span>Pick a date</span>}
+        <Card className="flex-grow h-full flex flex-col">
+            <Tabs value={activeView} onValueChange={onActiveViewChange} className="h-full flex flex-col">
+                <CardHeader className="flex-row items-center justify-between border-b">
+                    <div className="flex items-center gap-4">
+                        <div>
+                            <CardTitle>Schedule</CardTitle>
+                            <CardDescription>Drag, drop, and resize jobs to schedule your team.</CardDescription>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button variant="outline" size="icon" onClick={onPrevious}>
+                                            <ChevronLeft className="h-4 w-4" />
                                         </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0" align="start">
-                                        <Calendar
-                                            mode="single"
-                                            selected={currentDate}
-                                            onSelect={(date) => date && onCurrentDateChange(date)}
-                                            initialFocus
-                                        />
-                                    </PopoverContent>
-                                </Popover>
-                                <TooltipProvider>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <Button variant="outline" size="icon" onClick={onNext}>
-                                                <ChevronRight className="h-4 w-4" />
-                                            </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent><p>Next</p></TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
-                            </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent><p>Previous</p></TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        variant={"outline"}
+                                        className={cn("w-[240px] justify-start text-left font-normal", !currentDate && "text-muted-foreground")}
+                                    >
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        {currentDate ? format(currentDate, "PPP") : <span>Pick a date</span>}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="start">
+                                    <Calendar
+                                        mode="single"
+                                        selected={currentDate}
+                                        onSelect={(date) => date && onCurrentDateChange(date)}
+                                        initialFocus
+                                    />
+                                </PopoverContent>
+                            </Popover>
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button variant="outline" size="icon" onClick={onNext}>
+                                            <ChevronRight className="h-4 w-4" />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent><p>Next</p></TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
                         </div>
-                        <div className="flex items-center gap-4">
-                             <ScheduleJobDialog onJobCreated={onJobCreated as any} />
-                            <TabsList>
-                                <TabsTrigger value="day">Daily</TabsTrigger>
-                                <TabsTrigger value="week">Weekly</TabsTrigger>
-                            </TabsList>
-                        </div>
-                    </CardHeader>
-                    <CardContent className="flex-grow overflow-auto p-0">
-                        <TabsContent value="day" className="h-full mt-0 p-4">
-                            <DailyView 
-                                items={items} 
-                                technicians={technicians} 
-                                onJobDrop={onJobDrop} 
-                                onJobStatusChange={onJobStatusChange}
-                                currentDate={currentDate} 
-                                startHour={startHour} 
-                                endHour={endHour}
-                            />
-                        </TabsContent>
-                        <TabsContent value="week" className="h-full mt-0">
-                            <WeeklyView 
-                                items={items} 
-                                technicians={technicians} 
-                                onJobDrop={onJobDrop} 
-                                onJobStatusChange={onJobStatusChange}
-                                currentDate={currentDate} 
-                                startHour={startHour} 
-                                endHour={endHour}
-                            />
-                        </TabsContent>
-                    </CardContent>
-                </Tabs>
-            </Card>
-        </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                            <ScheduleJobDialog onJobCreated={onJobCreated as any} />
+                        <TabsList>
+                            <TabsTrigger value="day">Daily</TabsTrigger>
+                            <TabsTrigger value="week">Weekly</TabsTrigger>
+                        </TabsList>
+                    </div>
+                </CardHeader>
+                <CardContent className="flex-grow overflow-auto p-0">
+                    <TabsContent value="day" className="h-full mt-0 p-4">
+                        <DailyView 
+                            items={items} 
+                            technicians={technicians} 
+                            onJobDrop={onJobDrop} 
+                            onJobStatusChange={onJobStatusChange}
+                            currentDate={currentDate} 
+                            startHour={startHour} 
+                            endHour={endHour}
+                        />
+                    </TabsContent>
+                    <TabsContent value="week" className="h-full mt-0">
+                        <WeeklyView 
+                            items={items} 
+                            technicians={technicians} 
+                            onJobDrop={onJobDrop} 
+                            onJobStatusChange={onJobStatusChange}
+                            currentDate={currentDate} 
+                            startHour={startHour} 
+                            endHour={endHour}
+                        />
+                    </TabsContent>
+                </CardContent>
+            </Tabs>
+        </Card>
     );
 }

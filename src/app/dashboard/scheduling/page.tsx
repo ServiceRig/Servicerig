@@ -144,16 +144,16 @@ function SchedulingPageContent() {
   }, [toast]);
 
   // Handle job drag and drop specifically
-  const handleJobDrop = useCallback((item: SchedulableItem, newTechnicianId: string, newStartTime: Date) => {
-    const { id, type } = item;
+  const handleJobDrop = useCallback((item: {id: string, type: 'job' | 'google_event', originalData: SchedulableItem}, newTechnicianId: string, newStartTime: Date) => {
+    const { id, type, originalData } = item;
     
-    if (type === 'google_event') {
-        const durationMs = new Date(item.end).getTime() - new Date(item.start).getTime();
+    if (type === 'google_event' && originalData) {
+        const durationMs = new Date(originalData.end).getTime() - new Date(originalData.start).getTime();
         const newEndTime = new Date(newStartTime.getTime() + durationMs);
 
         const newJobData = {
-            title: item.title,
-            description: item.description || `Synced from Google Calendar event by ${item.createdBy}`,
+            title: originalData.title,
+            description: originalData.description || `Synced from Google Calendar event by ${originalData.createdBy}`,
             customerId: 'cust1', // Placeholder customer
             technicianId: newTechnicianId,
             status: 'scheduled' as const,
@@ -170,7 +170,7 @@ function SchedulingPageContent() {
         
         setGoogleEvents(prevEvents => prevEvents.filter(event => event.eventId !== id));
         
-        toast({ title: 'Event Converted to Job', description: `Google Calendar event "${item.title}" is now a ServiceRig job.`});
+        toast({ title: 'Event Converted to Job', description: `Google Calendar event "${originalData.title}" is now a ServiceRig job.`});
         
     } else { 
         const jobToMove = jobs.find(j => j.id === id);
@@ -301,7 +301,7 @@ function SchedulingPageContent() {
   // Show loading state
   if (loading || !isComponentLoaded) {
     return (
-      <div className="flex items-center justify-center h-[calc(100vh-8rem)]">
+      <div className="flex items-center justify-center h-full">
         <div className="p-4 text-lg">Loading Schedule...</div>
       </div>
     );
@@ -309,12 +309,13 @@ function SchedulingPageContent() {
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className="flex h-full flex-col gap-6">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[calc(100vh-8rem)]">
+      <div className="flex flex-col gap-6">
+        {/* Top Section: Schedule and To-Be-Scheduled List */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
            <div className="lg:col-span-1">
                 <ToBeScheduledList jobs={stagedJobs} />
            </div>
-           <div className="lg:col-span-3 h-full">
+           <div className="lg:col-span-3">
                <ScheduleView
                     items={enrichedJobsAndEvents}
                     technicians={technicians}
@@ -330,14 +331,18 @@ function SchedulingPageContent() {
                 />
            </div>
         </div>
-        <MasterListView
-          jobs={jobs}
-          estimates={estimates}
-          serviceAgreements={serviceAgreements}
-          customers={customers}
-          technicians={technicians}
-          onStageJobs={handleStageJobs}
-        />
+
+        {/* Bottom Section: Master List */}
+        <div>
+            <MasterListView
+              jobs={jobs}
+              estimates={estimates}
+              serviceAgreements={serviceAgreements}
+              customers={customers}
+              technicians={technicians}
+              onStageJobs={handleStageJobs}
+            />
+        </div>
       </div>
     </DndProvider>
   );
