@@ -5,7 +5,7 @@ import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { ScheduleView } from "@/components/dashboard/scheduling/ScheduleView";
 import { mockData } from "@/lib/mock-data";
-import { Job, Customer, Technician, GoogleCalendarEvent, UserRole, Estimate, ServiceAgreement } from "@/lib/types";
+import { Job, Customer, Technician, GoogleCalendarEvent, Estimate, ServiceAgreement } from "@/lib/types";
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { addDays, setHours, setMinutes } from 'date-fns';
 import { addJob, updateJob as dbUpdateJob } from '@/lib/firestore/jobs';
@@ -147,7 +147,7 @@ function SchedulingPageContent() {
   // Handle job drag and drop specifically
   const handleJobDrop = useCallback((item: {id: string, type: 'job' | 'google_event', originalData: SchedulableItem}, newTechnicianId: string, newStartTime: Date) => {
     setGhostJob(null); // Hide ghost on drop
-    const { id, type, originalData } = item;
+    const { type, originalData } = item;
     
     if (type === 'google_event' && originalData) {
         const durationMs = new Date(originalData.end).getTime() - new Date(originalData.start).getTime();
@@ -170,12 +170,12 @@ function SchedulingPageContent() {
         };
         handleJobCreated(newJobData);
         
-        setGoogleEvents(prevEvents => prevEvents.filter(event => event.eventId !== id));
+        setGoogleEvents(prevEvents => prevEvents.filter(event => event.eventId !== originalData.id));
         
         toast({ title: 'Event Converted to Job', description: `Google Calendar event "${originalData.title}" is now a ServiceRig job.`});
         
     } else {
-        const jobIdToMove = originalData.id;
+        const jobIdToMove = originalData.originalId;
         const jobToMove = jobs.find(j => j.id === jobIdToMove);
         if (!jobToMove) return;
 
@@ -198,8 +198,8 @@ function SchedulingPageContent() {
     }
   }, [jobs, handleJobUpdate, handleJobCreated, toast]);
 
-  const handleDragHover = useCallback((draggedItem: any, techId: string, time: Date) => {
-    const itemData = draggedItem.originalData;
+  const handleDragHover = useCallback((item: any, techId: string, time: Date) => {
+    const itemData = item.originalData;
     if (!itemData) return;
     const durationMs = (new Date(itemData.end).getTime() - new Date(itemData.start).getTime());
     const newEndTime = new Date(time.getTime() + durationMs);
@@ -281,7 +281,8 @@ function SchedulingPageContent() {
                 technicianId: 'unassigned',
                 color: '#A0A0A0',
                 isGhost: false,
-                type: 'job' as const
+                type: 'job' as const,
+                originalData: { ...job, type: 'job' }
             }];
         }
 
@@ -298,7 +299,8 @@ function SchedulingPageContent() {
                 technicianId: techId,
                 color: technician?.color || '#A0A0A0',
                 isGhost: index !== 0,
-                type: 'job' as const
+                type: 'job' as const,
+                originalData: { ...job, type: 'job' }
             };
         });
     });
@@ -312,7 +314,8 @@ function SchedulingPageContent() {
       type: 'google_event',
       createdBy: event.createdBy,
       description: event.description,
-      matchedTechnicianId: event.matchedTechnicianId
+      matchedTechnicianId: event.matchedTechnicianId,
+      originalData: { ...event, type: 'google_event' }
     }));
     
     const items = [...enrichedJobs, ...enrichedEvents];
@@ -336,11 +339,11 @@ function SchedulingPageContent() {
     <DndProvider backend={HTML5Backend}>
       <div className="flex flex-col gap-6">
         {/* Top Section: Schedule and To-Be-Scheduled List */}
-        <div className="grid grid-cols-1 xl:grid-cols-[1fr,3fr] gap-6">
-           <div className="xl:col-span-1">
+        <div className="flex flex-col lg:flex-row gap-6">
+           <div className="lg:w-1/4">
                 <ToBeScheduledList jobs={stagedJobs} />
            </div>
-           <div className="xl:col-span-1 h-[calc(100vh-8rem)]">
+           <div className="flex-grow lg:w-3/4 h-[calc(100vh-8rem)]">
                <ScheduleView
                     items={enrichedJobsAndEvents}
                     technicians={technicians}
