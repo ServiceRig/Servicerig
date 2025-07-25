@@ -76,42 +76,42 @@ function SchedulingPageContent() {
   }, [toast]);
 
   // Handle job updates (including drag/drop)
-    const handleJobUpdate = useCallback((jobId: string, updates: Partial<Job>) => {
-        setJobs(prevJobs => {
-            const jobIndex = prevJobs.findIndex(j => j.id === jobId);
-            if (jobIndex === -1) {
-                console.error("Job not found for update:", jobId);
-                return prevJobs;
-            }
+  const handleJobUpdate = useCallback((jobId: string, updates: Partial<Job>) => {
+    setJobs(prevJobs => {
+        const jobIndex = prevJobs.findIndex(j => j.id === jobId);
+        if (jobIndex === -1) {
+            console.error("Job not found for update:", jobId);
+            return prevJobs;
+        }
 
-            const jobToUpdate = prevJobs[jobIndex];
-            const updatedJob = {
-                ...jobToUpdate,
-                ...updates,
-                schedule: {
-                    ...jobToUpdate.schedule,
-                    ...updates.schedule,
-                },
-                updatedAt: new Date()
-            };
-            
-            const newJobs = [...prevJobs];
-            newJobs[jobIndex] = updatedJob;
-            
-            dbUpdateJob(updatedJob);
+        const jobToUpdate = prevJobs[jobIndex];
+        const updatedJob = {
+            ...jobToUpdate,
+            ...updates,
+            schedule: {
+                ...jobToUpdate.schedule,
+                ...updates.schedule,
+            },
+            updatedAt: new Date()
+        };
+        
+        const newJobs = [...prevJobs];
+        newJobs[jobIndex] = updatedJob;
+        
+        // Also update the mock database
+        dbUpdateJob(updatedJob);
 
-            return newJobs;
-        });
+        return newJobs;
+    });
 
-        toast({
-            title: "Job Updated",
-            description: `Job has been updated.`
-        });
+    toast({
+        title: "Job Updated",
+        description: `Job has been updated.`
+    });
   }, [toast]);
 
-
   // Handle job drag and drop specifically
-    const handleJobDrop = useCallback((jobId: string, newTechnicianId: string, newStartTime: Date) => {
+  const handleJobDrop = useCallback((jobId: string, newTechnicianId: string, newStartTime: Date) => {
     const jobToMove = jobs.find(j => j.id === jobId);
     if (!jobToMove) return;
 
@@ -153,7 +153,7 @@ function SchedulingPageContent() {
   }, [activeView]);
 
   // Enrich jobs with customer and technician data
-  const enrichedJobsAndEvents = useMemo(() => {
+  const enrichedJobsAndEvents = (() => {
     const enrichedJobs = jobs.flatMap(job => {
       const customer = customers.find(c => c.id === job.customerId);
       const allTechniciansForJob = [job.technicianId, ...(job.additionalTechnicians || [])].filter(Boolean);
@@ -203,7 +203,7 @@ function SchedulingPageContent() {
     }));
 
     return [...enrichedJobs, ...enrichedEvents];
-  }, [jobs, customers, technicians, googleEvents]);
+  })();
 
   // Split items for display
   const scheduledItems = enrichedJobsAndEvents.filter(item => 
