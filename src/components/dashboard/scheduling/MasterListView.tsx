@@ -26,6 +26,7 @@ interface MasterListViewProps {
     serviceAgreements: ServiceAgreement[];
     customers: Customer[];
     technicians: Technician[];
+    onStageJobs: (jobIds: string[], reschedule: boolean) => void;
 }
 
 type SortConfig<T> = {
@@ -34,7 +35,7 @@ type SortConfig<T> = {
 } | null;
 
 
-export function MasterListView({ jobs, estimates, serviceAgreements, customers, technicians }: MasterListViewProps) {
+export function MasterListView({ jobs, estimates, serviceAgreements, customers, technicians, onStageJobs }: MasterListViewProps) {
     const { role } = useRole();
     const [searchTerm, setSearchTerm] = useState('');
     const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
@@ -162,6 +163,16 @@ export function MasterListView({ jobs, estimates, serviceAgreements, customers, 
             return newSet;
         });
     };
+    
+    const handleScheduleClick = () => {
+        onStageJobs(Array.from(selectedJobIds), false);
+        setSelectedJobIds(new Set());
+    };
+
+    const handleRescheduleClick = () => {
+        onStageJobs(Array.from(selectedJobIds), true);
+        setSelectedJobIds(new Set());
+    };
 
     const SortableHeader = ({ title, field, sortConfig, setSortConfig }: { title: string, field: string, sortConfig: SortConfig<any>, setSortConfig: any }) => (
         <TableHead>
@@ -187,11 +198,11 @@ export function MasterListView({ jobs, estimates, serviceAgreements, customers, 
                     <DateRangePicker className="max-w-md" />
                 </div>
                 <div className="mt-4 flex items-center gap-2">
-                    <Button disabled={selectedJobIds.size === 0}>
+                    <Button disabled={selectedJobIds.size === 0} onClick={handleScheduleClick}>
                         <CalendarPlus className="mr-2 h-4 w-4" />
                         Schedule Jobs
                     </Button>
-                    <Button variant="outline" disabled={selectedJobIds.size === 0}>
+                    <Button variant="outline" disabled={selectedJobIds.size === 0} onClick={handleRescheduleClick}>
                         <CalendarCheck className="mr-2 h-4 w-4" />
                         Reschedule
                     </Button>

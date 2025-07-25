@@ -12,6 +12,7 @@ import { addJob, updateJob as dbUpdateJob } from '@/lib/firestore/jobs';
 import { useToast } from '@/hooks/use-toast';
 import { getAllCustomers } from '@/lib/firestore/customers';
 import { MasterListView } from '@/components/dashboard/scheduling/MasterListView';
+import { ToBeScheduledList } from '@/components/dashboard/scheduling/ToBeScheduledList';
 
 type SchedulableItem = {
     id: string;
@@ -48,6 +49,8 @@ function SchedulingPageContent() {
   const [activeView, setActiveView] = useState('week');
   const [isComponentLoaded, setIsComponentLoaded] = useState(false);
   
+  const [stagedJobs, setStagedJobs] = useState<Job[]>([]);
+
   const { toast } = useToast();
   
   // Fetch initial data
@@ -145,11 +148,9 @@ function SchedulingPageContent() {
     const { id, type } = item;
     
     if (type === 'google_event') {
-        // Convert Google Event to a ServiceRig job
         const durationMs = new Date(item.end).getTime() - new Date(item.start).getTime();
         const newEndTime = new Date(newStartTime.getTime() + durationMs);
 
-        // A real implementation might try to find an existing customer
         const newJobData = {
             title: item.title,
             description: item.description || `Synced from Google Calendar event by ${item.createdBy}`,
@@ -167,13 +168,11 @@ function SchedulingPageContent() {
         };
         handleJobCreated(newJobData);
         
-        // Remove the original Google event from the state to prevent duplication on the calendar
         setGoogleEvents(prevEvents => prevEvents.filter(event => event.eventId !== id));
-        // A real app would also make an API call to delete the Google Calendar event
         
         toast({ title: 'Event Converted to Job', description: `Google Calendar event "${item.title}" is now a ServiceRig job.`});
         
-    } else { // It's a regular job
+    } else { 
         const jobToMove = jobs.find(j => j.id === id);
         if (!jobToMove) return;
 
@@ -192,6 +191,7 @@ function SchedulingPageContent() {
         };
 
         handleJobUpdate(id, updates);
+        setStagedJobs(prev => prev.filter(job => job.id !== id));
     }
   }, [jobs, handleJobUpdate, handleJobCreated, toast]);
 
@@ -216,6 +216,28 @@ function SchedulingPageContent() {
     setCurrentDate(prevDate => addDays(prevDate, increment * sign));
   }, [activeView]);
 
+  const handleStageJobs = useCallback((jobIds: string[], reschedule: boolean = false) => {
+    const jobsToStage = jobs.filter(job => jobIds.includes(job.id));
+    const customerEnrichedJobs = jobsToStage.map(job => ({
+        ...job,
+        customerName: customers.find(c => c.id === job.customerId)?.primaryContact.name || 'Unknown',
+    }));
+    
+    setStagedJobs(prev => {
+        const existingIds = new Set(prev.map(j => j.id));
+        const newJobs = customerEnrichedJobs.filter(j => !existingIds.has(j.id));
+        return [...prev, ...newJobs];
+    });
+
+    if (reschedule) {
+        jobIds.forEach(id => handleJobStatusChange(id, 'unscheduled'));
+        toast({ title: "Jobs Unscheduled", description: `${jobIds.length} jobs have been moved to the 'To Be Scheduled' list.`});
+    } else {
+        toast({ title: "Jobs Staged", description: `${jobIds.length} jobs are ready to be scheduled.`});
+    }
+
+  }, [jobs, customers, handleJobStatusChange, toast]);
+
   // Enrich jobs with customer and technician data
   const enrichedJobsAndEvents: SchedulableItem[] = useMemo(() => {
     const enrichedJobs = jobs.flatMap(job => {
@@ -223,16 +245,7 @@ function SchedulingPageContent() {
         const allTechniciansForJob = [job.technicianId, ...(job.additionalTechnicians || [])].filter(Boolean);
 
         if (job.status === 'unscheduled') {
-            return [{
-                ...job,
-                id: job.id,
-                originalId: job.id,
-                start: new Date(job.schedule.start),
-                end: new Date(job.schedule.end),
-                customerName: customer?.primaryContact.name || 'Unknown Customer',
-                technicianName: 'Unassigned',
-                type: 'job' as const
-            }];
+            return []; // Unscheduled jobs are handled in the Master List / To Be Scheduled list
         }
         
         if (allTechniciansForJob.length === 0) {
@@ -297,20 +310,25 @@ function SchedulingPageContent() {
   return (
     <DndProvider backend={HTML5Backend}>
       <div className="flex h-full flex-col gap-6">
-        <div className="h-[calc(100vh-8rem)]">
-          <ScheduleView
-            items={enrichedJobsAndEvents}
-            technicians={technicians}
-            onJobDrop={handleJobDrop}
-            onJobStatusChange={handleJobStatusChange}
-            onJobCreated={handleJobCreated}
-            currentDate={currentDate}
-            onCurrentDateChange={setCurrentDate}
-            onPrevious={() => handleDateNavigation('prev')}
-            onNext={() => handleDateNavigation('next')}
-            activeView={activeView}
-            onActiveViewChange={setActiveView}
-          />
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[calc(100vh-8rem)]">
+           <div className="lg:col-span-1">
+                <ToBeScheduledList jobs={stagedJobs} />
+           </div>
+           <div className="lg:col-span-3 h-full">
+               <ScheduleView
+                    items={enrichedJobsAndEvents}
+                    technicians={technicians}
+                    onJobDrop={handleJobDrop}
+                    onJobStatusChange={handleJobStatusChange}
+                    onJobCreated={handleJobCreated}
+                    currentDate={currentDate}
+                    onCurrentDateChange={setCurrentDate}
+                    onPrevious={() => handleDateNavigation('prev')}
+                    onNext={() => handleDateNavigation('next')}
+                    activeView={activeView}
+                    onActiveViewChange={setActiveView}
+                />
+           </div>
         </div>
         <MasterListView
           jobs={jobs}
@@ -318,6 +336,7 @@ function SchedulingPageContent() {
           serviceAgreements={serviceAgreements}
           customers={customers}
           technicians={technicians}
+          onStageJobs={handleStageJobs}
         />
       </div>
     </DndProvider>
