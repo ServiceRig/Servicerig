@@ -151,10 +151,18 @@ const DailyView = ({
     
     const filteredItems = items.filter(item => {
         if (!isSameDay(new Date(item.start), currentDate)) return false;
+        
         if (selectedTech === 'all') return true;
+
         if (item.type === 'job') {
             return item.technicianId === selectedTech || (item.technicianId === 'unassigned' && selectedTech === 'unassigned');
         }
+
+        // Logic for Google Calendar events if needed
+        if (item.type === 'google_event') {
+            return item.matchedTechnicianId === selectedTech;
+        }
+
         return false;
     });
 
@@ -227,7 +235,7 @@ const DailyView = ({
                                         />
                                     ))}
                                     {filteredItems
-                                        .filter(j => j.type === 'job' && j.technicianId === tech.id)
+                                        .filter(item => item.type === 'job' && item.technicianId === tech.id)
                                         .map(item => {
                                             console.log('🎨 DAILY: Rendering job for tech:', tech.name, 'job:', item.title || item.id);
                                             console.log('🎨 DAILY: Job time:', item.start);
