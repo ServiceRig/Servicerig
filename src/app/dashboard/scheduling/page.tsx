@@ -146,16 +146,20 @@ function SchedulingPageContent() {
 
   // Handle job drag and drop specifically
   const handleJobDrop = useCallback((item: {id: string, type: 'job' | 'google_event', originalData: SchedulableItem}, newTechnicianId: string, newStartTime: Date) => {
-    setGhostJob(null); // Hide ghost on drop
-    const { type, originalData } = item;
+    setGhostJob(null);
+    const itemData = item.originalData;
+    if (!itemData) {
+        console.error("Drop failed: itemData is undefined.", item);
+        return;
+    }
     
-    if (type === 'google_event' && originalData) {
-        const durationMs = new Date(originalData.end).getTime() - new Date(originalData.start).getTime();
+    if (item.type === 'google_event') {
+        const durationMs = new Date(itemData.end).getTime() - new Date(itemData.start).getTime();
         const newEndTime = new Date(newStartTime.getTime() + durationMs);
 
         const newJobData = {
-            title: originalData.title,
-            description: originalData.description || `Synced from Google Calendar event by ${originalData.createdBy}`,
+            title: itemData.title,
+            description: itemData.description || `Synced from Google Calendar event by ${itemData.createdBy}`,
             customerId: 'cust1', // Placeholder customer
             technicianId: newTechnicianId,
             status: 'scheduled' as const,
@@ -170,16 +174,19 @@ function SchedulingPageContent() {
         };
         handleJobCreated(newJobData);
         
-        setGoogleEvents(prevEvents => prevEvents.filter(event => event.eventId !== originalData.id));
+        setGoogleEvents(prevEvents => prevEvents.filter(event => event.eventId !== itemData.id));
         
-        toast({ title: 'Event Converted to Job', description: `Google Calendar event "${originalData.title}" is now a ServiceRig job.`});
+        toast({ title: 'Event Converted to Job', description: `Google Calendar event "${itemData.title}" is now a ServiceRig job.`});
         
     } else {
-        const jobIdToMove = originalData.originalId;
+        const jobIdToMove = itemData.originalId;
         const jobToMove = jobs.find(j => j.id === jobIdToMove);
-        if (!jobToMove) return;
+        if (!jobToMove) {
+            console.error("Could not find job to move:", jobIdToMove);
+            return;
+        }
 
-        const durationMs = jobToMove.duration ? jobToMove.duration * 60 * 1000 : (60 * 60 * 1000);
+        const durationMs = jobToMove.duration ? jobToMove.duration * 60 * 1000 : (new Date(jobToMove.schedule.end).getTime() - new Date(jobToMove.schedule.start).getTime());
         const newEndTime = new Date(newStartTime.getTime() + durationMs);
 
         const updates: Partial<Job> = {
@@ -198,9 +205,12 @@ function SchedulingPageContent() {
     }
   }, [jobs, handleJobUpdate, handleJobCreated, toast]);
 
-  const handleDragHover = useCallback((item: any, techId: string, time: Date) => {
-    const itemData = item.originalData;
-    if (!itemData) return;
+  const handleDragHover = useCallback((draggedItem: any, techId: string, time: Date) => {
+    const itemData = draggedItem.originalData;
+    if (!itemData) {
+        // This can happen on the very first hover frame, so we just ignore it.
+        return;
+    }
     const durationMs = (new Date(itemData.end).getTime() - new Date(itemData.start).getTime());
     const newEndTime = new Date(time.getTime() + durationMs);
     const tech = technicians.find(t => t.id === techId);
@@ -225,6 +235,7 @@ function SchedulingPageContent() {
 
     if (newStatus === 'unscheduled') {
         updates.schedule = { ...job.schedule, unscheduled: true };
+        // Do NOT clear technicianId when rescheduling
     }
     handleJobUpdate(jobId, updates);
   }, [jobs, handleJobUpdate]);
@@ -337,41 +348,39 @@ function SchedulingPageContent() {
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className="flex flex-col gap-6">
-        {/* Top Section: Schedule and To-Be-Scheduled List */}
-        <div className="flex flex-col lg:flex-row gap-6">
-           <div className="lg:w-1/4">
-                <ToBeScheduledList jobs={stagedJobs} />
-           </div>
-           <div className="flex-grow lg:w-3/4 h-[calc(100vh-8rem)]">
-               <ScheduleView
-                    items={enrichedJobsAndEvents}
-                    technicians={technicians}
-                    onJobDrop={handleJobDrop}
-                    onDragHover={handleDragHover}
-                    onJobStatusChange={handleJobStatusChange}
-                    onJobCreated={handleJobCreated}
-                    currentDate={currentDate}
-                    onCurrentDateChange={setCurrentDate}
-                    onPrevious={() => handleDateNavigation('prev')}
-                    onNext={() => handleDateNavigation('next')}
-                    activeView={activeView}
-                    onActiveViewChange={setActiveView}
+        <div className="flex h-full flex-col gap-6">
+            <div className="flex-grow grid grid-cols-1 lg:grid-cols-4 gap-6">
+                <div className="lg:col-span-1 h-full">
+                     <ToBeScheduledList jobs={stagedJobs} />
+                </div>
+                <div className="lg:col-span-3 h-full">
+                   <ScheduleView
+                        items={enrichedJobsAndEvents}
+                        technicians={technicians}
+                        onJobDrop={handleJobDrop}
+                        onDragHover={handleDragHover}
+                        onJobStatusChange={handleJobStatusChange}
+                        onJobCreated={handleJobCreated}
+                        currentDate={currentDate}
+                        onCurrentDateChange={setCurrentDate}
+                        onPrevious={() => handleDateNavigation('prev')}
+                        onNext={() => handleDateNavigation('next')}
+                        activeView={activeView}
+                        onActiveViewChange={setActiveView}
+                    />
+               </div>
+            </div>
+            
+             <div className="flex-shrink-0">
+                <MasterListView
+                  jobs={jobs}
+                  estimates={estimates}
+                  serviceAgreements={serviceAgreements}
+                  customers={customers}
+                  technicians={technicians}
+                  onStageJobs={handleStageJobs}
                 />
-           </div>
-        </div>
-
-        {/* Bottom Section: Master List */}
-        <div>
-            <MasterListView
-              jobs={jobs}
-              estimates={estimates}
-              serviceAgreements={serviceAgreements}
-              customers={customers}
-              technicians={technicians}
-              onStageJobs={handleStageJobs}
-            />
-        </div>
+            </div>
       </div>
     </DndProvider>
   );

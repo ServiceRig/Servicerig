@@ -2,6 +2,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { useDrag } from 'react-dnd';
+import { getEmptyImage } from 'react-dnd-html5-backend';
 import { ItemTypes } from '@/lib/constants';
 import { Job, GoogleCalendarEvent, UserRole } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -14,7 +15,6 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScheduleJobDialog } from '../scheduling/ScheduleJobDialog';
-import { getEmptyImage } from 'react-dnd-html5-backend';
 
 const getStatusColor = (status?: Job['status']) => {
     if (!status) return 'bg-blue-200 border-blue-400 text-blue-800'; // Default for Google Events
@@ -95,7 +95,6 @@ export const DraggableJob: React.FC<DraggableJobProps> = ({
     const [{ isDragging }, drag, preview] = useDrag(() => ({
         type: ItemTypes.JOB,
         item: { id: item.id, type: item.type, originalData: item },
-        canDrag: (item.type === 'job' && !item.isGhost) || item.type === 'google_event',
         collect: (monitor) => ({
             isDragging: !!monitor.isDragging(),
         }),
