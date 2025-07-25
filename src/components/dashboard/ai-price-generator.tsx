@@ -12,11 +12,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Wand2, Loader2, History, PlusCircle, Save } from 'lucide-react';
 import { generatePrice, GeneratePriceOutput } from '@/ai/flows/generate-price';
-import { addPricebookItemAction } from '@/app/actions';
 import { Alert, AlertTitle, AlertDescription } from '../ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import type { LineItem, PricebookItem } from '@/lib/types';
 import { useRole } from '@/hooks/use-role';
+import { SavePricebookItemDialog } from './settings/SavePricebookItemDialog';
 
 
 type ActionState = {
@@ -33,17 +33,6 @@ function GenerateButton() {
         </Button>
     )
 }
-
-function SaveItemButton() {
-    const { pending } = useFormStatus();
-     return (
-        <Button type="submit" variant="secondary" disabled={pending}>
-            {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-            {pending ? 'Saving...' : 'Save as Item'}
-        </Button>
-    )
-}
-
 
 async function generatePriceAction(prevState: ActionState, formData: FormData): Promise<ActionState> {
     const jobDescription = formData.get('jobDescription') as string;
@@ -69,7 +58,6 @@ export function AiPriceGenerator({ onItemAdded }: AiPriceGeneratorProps) {
     const { role } = useRole();
     const { toast } = useToast();
     const [generateState, generateAction] = useActionState(generatePriceAction, { data: null, error: null });
-    const [saveState, saveAction] = useActionState(addPricebookItemAction, { success: false, message: '', item: undefined });
     
     const [editableResult, setEditableResult] = useState<GeneratePriceOutput | null>(null);
 
@@ -78,22 +66,6 @@ export function AiPriceGenerator({ onItemAdded }: AiPriceGeneratorProps) {
             setEditableResult(generateState.data);
         }
     }, [generateState.data]);
-
-    useEffect(() => {
-        if (saveState.success && saveState.item) {
-            toast({
-                title: 'Success',
-                description: saveState.message,
-            });
-            onItemAdded(saveState.item);
-        } else if (saveState.message && !saveState.success) {
-            toast({
-                title: 'Error',
-                description: saveState.message,
-                variant: 'destructive',
-            })
-        }
-    }, [saveState, toast, onItemAdded]);
 
     const handleFieldChange = (field: keyof GeneratePriceOutput, value: string | number | string[]) => {
         if (editableResult) {
@@ -177,12 +149,7 @@ export function AiPriceGenerator({ onItemAdded }: AiPriceGeneratorProps) {
                     <AlertDescription>Review and edit the generated details below before saving or adding to an estimate.</AlertDescription>
                 </Alert>
                 
-                <form action={saveAction} className="space-y-4">
-                     <input type="hidden" name="title" value={editableResult.recommendedTitle} />
-                     <input type="hidden" name="description" value={editableResult.serviceDescription} />
-                     <input type="hidden" name="price" value={String(editableResult.suggestedPrice)} />
-                     <input type="hidden" name="trade" value="General" />
-
+                <div className="space-y-4">
                      <div className="grid gap-2">
                         <Label htmlFor="recommendedTitle">Recommended Title</Label>
                         <Input id="recommendedTitle" value={editableResult.recommendedTitle} onChange={e => handleFieldChange('recommendedTitle', e.target.value)} />
@@ -211,9 +178,13 @@ export function AiPriceGenerator({ onItemAdded }: AiPriceGeneratorProps) {
 
                     <div className="flex items-center gap-2 pt-4 border-t">
                         <Button type="button" onClick={handleAddToEstimate}><PlusCircle className="mr-2 h-4 w-4" /> Add to Estimate</Button>
-                        <SaveItemButton />
+                        <SavePricebookItemDialog itemData={editableResult} onItemAdded={onItemAdded}>
+                            <Button variant="secondary">
+                                <Save className="mr-2 h-4 w-4" /> Save as Item
+                            </Button>
+                        </SavePricebookItemDialog>
                     </div>
-                </form>
+                </div>
             </CardContent>
         )}
     </Card>
