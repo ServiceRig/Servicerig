@@ -48,6 +48,8 @@ export function PricebookStandard({ items, onItemAdded }: PricebookStandardProps
   const [saveState, saveAction] = useActionState(addPricebookItemAction, { success: false, message: '', item: undefined });
 
   useEffect(() => {
+    if (saveState.message && !isDialogOpen) return; // Prevent toast on initial load
+
     if (saveState.success && saveState.item) {
         toast({
             title: 'Item Added',
@@ -62,7 +64,7 @@ export function PricebookStandard({ items, onItemAdded }: PricebookStandardProps
             description: saveState.message,
         });
     }
-  }, [saveState, onItemAdded, toast]);
+  }, [saveState, onItemAdded, toast, isDialogOpen]);
 
 
   const filteredItems = useMemo(() => {
