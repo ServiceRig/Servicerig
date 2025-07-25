@@ -29,7 +29,7 @@ export const TimeSlot: React.FC<TimeSlotProps> = ({ technicianId, startTime, onD
   return (
     <div
       ref={drop}
-      className="absolute w-full border-t border-dashed border-gray-300"
+      className="absolute w-full border-t border-dashed border-gray-300/50"
       style={{
         top: `${(startTime.getHours() - startHour + startTime.getMinutes() / 60) * 60}px`,
         height: '15px', 

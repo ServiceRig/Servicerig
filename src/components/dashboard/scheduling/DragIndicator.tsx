@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useDragLayer } from 'react-dnd';
@@ -35,7 +36,7 @@ export function DragIndicator() {
                 if (!job) return null;
                 
                 return (
-                    <div className="p-2 border rounded-md bg-accent text-accent-foreground shadow-lg">
+                    <div className="p-2 border rounded-md bg-accent/80 text-accent-foreground shadow-lg backdrop-blur-sm">
                         <p className="font-semibold">{job.title}</p>
                         <p className="text-sm">{job.customerName}</p>
                     </div>
@@ -72,5 +73,7 @@ export function useIsDraggingTechnician(techId: string) {
     }
     
     const job = item.originalData as SchedulableItem;
+    // Check if the dragged job's technicianId matches the column's techId
+    // This is the key logic for highlighting the correct column.
     return job?.technicianId === techId;
 }

@@ -21,7 +21,7 @@ import { ScheduleJobDialog } from './ScheduleJobDialog';
 import { useIsDraggingTechnician } from './DragIndicator';
 import { mockData } from '@/lib/mock-data';
 
-type SchedulableItem = {
+export type SchedulableItem = {
     id: string;
     originalId: string;
     title: string;
@@ -190,8 +190,6 @@ const WeeklyView = ({ items, technicians, onJobDrop, onJobStatusChange, currentD
                 <TimeAxis startHour={startHour} endHour={endHour}/>
                 <div className={cn("grid grid-cols-7 relative flex-grow", isFitToScreen ? "w-full" : "min-w-[2000px]")}>
                     {weekDays.map((day) => {
-                        const isDraggingOverDay = useIsDraggingTechnician(day.toISOString()); // This is not right. We need to check per tech.
-                        
                         return (
                             <div key={day.toISOString()} className="border-l flex flex-col">
                                 <div className="text-center font-semibold py-2 border-b sticky top-0 bg-background z-20">
