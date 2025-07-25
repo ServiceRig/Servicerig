@@ -8,17 +8,17 @@ import { ItemTypes } from '@/lib/constants';
 interface TimeSlotProps {
   technicianId: string;
   startTime: Date;
-  onDrop: (jobId: string, technicianId: string, startTime: Date) => void;
+  onDrop: (item: any, technicianId: string, startTime: Date) => void;
   startHour?: number;
 }
 
 export const TimeSlot: React.FC<TimeSlotProps> = ({ technicianId, startTime, onDrop, startHour = 7 }) => {
   const [{ isOver, canDrop }, drop] = useDrop(() => ({
     accept: ItemTypes.JOB,
-    drop: (item: { id: string }) => {
+    drop: (item: any) => {
         // Ensure we pass a clean date object to avoid timezone issues.
         const cleanStartTime = new Date(startTime);
-        onDrop(item.id, technicianId, cleanStartTime);
+        onDrop(item, technicianId, cleanStartTime);
     },
     collect: (monitor) => ({
       isOver: !!monitor.isOver(),

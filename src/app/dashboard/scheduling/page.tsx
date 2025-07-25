@@ -7,7 +7,7 @@ import { ScheduleView } from "@/components/dashboard/schedule-view";
 import { mockData } from "@/lib/mock-data";
 import { Job, Customer, Technician, GoogleCalendarEvent } from "@/lib/types";
 import { useEffect, useState, useCallback, useMemo } from "react";
-import { addDays } from 'date-fns';
+import { addDays, setHours, setMinutes } from 'date-fns';
 import { addJob, updateJob as dbUpdateJob } from '@/lib/firestore/jobs';
 import { useToast } from '@/hooks/use-toast';
 import { getAllCustomers } from '@/lib/firestore/customers';
@@ -77,7 +77,7 @@ function SchedulingPageContent() {
 
   // Handle new job creation
   const handleJobCreated = useCallback((newJobData: Omit<Job, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const newJob = {
+    const newJob: Job = {
       ...newJobData,
       id: `job_${Date.now()}`,
       createdAt: new Date(),
@@ -134,26 +134,59 @@ function SchedulingPageContent() {
   }, [toast]);
 
   // Handle job drag and drop specifically
-  const handleJobDrop = useCallback((jobId: string, newTechnicianId: string, newStartTime: Date) => {
-    const jobToMove = jobs.find(j => j.id === jobId);
-    if (!jobToMove) return;
+  const handleJobDrop = useCallback((item: {id: string, type: 'job' | 'google_event', originalData: SchedulableItem}, newTechnicianId: string, newStartTime: Date) => {
+    const { id, type, originalData } = item;
+    
+    if (type === 'google_event') {
+        // Convert Google Event to a ServiceRig job
+        const durationMs = new Date(originalData.end).getTime() - new Date(originalData.start).getTime();
+        const newEndTime = new Date(newStartTime.getTime() + durationMs);
 
-    const durationMs = jobToMove.duration ? jobToMove.duration * 60 * 1000 : 60 * 60 * 1000;
-    const newEndTime = new Date(newStartTime.getTime() + durationMs);
+        // A real implementation might try to find an existing customer
+        const newJobData = {
+            title: originalData.title,
+            description: originalData.description || `Synced from Google Calendar event by ${originalData.createdBy}`,
+            customerId: 'cust1', // Placeholder customer
+            technicianId: newTechnicianId,
+            status: 'scheduled' as const,
+            schedule: {
+                start: newStartTime,
+                end: newEndTime,
+                unscheduled: false,
+                multiDay: false
+            },
+            duration: durationMs / (1000 * 60),
+            details: { serviceType: 'Synced', trade: 'Other', category: 'Synced' }
+        };
+        handleJobCreated(newJobData);
+        
+        // Remove the original Google event from the state to prevent duplication on the calendar
+        setGoogleEvents(prevEvents => prevEvents.filter(event => event.eventId !== id));
+        // A real app would also make an API call to delete the Google Calendar event
+        
+        toast({ title: 'Event Converted to Job', description: `Google Calendar event "${originalData.title}" is now a ServiceRig job.`});
+        
+    } else { // It's a regular job
+        const jobToMove = jobs.find(j => j.id === id);
+        if (!jobToMove) return;
 
-    const updates: Partial<Job> = {
-      technicianId: newTechnicianId,
-      status: 'scheduled',
-      schedule: {
-        ...jobToMove.schedule,
-        start: newStartTime,
-        end: newEndTime,
-        unscheduled: false
-      }
-    };
+        const durationMs = jobToMove.duration ? jobToMove.duration * 60 * 1000 : (60 * 60 * 1000);
+        const newEndTime = new Date(newStartTime.getTime() + durationMs);
 
-    handleJobUpdate(jobId, updates);
-  }, [jobs, handleJobUpdate]);
+        const updates: Partial<Job> = {
+          technicianId: newTechnicianId,
+          status: 'scheduled',
+          schedule: {
+            ...jobToMove.schedule,
+            start: newStartTime,
+            end: newEndTime,
+            unscheduled: false
+          }
+        };
+
+        handleJobUpdate(id, updates);
+    }
+  }, [jobs, handleJobUpdate, handleJobCreated, toast]);
 
   // Handle job status changes
   const handleJobStatusChange = useCallback((jobId: string, newStatus: Job['status']) => {
@@ -176,12 +209,24 @@ function SchedulingPageContent() {
   }, [activeView]);
 
   // Enrich jobs with customer and technician data
-  const enrichedJobsAndEvents: SchedulableItem[] = useMemo(() => {
+  const enrichedJobsAndEvents = useMemo(() => {
     const enrichedJobs = jobs.flatMap(job => {
         const customer = customers.find(c => c.id === job.customerId);
         const allTechniciansForJob = [job.technicianId, ...(job.additionalTechnicians || [])].filter(Boolean);
 
-        if (allTechniciansForJob.length === 0 && job.status !== 'unscheduled') {
+        if (job.status === 'unscheduled') {
+            return [{
+                ...job,
+                originalId: job.id,
+                start: new Date(job.schedule.start),
+                end: new Date(job.schedule.end),
+                customerName: customer?.primaryContact.name || 'Unknown Customer',
+                technicianName: 'Unassigned',
+                type: 'job' as const
+            }];
+        }
+        
+        if (allTechniciansForJob.length === 0) {
             return [{
                 ...job,
                 originalId: job.id,
@@ -192,18 +237,6 @@ function SchedulingPageContent() {
                 technicianId: 'unassigned',
                 color: '#A0A0A0',
                 isGhost: false,
-                type: 'job' as const
-            }];
-        }
-
-        if (job.status === 'unscheduled') {
-            return [{
-                ...job,
-                originalId: job.id,
-                start: new Date(job.schedule.start),
-                end: new Date(job.schedule.end),
-                customerName: customer?.primaryContact.name || 'Unknown Customer',
-                technicianName: 'Unassigned',
                 type: 'job' as const
             }];
         }

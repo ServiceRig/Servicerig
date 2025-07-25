@@ -22,13 +22,31 @@ import { useDrop } from 'react-dnd';
 import { ItemTypes } from '@/lib/constants';
 import { mockData } from '@/lib/mock-data';
 
-type SchedulableItem = (Job & { isGhost?: boolean; originalId: string; type: 'job' }) | (GoogleCalendarEvent & { type: 'google_event' });
+type SchedulableItem = {
+    id: string;
+    originalId: string;
+    title: string;
+    start: Date;
+    end: Date;
+    type: 'job' | 'google_event';
+    customerName?: string;
+    technicianId?: string;
+    technicianName?: string;
+    color?: string;
+    isGhost?: boolean;
+    status?: Job['status'];
+    description?: string;
+    details?: Job['details'];
+    createdBy?: string;
+    matchedTechnicianId?: string;
+    originalData?: any;
+};
 
 interface ScheduleViewProps {
     items: SchedulableItem[];
-    unscheduledJobs: (Job & { originalId: string })[];
+    unscheduledJobs: Job[];
     technicians: Technician[];
-    onJobDrop: (jobId: string, newTechnicianId: string, newStartTime: Date) => void;
+    onJobDrop: (item: {id: string, type: 'job' | 'google_event', originalData: SchedulableItem}, newTechnicianId: string, newStartTime: Date) => void;
     onJobStatusChange: (jobId: string, newStatus: Job['status']) => void;
     onJobCreated: (newJob: Omit<Job, 'id' | 'createdAt' | 'updatedAt'>) => void;
     currentDate: Date;
@@ -48,10 +66,10 @@ const UnscheduledJobCard = ({
     job, 
     onJobStatusChange 
 }: { 
-    job: Job & { originalId: string, type: 'job' }, 
+    job: Job, 
     onJobStatusChange: (jobId: string, newStatus: Job['status']) => void; 
 }) => (
-    <DraggableJob item={job} onStatusChange={onJobStatusChange}>
+    <DraggableJob item={{...job, originalId: job.id, type: 'job'}} onStatusChange={onJobStatusChange}>
         <Card className="mb-2 p-2 cursor-grab active:cursor-grabbing hover:shadow-md transition-shadow">
             <CardHeader className="p-1">
                 <CardTitle className="text-sm font-bold truncate">{job.title}</CardTitle>
@@ -68,7 +86,7 @@ const UnscheduledJobsPanel = ({
     jobs, 
     onJobStatusChange 
 }: { 
-    jobs: (Job & { originalId: string, type: 'job' })[], 
+    jobs: Job[], 
     onJobStatusChange: (jobId: string, newStatus: Job['status']) => void 
 }) => {
     const [{ isOver }, drop] = useDrop(() => ({
@@ -99,7 +117,7 @@ const UnscheduledJobsPanel = ({
                     {jobs.length > 0 ? (
                         jobs.map((job, index) => (
                             <UnscheduledJobCard 
-                                key={`unscheduled-${job.originalId || job.id}-${index}`} 
+                                key={`unscheduled-${job.id}-${index}`} 
                                 job={job} 
                                 onJobStatusChange={onJobStatusChange} 
                             />
@@ -141,7 +159,7 @@ const DailyView = ({
 }: { 
     items: SchedulableItem[], 
     technicians: Technician[], 
-    onJobDrop: (jobId: string, newTechnicianId: string, newStartTime: Date) => void,
+    onJobDrop: (item: any, newTechnicianId: string, newStartTime: Date) => void,
     onJobStatusChange: (jobId: string, newStatus: Job['status']) => void,
     currentDate: Date, 
     startHour: number, 
@@ -158,7 +176,6 @@ const DailyView = ({
             return item.technicianId === selectedTech || (item.technicianId === 'unassigned' && selectedTech === 'unassigned');
         }
 
-        // Logic for Google Calendar events if needed
         if (item.type === 'google_event') {
             return item.matchedTechnicianId === selectedTech;
         }
@@ -167,20 +184,20 @@ const DailyView = ({
     });
 
     const visibleTechnicians = selectedTech === 'all' 
-        ? [...technicians, { id: 'unassigned', name: 'Unassigned', color: '#888888' }] 
+        ? [...technicians, { id: 'unassigned', name: 'Unassigned', color: '#888888', role: UserRole.Technician }] 
         : technicians.filter(t => t.id === selectedTech);
     
     const hours = Array.from({ length: endHour - startHour + 1 }, (_, i) => i + startHour);
 
-    const handleDrop = useCallback((jobId: string, techId: string, startTime: Date) => {
-        console.log("📅 DAILY VIEW DROP:", { jobId, techId, startTime });
+    const handleDrop = useCallback((item: any, techId: string, startTime: Date) => {
+        console.log("📅 DAILY VIEW DROP:", { item, techId, startTime });
         
         if (!startTime || isNaN(startTime.getTime())) {
             console.error("Invalid start time in daily view:", startTime);
             return;
         }
         
-        onJobDrop(jobId, techId, startTime);
+        onJobDrop(item, techId, startTime);
     }, [onJobDrop]);
 
     return (
@@ -217,7 +234,7 @@ const DailyView = ({
                                                     key={`${hour}-${minute}`} 
                                                     technicianId={tech.id} 
                                                     startTime={slotTime}
-                                                    onDrop={handleDrop}
+                                                    onDrop={(jobId, techId, startTime) => handleDrop({ id: jobId }, techId, startTime)}
                                                     startHour={startHour}
                                                 />
                                             )
@@ -235,10 +252,8 @@ const DailyView = ({
                                         />
                                     ))}
                                     {filteredItems
-                                        .filter(item => item.type === 'job' && item.technicianId === tech.id)
+                                        .filter(item => (item.type === 'job' && item.technicianId === tech.id) || (item.type === 'google_event' && item.matchedTechnicianId === tech.id))
                                         .map(item => {
-                                            console.log('🎨 DAILY: Rendering job for tech:', tech.name, 'job:', item.title || item.id);
-                                            console.log('🎨 DAILY: Job time:', item.start);
                                             return (
                                                 <DraggableJob 
                                                     key={`daily-${item.id}`} 
@@ -269,7 +284,7 @@ const WeeklyView = ({
 }: { 
     items: SchedulableItem[], 
     technicians: Technician[], 
-    onJobDrop: (jobId: string, newTechnicianId: string, newStartTime: Date) => void,
+    onJobDrop: (item: any, newTechnicianId: string, newStartTime: Date) => void,
     onJobStatusChange: (jobId: string, newStatus: Job['status']) => void,
     currentDate: Date, 
     startHour: number, 
@@ -278,19 +293,19 @@ const WeeklyView = ({
     const { isFitToScreen } = useScheduleView();
     const weekStartsOn = startOfWeek(currentDate, { weekStartsOn: 1 }); // Monday
     const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStartsOn, i));
-    const allTechsAndUnassigned = [...technicians, { id: 'unassigned', name: 'Unassigned', color: '#888888' }];
+    const allTechsAndUnassigned = [...technicians, { id: 'unassigned', name: 'Unassigned', color: '#888888', role: UserRole.Technician }];
     const hours = Array.from({ length: endHour - startHour + 1 }, (_, i) => i + startHour);
     const gridOffset = 78;
 
-    const handleDrop = useCallback((jobId: string, techId: string, startTime: Date) => {
-        console.log("📅 WEEKLY VIEW DROP:", { jobId, techId, startTime });
+    const handleDrop = useCallback((item: any, techId: string, startTime: Date) => {
+        console.log("📅 WEEKLY VIEW DROP:", { item, techId, startTime });
         
         if (!startTime || isNaN(startTime.getTime())) {
             console.error("Invalid start time in weekly view:", startTime);
             return;
         }
         
-        onJobDrop(jobId, techId, startTime);
+        onJobDrop(item, techId, startTime);
     }, [onJobDrop]);
 
     return (
@@ -306,8 +321,8 @@ const WeeklyView = ({
                             <div className="grid h-full" style={{ gridTemplateColumns: `repeat(${allTechsAndUnassigned.length}, 1fr)` }}>
                                 {allTechsAndUnassigned.map((tech, techIndex) => {
                                     const itemsForThisTechAndDay = items.filter(item => 
-                                        (item.type === 'job' && item.technicianId === tech.id || 
-                                         item.type === 'google_event' && item.matchedTechnicianId === tech.id) && 
+                                        ((item.type === 'job' && item.technicianId === tech.id) || 
+                                         (item.type === 'google_event' && item.matchedTechnicianId === tech.id)) && 
                                         isSameDay(new Date(item.start), day)
                                     );
 
@@ -326,7 +341,7 @@ const WeeklyView = ({
                                                                 key={`${day.toISOString()}-${hour}-${minute}`}
                                                                 technicianId={tech.id}
                                                                 startTime={slotTime}
-                                                                onDrop={handleDrop}
+                                                                onDrop={(jobId, techId, startTime) => handleDrop({id: jobId}, techId, startTime)}
                                                                 startHour={startHour}
                                                             />
                                                         );
@@ -385,7 +400,7 @@ export function ScheduleView({
     return (
         <div className="flex flex-col md:flex-row gap-4 h-full">
             <div className="w-full md:w-64 flex flex-col gap-4">
-                <ScheduleJobDialog onJobCreated={onJobCreated} />
+                <ScheduleJobDialog onJobCreated={onJobCreated as any} />
                 <UnscheduledJobsPanel jobs={unscheduledJobs} onJobStatusChange={onJobStatusChange} />
             </div>
             <Card className="flex-grow h-full flex flex-col">

@@ -91,8 +91,8 @@ export const DraggableJob: React.FC<DraggableJobProps> = ({
 }) => {
     const [{ isDragging }, drag] = useDrag(() => ({
         type: ItemTypes.JOB,
-        item: { id: item.id },
-        canDrag: item.type === 'job' && !item.isGhost,
+        item: { id: item.id, type: item.type, originalData: item },
+        canDrag: (item.type === 'job' && !item.isGhost) || item.type === 'google_event',
         collect: (monitor) => ({
             isDragging: !!monitor.isDragging(),
         }),
@@ -174,7 +174,8 @@ export const DraggableJob: React.FC<DraggableJobProps> = ({
                 isGoogleEvent && "bg-blue-400 border-blue-500 opacity-80"
             )}
             style={{ 
-                backgroundColor: item.color || (isGoogleEvent ? '#3B82F6' : undefined),
+                backgroundColor: item.color || (isGoogleEvent ? '#60A5FA' : undefined),
+                borderLeft: `3px solid ${item.color || (isGoogleEvent ? '#3B82F6' : '#A0A0A0')}`,
                 textShadow: '0 1px 2px rgba(0,0,0,0.4)' 
             }}
         >
@@ -190,7 +191,8 @@ export const DraggableJob: React.FC<DraggableJobProps> = ({
                 isGoogleEvent && "bg-blue-300 border-blue-500 opacity-90"
             )}
              style={{ 
-                backgroundColor: item.color || (isGoogleEvent ? '#3B82F6' : undefined),
+                backgroundColor: item.color || (isGoogleEvent ? '#60A5FA' : undefined),
+                borderLeft: `4px solid ${item.color || (isGoogleEvent ? '#3B82F6' : '#A0A0A0')}`,
                 textShadow: '0 1px 2px rgba(0,0,0,0.4)' 
             }}
         >
@@ -216,7 +218,7 @@ export const DraggableJob: React.FC<DraggableJobProps> = ({
             className={cn(
                 "absolute z-10", 
                 isCompact ? "inset-x-1" : "left-2 right-2", 
-                item.type === 'job' && item.isGhost ? 'pointer-events-none' : 'cursor-grab'
+                (item.type === 'job' && item.isGhost) ? 'pointer-events-none' : 'cursor-grab'
             )}
             style={{
                 top: `${topPosition}px`,
@@ -304,7 +306,7 @@ export const DraggableJob: React.FC<DraggableJobProps> = ({
                                 </Button>
                                 {onJobCreated && (
                                     <ScheduleJobDialog
-                                        onJobCreated={onJobCreated}
+                                        onJobCreated={onJobCreated as any}
                                         initialJobData={initialJobDataFromEvent}
                                         triggerButton={
                                             <Button><Edit className="mr-2 h-4 w-4" /> Convert to Job</Button>
