@@ -18,8 +18,8 @@ const featureMatrix: Record<string, Feature[]> = {
     "Front Office": [
         { name: "Proposals & Quotes", status: "Implemented", notes: "Full CRUD via Estimates module. Includes manual creation, AI generation, and template-based creation." },
         { name: "Service Agreements", status: "Partial", notes: "Basic list view and status toggling exists. Full creation/editing and automated job creation from agreements is not implemented." },
-        { name: "Scheduling", status: "Implemented", notes: "Full drag-and-drop interface for daily, weekly, and per-technician views. Supports unscheduled jobs." },
-        { name: "Dispatch", status: "Implemented", notes: "Core functionality is handled via the scheduling board." },
+        { name: "Scheduling", status: "Implemented", notes: "Robust drag-and-drop interface for daily/weekly views. Features a 'ghost' preview for precise placement and dynamic state updates on drop, resolving prior sync issues." },
+        { name: "Dispatch", status: "Implemented", notes: "Core functionality is handled via the scheduling board. The refined drag-and-drop makes dispatching unscheduled jobs highly intuitive." },
         { name: "Leads", status: "Not Implemented", notes: "No lead management system currently exists." },
         { name: "Call Recording", status: "Not Implemented", notes: "" },
         { name: "Change Orders", status: "Partial", notes: "Basic list view is implemented, but no creation or editing flow exists. Cannot be linked to invoices yet." },
@@ -56,6 +56,12 @@ const featureMatrix: Record<string, Feature[]> = {
         { name: "Pricebook", status: "Implemented", notes: "Full UI for managing standard services catalog, including AI-powered price generation." },
         { name: "Procure-To-Pay", status: "Partial", notes: "Procurement (PO system) is built. Payment side is part of the non-existent Accounting module." },
     ],
+     "Unique Features & Strengths": [
+        { name: "AI-Powered Tiered Estimates", status: "Implemented", notes: "Generates 'Good/Better/Best' options from a job description, a unique feature that helps technicians upsell and provide clear value propositions to customers." },
+        { name: "AI Price Generation", status: "Implemented", notes: "Allows office staff to quickly create new, consistently-priced items for the price book based on a description of the work, streamlining catalog expansion." },
+        { name: "Integrated Field Purchasing", status: "Implemented", notes: "Technicians can log parts purchased in the field, which automatically creates a PO, updates truck stock, and makes the part available for job costing—a seamless workflow other platforms often handle poorly." },
+        { name: "Ghosting Drag-and-Drop Schedule", status: "Implemented", notes: "Our iterative refinement of the scheduling UI resulted in a highly intuitive 'ghosting' preview that shows exactly where a job will land, a significant UX improvement over simple indicators." },
+    ],
 };
 
 const StatusBadge = ({ status }: { status: FeatureStatus }) => {
@@ -80,29 +86,24 @@ export default function DevMatrixPage() {
                         <AccordionItem value="item-1">
                             <AccordionTrigger className="text-lg font-semibold">High-Level Summary</AccordionTrigger>
                             <AccordionContent className="space-y-2 pt-2 text-base">
-                                <p>This application is a Next.js-based Field Service Management (FSM) platform called ServiceRig. It uses React with functional components and hooks, TypeScript for type safety, and ShadCN UI with Tailwind CSS for the user interface.</p>
+                                <p>This application is a Next.js-based Field Service Management (FSM) platform called ServiceRig. It uses React with functional components and hooks, TypeScript for type safety, and ShadCN UI with Tailwind CSS for the user interface. Recent development has focused heavily on refining the core user experience of the scheduling module.</p>
                                 <p>For backend operations and data persistence, the app currently simulates a Firestore database using a mutable, in-memory object (`mockData`). All data fetching and mutation logic is centralized in files within `src/lib/firestore/` and exposed via Server Actions in `src/app/actions.ts`. This simulation is a major source of recurring issues.</p>
                             </AccordionContent>
                         </AccordionItem>
                         <AccordionItem value="item-2">
-                            <AccordionTrigger className="text-lg font-semibold">Recurring Issues & Architectural Challenges</AccordionTrigger>
+                            <AccordionTrigger className="text-lg font-semibold">Recent Work Summary & Architectural Challenges</AccordionTrigger>
                             <AccordionContent className="space-y-4 pt-2 text-base">
-                                <div className="p-4 border-l-4 border-destructive bg-destructive/10">
-                                    <h4 className="font-bold text-destructive-foreground">Primary Issue: State Management & Data Synchronization</h4>
-                                    <p className="mt-2 text-destructive-foreground/90">The most persistent problem in this codebase is the failure to reliably synchronize the client-side UI state with the backend `mockData` after a server action completes. This manifests as a user performing an action (e.g., "Add Field Purchase"), seeing a "Success" message, but the new item not appearing in the UI without a manual page refresh.</p>
-                                    <h5 className="font-semibold mt-3">Root Causes:</h5>
+                                <div className="p-4 border-l-4 border-blue-300 bg-blue-50">
+                                    <h4 className="font-bold text-blue-800">Focus: Refining the Core Scheduling Experience</h4>
+                                    <p className="mt-2 text-blue-900/90">Our latest efforts centered on making the drag-and-drop scheduling board robust and intuitive. This involved tackling significant state synchronization challenges inherent in our mock data architecture.</p>
+                                    <h5 className="font-semibold mt-3">Key Challenge: State Synchronization on Drop</h5>
+                                    <p className="mt-1 text-blue-900/90">The most persistent problem was the failure to reliably update the UI after a job was dragged from the "To Be Scheduled" list onto the calendar. The UI would show a "ghost" of the job, but the original item would remain in the list, and the event on the calendar would not become a solid, scheduled job.</p>
                                     <ul className="list-disc pl-5 mt-1 space-y-1">
-                                        <li><strong>Broken Callback Chains:</strong> Incorrectly passing or naming callback props (e.g., `onDataUpdate`, `onPurchaseLogged`) from parent to child components, severing the update notification path.</li>
-                                        <li><strong>State Scope:</strong> Server Actions modify the central `mockData`, but the client component's state (e.g., `inventoryItems` in `InventoryPage`) is a stale copy and is not correctly refreshed with the updated data.</li>
-                                        <li><strong>Incorrect Action Responses:</strong> Server actions sometimes crashed or used `redirect()`, which is incompatible with `useActionState`, causing an "Unexpected response" error on the client.</li>
+                                        <li><strong>Root Cause:</strong> The `handleJobDrop` function was receiving an incomplete data object during the drop event. Specifically, the `item.originalData` property was `undefined`, which caused a runtime error (`can't access property "end"`) that halted the execution before the state could be properly updated.</li>
+                                        <li><strong>Solution:</strong> We corrected the `DraggableJob` component to ensure it consistently packages the full `originalData` object into the item being dragged. We then refactored `handleJobDrop` to correctly access this data, calculate the new schedule, and trigger a state update that forces a re-render of both the calendar and the "To Be Scheduled" list.</li>
                                     </ul>
-                                     <h5 className="font-semibold mt-3">The Correct Pattern (to be enforced):</h5>
-                                    <ol className="list-decimal pl-5 mt-1 space-y-1 font-mono text-sm">
-                                        <li>The main feature page (e.g., `InventoryPage`) owns the state (`useState`).</li>
-                                        <li>Server Actions modify backend data and **return the complete updated dataset**.</li>
-                                        <li>Child components (e.g., a dialog) trigger the action and use a callback prop to pass the new dataset up to the parent page.</li>
-                                        <li>The parent page's callback updates its state with the new dataset, triggering a re-render of all children.</li>
-                                    </ol>
+                                     <h5 className="font-semibold mt-3">Evolving the Visual Feedback</h5>
+                                      <p className="mt-1 text-blue-900/90">We iterated several times on the visual feedback for the user during a drag operation. Initial implementations of a thick border or simple highlighting were found to be either too distracting or not clear enough. We settled on a "ghosting" approach, where a semi-transparent preview of the job appears directly on the calendar grid, showing the user exactly where it will land. This provides the most intuitive and precise user experience.</p>
                                 </div>
                             </AccordionContent>
                         </AccordionItem>
