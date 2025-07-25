@@ -1,4 +1,5 @@
 
+
 /**
  * @fileoverview Firebase Functions for Google Calendar two-way synchronization.
  *
@@ -312,3 +313,5 @@ export const pollGoogleCalendar = functions
         
         res.status(200).send("Calendar polling finished.");
     });
+
+

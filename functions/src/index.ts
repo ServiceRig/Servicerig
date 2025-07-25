@@ -1,4 +1,5 @@
 
+
 /**
  * Import function triggers from their respective submodules:
  *
@@ -44,3 +45,4 @@ export const checkForNewLeads = gmail.checkForNewLeads;
 //   logger.info("Hello logs!", {structuredData: true});
 //   response.send("Hello from Firebase!");
 // });
+

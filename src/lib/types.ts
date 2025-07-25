@@ -614,3 +614,4 @@ export type GoogleCalendarEvent = {
     source: 'google';
     syncedAt: Timestamp | Date | any; // Any for FieldValue
 }
+
