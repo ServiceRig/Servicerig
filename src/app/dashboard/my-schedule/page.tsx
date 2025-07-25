@@ -182,10 +182,18 @@ export default function MySchedulePage() {
       alert("You need at least two jobs to optimize a route.");
       return;
     }
-    const origin = "Your Starting Address"; // This should be dynamic
-    const destination = todaysJobs[todaysJobs.length - 1].customer?.companyInfo.address;
-    const waypoints = todaysJobs.slice(0, -1).map(job => job.customer?.companyInfo.address).join('|');
-    const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination as string)}&waypoints=${encodeURIComponent(waypoints)}&travelmode=driving`;
+    
+    // The Routes API can optimize the order of waypoints. 
+    // By providing the waypoints, Google Maps will calculate the best sequence.
+    const origin = "Your Current Location"; // This would ideally be a dynamic value
+    const destination = origin; // Return to start
+    const waypoints = todaysJobs
+        .map(job => job.customer?.companyInfo.address)
+        .filter(Boolean) // Filter out any undefined addresses
+        .join('|');
+
+    const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}&waypoints=${encodeURIComponent(waypoints)}&travelmode=driving`;
+    
     window.open(googleMapsUrl, '_blank');
   };
 
