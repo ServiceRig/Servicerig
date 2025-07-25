@@ -19,6 +19,7 @@ import { useScheduleView } from '@/hooks/use-schedule-view';
 import { useRole } from '@/hooks/use-role';
 import { ScheduleJobDialog } from './ScheduleJobDialog';
 import { useIsDraggingTechnician } from './DragIndicator';
+import { mockData } from '@/lib/mock-data';
 
 type SchedulableItem = {
     id: string;
