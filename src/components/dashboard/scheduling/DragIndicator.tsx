@@ -11,7 +11,8 @@ function getItemStyles(initialOffset: any, currentOffset: any) {
             display: 'none',
         };
     }
-    const transform = `translate(${currentOffset.x}px, ${currentOffset.y}px)`;
+    // Offset the preview to be above and to the right of the cursor
+    const transform = `translate(${currentOffset.x + 10}px, ${currentOffset.y - 30}px)`;
     return {
         transform,
         WebkitTransform: transform,
