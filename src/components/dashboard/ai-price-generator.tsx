@@ -10,13 +10,14 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
-import { Wand2, Loader2, History, PlusCircle, Save } from 'lucide-react';
+import { Wand2, Loader2, History, PlusCircle, Save, Trash2 } from 'lucide-react';
 import { generatePrice, GeneratePriceOutput } from '@/ai/flows/generate-price';
 import { Alert, AlertTitle, AlertDescription } from '../ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import type { LineItem, PricebookItem } from '@/lib/types';
 import { useRole } from '@/hooks/use-role';
 import { SavePricebookItemDialog } from './settings/SavePricebookItemDialog';
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '../ui/table';
 
 
 type ActionState = {
@@ -67,23 +68,34 @@ export function AiPriceGenerator({ onItemAdded }: AiPriceGeneratorProps) {
         }
     }, [generateState.data]);
 
-    const handleFieldChange = (field: keyof GeneratePriceOutput, value: string | number | string[]) => {
+    const handleFieldChange = (field: keyof GeneratePriceOutput, value: string | number | GeneratePriceOutput['materials']) => {
         if (editableResult) {
             setEditableResult({ ...editableResult, [field]: value });
         }
     };
     
-    const handleMaterialChange = (index: number, value: string) => {
+    const handleMaterialChange = (index: number, field: 'name' | 'quantity', value: string | number) => {
         if (editableResult) {
             const newMaterials = [...editableResult.materials];
-            newMaterials[index] = value;
+            if (field === 'quantity') {
+                newMaterials[index][field] = Number(value) || 0;
+            } else {
+                 newMaterials[index][field] = value as string;
+            }
             handleFieldChange('materials', newMaterials);
         }
     }
     
     const addMaterial = () => {
         if(editableResult) {
-            handleFieldChange('materials', [...editableResult.materials, '']);
+            handleFieldChange('materials', [...editableResult.materials, { name: '', quantity: 1 }]);
+        }
+    }
+
+    const removeMaterial = (index: number) => {
+        if(editableResult) {
+            const newMaterials = editableResult.materials.filter((_, i) => i !== index);
+            handleFieldChange('materials', newMaterials);
         }
     }
 
@@ -166,10 +178,33 @@ export function AiPriceGenerator({ onItemAdded }: AiPriceGeneratorProps) {
                     </div>
                      <div className="grid gap-2">
                         <Label>Material List</Label>
-                        <div className="space-y-2">
-                        {editableResult.materials.map((material, index) => (
-                            <Input key={index} value={material} onChange={(e) => handleMaterialChange(index, e.target.value)} />
-                        ))}
+                        <div className="border rounded-md">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Material Name</TableHead>
+                                        <TableHead className="w-24">Quantity</TableHead>
+                                        <TableHead className="w-12"></TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {editableResult.materials.map((material, index) => (
+                                        <TableRow key={index}>
+                                            <TableCell>
+                                                <Input value={material.name} onChange={(e) => handleMaterialChange(index, 'name', e.target.value)} />
+                                            </TableCell>
+                                            <TableCell>
+                                                <Input type="number" value={material.quantity} onChange={(e) => handleMaterialChange(index, 'quantity', Number(e.target.value))} />
+                                            </TableCell>
+                                            <TableCell>
+                                                <Button type="button" variant="ghost" size="icon" onClick={() => removeMaterial(index)}>
+                                                    <Trash2 className="h-4 w-4"/>
+                                                </Button>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
                         </div>
                         <Button type="button" variant="link" size="sm" className="justify-start" onClick={addMaterial}>
                            <PlusCircle className="mr-2 h-4 w-4" /> Add Material

@@ -8,7 +8,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter }
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, PlusCircle, Loader2, Save } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Loader2, Save, Trash2 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -35,38 +35,122 @@ function SaveButton() {
     )
 }
 
+function AddOrEditItemDialog({ isOpen, onOpenChange, onItemAdded }: { isOpen: boolean, onOpenChange: (open: boolean) => void, onItemAdded: (item: PricebookItem) => void }) {
+    const { toast } = useToast();
+    const [saveState, saveAction] = useActionState(addPricebookItemAction, { success: false, message: '', item: undefined });
+    const [materials, setMaterials] = useState<{name: string, quantity: number}[]>([]);
+
+    useEffect(() => {
+        if (saveState.message && !isOpen) return;
+
+        if (saveState.success && saveState.item) {
+            toast({
+                title: 'Item Added',
+                description: `"${saveState.item.title}" has been added to the price book.`,
+            });
+            onItemAdded(saveState.item);
+            onOpenChange(false);
+            setMaterials([]); // Reset materials list
+        } else if (saveState.message && !saveState.success) {
+            toast({
+                variant: 'destructive',
+                title: 'Validation Error',
+                description: saveState.message,
+            });
+        }
+    }, [saveState, onItemAdded, toast, isOpen, onOpenChange]);
+
+    const handleAddMaterial = () => setMaterials(prev => [...prev, { name: '', quantity: 1 }]);
+    const handleRemoveMaterial = (index: number) => setMaterials(prev => prev.filter((_, i) => i !== index));
+    const handleMaterialChange = (index: number, field: 'name' | 'quantity', value: string | number) => {
+        const newMaterials = [...materials];
+        if (field === 'quantity') {
+             newMaterials[index][field] = Number(value) || 0;
+        } else {
+             newMaterials[index][field] = value as string;
+        }
+        setMaterials(newMaterials);
+    }
+
+    return (
+         <Dialog open={isOpen} onOpenChange={onOpenChange}>
+            <DialogTrigger asChild>
+                <Button>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Add Custom Item
+                </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-2xl">
+                <form action={saveAction}>
+                    <input type="hidden" name="materials" value={JSON.stringify(materials)} />
+                    <DialogHeader>
+                        <DialogTitle>Add Custom Item</DialogTitle>
+                        <DialogDescription>
+                            Create a new service or material for your price book.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                        <div className="grid md:grid-cols-2 gap-4">
+                             <div className="space-y-2">
+                                <Label htmlFor="title">Title</Label>
+                                <Input id="title" name="title" />
+                            </div>
+                             <div className="space-y-2">
+                                <Label htmlFor="price">Price</Label>
+                                <Input id="price" name="price" type="number" />
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="description">Service Description</Label>
+                            <Textarea id="description" name="description" />
+                        </div>
+                         <div className="space-y-2">
+                            <Label htmlFor="trade">Trade</Label>
+                            <Select name="trade" defaultValue="General">
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select a trade" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {trades.map(trade => (
+                                        <SelectItem key={trade} value={trade}>{trade}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Materials</Label>
+                             <div className="border rounded-md p-2 space-y-2">
+                                {materials.map((mat, index) => (
+                                    <div key={index} className="flex items-center gap-2">
+                                        <Input placeholder="Material name" value={mat.name} onChange={e => handleMaterialChange(index, 'name', e.target.value)} />
+                                        <Input type="number" className="w-24" placeholder="Qty" value={mat.quantity} onChange={e => handleMaterialChange(index, 'quantity', e.target.value)} />
+                                        <Button type="button" variant="ghost" size="icon" onClick={() => handleRemoveMaterial(index)}><Trash2 className="h-4 w-4"/></Button>
+                                    </div>
+                                ))}
+                                <Button type="button" variant="link" size="sm" onClick={handleAddMaterial}><PlusCircle className="mr-2 h-4 w-4" />Add Material</Button>
+                            </div>
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <DialogClose asChild><Button variant="ghost" type="button">Cancel</Button></DialogClose>
+                        <SaveButton />
+                    </DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
+    )
+}
+
+
 interface PricebookStandardProps {
     items: PricebookItem[];
     onItemAdded: (newItem: PricebookItem) => void;
 }
 
 export function PricebookStandard({ items, onItemAdded }: PricebookStandardProps) {
-  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<PricebookItem['trade'] | 'All'>('All');
-  
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [saveState, saveAction] = useActionState(addPricebookItemAction, { success: false, message: '', item: undefined });
-
-  useEffect(() => {
-    if (saveState.message && !isDialogOpen) return; // Prevent toast on initial load
-
-    if (saveState.success && saveState.item) {
-        toast({
-            title: 'Item Added',
-            description: `"${saveState.item.title}" has been added to the price book.`,
-        });
-        onItemAdded(saveState.item);
-        setIsDialogOpen(false);
-    } else if (saveState.message && !saveState.success) {
-        toast({
-            variant: 'destructive',
-            title: 'Validation Error',
-            description: saveState.message,
-        });
-    }
-  }, [saveState, onItemAdded, toast, isDialogOpen]);
-
-
+  
   const filteredItems = useMemo(() => {
     if (activeTab === 'All') {
       return items;
@@ -81,55 +165,7 @@ export function PricebookStandard({ items, onItemAdded }: PricebookStandardProps
             <CardTitle>Standard Services Catalog</CardTitle>
             <CardDescription>Manage your predefined services and flat-rate pricing.</CardDescription>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-                <Button>
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Add Custom Item
-                </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-                <form action={saveAction}>
-                    <DialogHeader>
-                        <DialogTitle>Add Custom Item</DialogTitle>
-                        <DialogDescription>
-                            Create a new service or material for your price book.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="title" className="text-right">Title</Label>
-                            <Input id="title" name="title" className="col-span-3" />
-                        </div>
-                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="description" className="text-right">Description</Label>
-                            <Textarea id="description" name="description" className="col-span-3" />
-                        </div>
-                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="price" className="text-right">Price</Label>
-                            <Input id="price" name="price" type="number" className="col-span-3" />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="trade" className="text-right">Trade</Label>
-                            <Select name="trade" defaultValue="General">
-                                <SelectTrigger className="col-span-3">
-                                    <SelectValue placeholder="Select a trade" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {trades.map(trade => (
-                                        <SelectItem key={trade} value={trade}>{trade}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-                    <DialogFooter>
-                        <DialogClose asChild><Button variant="ghost" type="button">Cancel</Button></DialogClose>
-                        <SaveButton />
-                    </DialogFooter>
-                </form>
-            </DialogContent>
-        </Dialog>
+        <AddOrEditItemDialog isOpen={isDialogOpen} onOpenChange={setIsDialogOpen} onItemAdded={onItemAdded} />
       </CardHeader>
       <CardContent>
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)}>
@@ -145,6 +181,7 @@ export function PricebookStandard({ items, onItemAdded }: PricebookStandardProps
               <TableRow>
                 <TableHead>Title</TableHead>
                 <TableHead>Description</TableHead>
+                 <TableHead>Materials</TableHead>
                 <TableHead className="text-right">Price</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -153,7 +190,8 @@ export function PricebookStandard({ items, onItemAdded }: PricebookStandardProps
               {filteredItems.map(item => (
                 <TableRow key={item.id}>
                   <TableCell className="font-medium">{item.title}</TableCell>
-                  <TableCell className="text-muted-foreground">{item.description}</TableCell>
+                  <TableCell className="text-muted-foreground max-w-sm truncate">{item.description}</TableCell>
+                  <TableCell>{item.materials?.length || 0}</TableCell>
                   <TableCell className="text-right">{formatCurrency(item.price)}</TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
@@ -174,7 +212,7 @@ export function PricebookStandard({ items, onItemAdded }: PricebookStandardProps
               ))}
               {filteredItems.length === 0 && (
                 <TableRow>
-                    <TableCell colSpan={4} className="text-center h-24">
+                    <TableCell colSpan={5} className="text-center h-24">
                         No services found for this trade.
                     </TableCell>
                 </TableRow>

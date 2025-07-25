@@ -616,6 +616,16 @@ const addPricebookItemSchema = z.object({
     description: z.string(),
     price: z.coerce.number().min(0, { message: 'Price cannot be negative' }),
     trade: z.enum(['Plumbing', 'HVAC', 'Electrical', 'General']),
+    materials: z.string().transform((val, ctx) => {
+        try {
+            return z.array(z.object({
+                name: z.string(),
+                quantity: z.number(),
+            })).parse(JSON.parse(val));
+        } catch(e) {
+            return []; // Default to empty array if parsing fails
+        }
+    }),
 });
 
 type AddPricebookItemState = {
@@ -630,6 +640,7 @@ export async function addPricebookItemAction(prevState: AddPricebookItemState, f
         description: formData.get('description'),
         price: formData.get('price'),
         trade: formData.get('trade'),
+        materials: formData.get('materials'),
     });
     
     if (!validatedFields.success) {
@@ -638,11 +649,11 @@ export async function addPricebookItemAction(prevState: AddPricebookItemState, f
     }
     
     try {
-        const newItemData: Omit<PricebookItem, 'id' | 'createdAt' | 'inventoryParts'> = {
+        const newItemData: Omit<PricebookItem, 'id' | 'createdAt'> = {
             ...validatedFields.data,
             isCustom: true,
         };
-        const createdItem = await addPricebookItemToDb({ ...newItemData, inventoryParts: [] });
+        const createdItem = await addPricebookItemToDb(newItemData);
         revalidatePath('/dashboard/price-book');
         return { success: true, message: `Successfully added "${validatedFields.data.title}" to the price book.`, item: createdItem };
     } catch(e) {
@@ -1465,7 +1476,3 @@ export async function addCustomer(prevState: AddCustomerState, formData: FormDat
     redirect(`/dashboard/customers?role=${validatedFields.data.role || 'admin'}`);
 }
     
-
-
-
-

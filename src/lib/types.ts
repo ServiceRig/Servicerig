@@ -442,10 +442,8 @@ export type PricebookItem = {
   title: string;
   description: string;
   trade: 'Plumbing' | 'Electrical' | 'HVAC' | 'General';
-  price: number; // Labor + Materials combined
-  estimatedLaborHours?: number;
-  inventoryParts?: InventoryPartRef[];
-  isUrgent?: boolean;
+  price: number;
+  materials?: { name: string, quantity: number }[];
   isCustom?: boolean;
   createdAt: Timestamp | Date;
 }
