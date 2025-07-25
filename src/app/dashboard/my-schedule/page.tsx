@@ -1,5 +1,4 @@
 
-
 'use client';
 import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
@@ -8,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import { Phone, MessageSquare, MapPin, MoreHorizontal, CheckCircle, Clock } from 'lucide-react';
+import { Phone, MessageSquare, MapPin, MoreHorizontal, CheckCircle, Clock, Navigation } from 'lucide-react';
 import { mockJobs, mockCustomers, mockData } from '@/lib/mock-data';
 import type { Job, Customer } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -43,6 +42,14 @@ const JobCard = ({ job, role }: { job: EnrichedJob, role: string | null }) => {
   const customerName = job.customer?.primaryContact.name || 'N/A';
   const customerInitials = customerName.split(' ').map(n => n[0]).join('');
   const getHref = (path: string) => `${path}?role=${role || ''}`;
+  
+  const handleNavigate = () => {
+    if (job.customer?.companyInfo.address) {
+      const address = encodeURIComponent(job.customer.companyInfo.address as string);
+      const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${address}`;
+      window.open(googleMapsUrl, '_blank');
+    }
+  };
 
   return (
     <Card className="flex flex-col">
@@ -86,11 +93,14 @@ const JobCard = ({ job, role }: { job: EnrichedJob, role: string | null }) => {
           <p className="text-sm">{job.customer?.companyInfo.address}</p>
         </div>
       </CardContent>
-      <CardFooter className="grid grid-cols-2 gap-2">
-        <Button variant="outline">
+      <CardFooter className="grid grid-cols-3 gap-2">
+         <Button variant="outline" className="col-span-1" onClick={handleNavigate}>
+          <Navigation className="mr-2 h-4 w-4" /> Nav
+        </Button>
+        <Button variant="outline" className="col-span-1">
           <Phone className="mr-2 h-4 w-4" /> Call
         </Button>
-        <Button variant="outline">
+        <Button variant="outline" className="col-span-1">
           <MessageSquare className="mr-2 h-4 w-4" /> Text
         </Button>
       </CardFooter>
@@ -166,6 +176,18 @@ export default function MySchedulePage() {
   const upcomingJobs = jobs.filter(job => new Date(job.schedule.start) > today && job.status === 'scheduled');
   const needsInvoiceJobs = jobs.filter(job => job.status === 'complete' && !job.invoiceId);
   const allCompletedJobs = jobs.filter(job => job.status === 'complete');
+  
+  const handleOptimizeRoute = () => {
+    if (todaysJobs.length < 2) {
+      alert("You need at least two jobs to optimize a route.");
+      return;
+    }
+    const origin = "Your Starting Address"; // This should be dynamic
+    const destination = todaysJobs[todaysJobs.length - 1].customer?.companyInfo.address;
+    const waypoints = todaysJobs.slice(0, -1).map(job => job.customer?.companyInfo.address).join('|');
+    const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination as string)}&waypoints=${encodeURIComponent(waypoints)}&travelmode=driving`;
+    window.open(googleMapsUrl, '_blank');
+  };
 
   return (
     <div className="p-4 md:p-6 space-y-6">
@@ -191,9 +213,14 @@ export default function MySchedulePage() {
             </CardContent>
         </Card>
         <Card>
-            <CardHeader>
-                <CardTitle>Today&apos;s Jobs</CardTitle>
-                <CardDescription>Your scheduled jobs for today, {format(today, 'MMMM d, yyyy')}.</CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                    <CardTitle>Today&apos;s Jobs</CardTitle>
+                    <CardDescription>Your scheduled jobs for today, {format(today, 'MMMM d, yyyy')}.</CardDescription>
+                </div>
+                 <Button variant="outline" onClick={handleOptimizeRoute} disabled={todaysJobs.length < 2}>
+                  <Navigation className="mr-2 h-4 w-4" /> Optimize Route
+                </Button>
             </CardHeader>
             <CardContent>
                 <ScrollArea className="h-96">

@@ -7,7 +7,7 @@ import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { Clock, Calendar, User, Building, Phone, MapPin, Wrench, FileText, ChevronRight } from 'lucide-react';
+import { Clock, Calendar, User, Building, Phone, MapPin, Wrench, FileText, ChevronRight, Navigation } from 'lucide-react';
 import { cn, getEstimateStatusStyles } from '@/lib/utils';
 import type { Job } from '@/lib/types';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
@@ -25,12 +25,12 @@ const getStatusStyles = (status: Job['status']) => {
   }
 };
 
-const InfoRow = ({ icon: Icon, label, children }: { icon: React.ElementType, label: string, children: React.ReactNode }) => (
+const InfoRow = ({ icon: Icon, label, children, actionButton }: { icon: React.ElementType, label: string, children: React.ReactNode, actionButton?: React.ReactNode }) => (
     <div className="flex items-start gap-4">
         <Icon className="h-5 w-5 text-muted-foreground mt-1" />
         <div className="flex-grow">
             <p className="text-sm text-muted-foreground">{label}</p>
-            <div className="font-medium">{children}</div>
+            <div className="font-medium flex items-center gap-2">{children} {actionButton}</div>
         </div>
     </div>
 );
@@ -166,8 +166,14 @@ export default async function JobDetailsPage({ params, searchParams }: { params:
                 <InfoRow icon={Phone} label="Phone">
                     <a href={`tel:${customer.primaryContact.phone}`} className="text-primary hover:underline">{customer.primaryContact.phone}</a>
                 </InfoRow>
-                 <InfoRow icon={MapPin} label="Address">
-                    {customer.companyInfo.address}
+                 <InfoRow icon={MapPin} label="Address" actionButton={
+                     <Button asChild size="icon" variant="ghost">
+                        <a href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(customer.companyInfo.address as string)}`} target="_blank" rel="noopener noreferrer">
+                           <Navigation className="h-4 w-4 text-primary" />
+                        </a>
+                    </Button>
+                 }>
+                    {customer.companyInfo.address as string}
                 </InfoRow>
             </CardContent>
           </Card>
