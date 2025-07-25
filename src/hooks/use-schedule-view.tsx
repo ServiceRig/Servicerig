@@ -11,7 +11,7 @@ interface ScheduleViewContextType {
 const ScheduleViewContext = createContext<ScheduleViewContextType | undefined>(undefined);
 
 export function ScheduleViewProvider({ children }: { children: ReactNode }) {
-    const [isFitToScreen, setIsFitToScreen] = useState(false);
+    const [isFitToScreen, setIsFitToScreen] = useState(true);
     return (
         <ScheduleViewContext.Provider value={{ isFitToScreen, setIsFitToScreen }}>
             {children}

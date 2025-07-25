@@ -14,23 +14,6 @@ import { cn } from '@/lib/utils';
 import { ScheduleViewProvider, useScheduleView } from '@/hooks/use-schedule-view';
 
 
-function FitToScreenButton() {
-    const { isFitToScreen, setIsFitToScreen } = useScheduleView();
-    return (
-         <TooltipProvider>
-            <Tooltip>
-                <TooltipTrigger asChild>
-                    <Button variant="outline" size="icon" onClick={() => setIsFitToScreen(!isFitToScreen)} className={cn("h-7 w-7", isFitToScreen && "bg-accent text-accent-foreground")}>
-                        <Maximize className="h-4 w-4" />
-                        <span className="sr-only">Fit to Screen</span>
-                    </Button>
-                </TooltipTrigger>
-                <TooltipContent><p>Fit to Screen</p></TooltipContent>
-            </Tooltip>
-        </TooltipProvider>
-    )
-}
-
 function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -97,9 +80,6 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
            <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <SidebarTrigger />
-                {isSchedulingPage && (
-                   <FitToScreenButton />
-                )}
               </div>
            </div>
           {children}
