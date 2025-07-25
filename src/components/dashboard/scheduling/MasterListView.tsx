@@ -39,7 +39,7 @@ export function MasterListView({ jobs, estimates, serviceAgreements, customers, 
     const [searchTerm, setSearchTerm] = useState('');
     const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
     
-    const [jobSortConfig, setJobSortConfig] = useState<SortConfig<any>>({ key: 'schedule.start', direction: 'descending'});
+    const [jobSortConfig, setJobSortConfig] = useState<SortConfig<any>>(null);
     const [estimateSortConfig, setEstimateSortConfig] = useState<SortConfig<any>>({ key: 'createdAt', direction: 'descending' });
     const [agreementSortConfig, setAgreementSortConfig] = useState<SortConfig<any>>({ key: 'billingSchedule.nextDueDate', direction: 'ascending' });
     
@@ -67,8 +67,26 @@ export function MasterListView({ jobs, estimates, serviceAgreements, customers, 
     })), [serviceAgreements, customers]);
 
     const sortData = (data: any[], config: SortConfig<any>) => {
-        if (!config) return data;
         const sortedData = [...data];
+
+        // Default sort: unscheduled/unassigned first
+        sortedData.sort((a, b) => {
+            const aPriority = a.status === 'unscheduled' || !a.technicianId || a.technicianId === 'unassigned';
+            const bPriority = b.status === 'unscheduled' || !b.technicianId || b.technicianId === 'unassigned';
+            if (aPriority && !bPriority) return -1;
+            if (!aPriority && bPriority) return 1;
+            
+             // Default secondary sort by date if no other sort is active
+            if (!config) {
+                const aDate = new Date(a.schedule?.start || a.createdAt);
+                const bDate = new Date(b.schedule?.start || b.createdAt);
+                return bDate.getTime() - aDate.getTime();
+            }
+            return 0;
+        });
+
+        if (!config) return sortedData;
+
         sortedData.sort((a, b) => {
             const aValue = config.key.toString().split('.').reduce((o, i) => o?.[i], a);
             const bValue = config.key.toString().split('.').reduce((o, i) => o?.[i], b);

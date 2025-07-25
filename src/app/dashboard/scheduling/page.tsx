@@ -217,7 +217,7 @@ function SchedulingPageContent() {
   }, [activeView]);
 
   // Enrich jobs with customer and technician data
-  const enrichedJobsAndEvents = useMemo(() => {
+  const enrichedJobsAndEvents: SchedulableItem[] = useMemo(() => {
     const enrichedJobs = jobs.flatMap(job => {
         const customer = customers.find(c => c.id === job.customerId);
         const allTechniciansForJob = [job.technicianId, ...(job.additionalTechnicians || [])].filter(Boolean);
@@ -285,32 +285,6 @@ function SchedulingPageContent() {
   }, [jobs, customers, technicians, googleEvents]);
 
 
-  // Split items for display
-  const scheduledItems = enrichedJobsAndEvents.filter(item => 
-    (item.type === 'job' && item.status !== 'unscheduled') || item.type === 'google_event'
-  );
-  
-  const unscheduledJobs = enrichedJobsAndEvents.filter((item): item is SchedulableItem & { type: 'job' } => 
-    item.type === 'job' && item.status === 'unscheduled'
-  ) as Job[];
-
-  // USER'S DEBUGGING LOGS
-  console.log('🔍 DEBUGGING SCHEDULED JOBS:');
-  console.log('Total items:', enrichedJobsAndEvents.length);
-  console.log('Scheduled items:', scheduledItems.length);
-  scheduledItems.forEach((job, index) => {
-    console.log(`🔍 Item ${index}:`, {
-      id: job.id,
-      title: job.title,
-      scheduledStartTime: job.start,
-      scheduledStartTimeType: typeof job.start,
-      assignedTechnicianId: job.technicianId,
-      // Show all properties to see what changed
-      allProperties: Object.keys(job)
-    });
-  });
-
-
   // Show loading state
   if (loading || !isComponentLoaded) {
     return (
@@ -325,8 +299,7 @@ function SchedulingPageContent() {
       <div className="flex h-full flex-col gap-6">
         <div className="h-[calc(100vh-8rem)]">
           <ScheduleView
-            items={scheduledItems}
-            unscheduledJobs={unscheduledJobs}
+            items={enrichedJobsAndEvents}
             technicians={technicians}
             onJobDrop={handleJobDrop}
             onJobStatusChange={handleJobStatusChange}

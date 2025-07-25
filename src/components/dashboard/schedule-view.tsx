@@ -44,7 +44,6 @@ type SchedulableItem = {
 
 interface ScheduleViewProps {
     items: SchedulableItem[];
-    unscheduledJobs: Job[];
     technicians: Technician[];
     onJobDrop: (item: {id: string, type: 'job' | 'google_event', originalData: SchedulableItem}, newTechnicianId: string, newStartTime: Date) => void;
     onJobStatusChange: (jobId: string, newStatus: Job['status']) => void;
@@ -61,77 +60,6 @@ const getInitials = (name: string) => {
     if (!name) return '';
     return name.split(' ').map(n => n[0]).join('');
 }
-
-const UnscheduledJobCard = ({ 
-    job, 
-    onJobStatusChange 
-}: { 
-    job: Job, 
-    onJobStatusChange: (jobId: string, newStatus: Job['status']) => void; 
-}) => (
-    <DraggableJob item={{...job, originalId: job.id, type: 'job'}} onStatusChange={onJobStatusChange}>
-        <Card className="mb-2 p-2 cursor-grab active:cursor-grabbing hover:shadow-md transition-shadow">
-            <CardHeader className="p-1">
-                <CardTitle className="text-sm font-bold truncate">{job.title}</CardTitle>
-                <CardDescription className="text-xs truncate">{job.customerName}</CardDescription>
-            </CardHeader>
-            <CardContent className="p-1 text-xs text-muted-foreground">
-                {job.details?.serviceType || 'Service'}
-            </CardContent>
-        </Card>
-    </DraggableJob>
-);
-
-const UnscheduledJobsPanel = ({ 
-    jobs, 
-    onJobStatusChange 
-}: { 
-    jobs: Job[], 
-    onJobStatusChange: (jobId: string, newStatus: Job['status']) => void 
-}) => {
-    const [{ isOver }, drop] = useDrop(() => ({
-        accept: ItemTypes.JOB,
-        drop: (item: { id: string }) => {
-            console.log("📋 Dropping job back to unscheduled:", item.id);
-            onJobStatusChange(item.id, 'unscheduled');
-        },
-        collect: (monitor) => ({
-            isOver: !!monitor.isOver(),
-        }),
-    }));
-
-    return (
-        <Card 
-            ref={drop} 
-            className={cn(
-                "w-full flex-grow flex flex-col transition-colors", 
-                isOver && "bg-accent/20 border-accent border-2"
-            )}
-        >
-            <CardHeader>
-                <CardTitle>To Be Scheduled</CardTitle>
-                <CardDescription>{jobs.length} jobs waiting</CardDescription>
-            </CardHeader>
-            <CardContent className="flex-grow overflow-hidden">
-                <ScrollArea className="h-full pr-4">
-                    {jobs.length > 0 ? (
-                        jobs.map((job, index) => (
-                            <UnscheduledJobCard 
-                                key={`unscheduled-${job.id}-${index}`} 
-                                job={job} 
-                                onJobStatusChange={onJobStatusChange} 
-                            />
-                        ))
-                    ) : (
-                        <div className="text-center text-sm text-muted-foreground h-full flex items-center justify-center">
-                            No jobs to be scheduled.
-                        </div>
-                    )}
-                </ScrollArea>
-            </CardContent>
-        </Card>
-    );
-};
 
 const TimeAxis = ({ startHour, endHour }: { startHour: number, endHour: number }) => {
     const hours = Array.from({ length: endHour - startHour + 1 }, (_, i) => i + startHour);
@@ -375,7 +303,6 @@ const WeeklyView = ({
 
 export function ScheduleView({
   items,
-  unscheduledJobs,
   technicians,
   onJobDrop,
   onJobStatusChange,
@@ -391,11 +318,7 @@ export function ScheduleView({
     const { startHour, endHour } = mockData.scheduleSettings;
     
     return (
-        <div className="flex flex-col md:flex-row gap-4 h-full">
-            <div className="w-full md:w-64 flex flex-col gap-4">
-                <ScheduleJobDialog onJobCreated={onJobCreated as any} />
-                <UnscheduledJobsPanel jobs={unscheduledJobs} onJobStatusChange={onJobStatusChange} />
-            </div>
+        <div className="flex flex-col h-full">
             <Card className="flex-grow h-full flex flex-col">
                 <Tabs value={activeView} onValueChange={onActiveViewChange} className="h-full flex flex-col">
                     <CardHeader className="flex-row items-center justify-between border-b">
@@ -446,7 +369,8 @@ export function ScheduleView({
                                 </TooltipProvider>
                             </div>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-4">
+                             <ScheduleJobDialog onJobCreated={onJobCreated as any} />
                             <TabsList>
                                 <TabsTrigger value="day">Daily</TabsTrigger>
                                 <TabsTrigger value="week">Weekly</TabsTrigger>
