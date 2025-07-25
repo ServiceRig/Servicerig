@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { DndProvider } from 'react-dnd';
@@ -22,10 +20,13 @@ function SchedulingPageContent() {
   const [loading, setLoading] = useState(true);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [activeView, setActiveView] = useState('week');
+  const [isComponentLoaded, setIsComponentLoaded] = useState(false);
   
   const { toast } = useToast();
   
+  // Fetch initial data
   const fetchData = useCallback(async () => {
+    try {
       setLoading(true);
       const initialJobs = mockData.jobs as Job[];
       const initialCustomers = await getAllCustomers();
@@ -36,37 +37,54 @@ function SchedulingPageContent() {
       setCustomers(initialCustomers);
       setTechnicians(initialTechnicians);
       setGoogleEvents(initialEvents);
-      
+    } catch (error) {
+      console.error("❌ Error fetching data:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to load schedule data."
+      });
+    } finally {
       setLoading(false);
-  }, []);
-
-  // Initialize data
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-  
-  const handleJobCreated = useCallback(async (newJobData: Omit<Job, 'id' | 'createdAt' | 'updatedAt'>) => {
-    // This function adds the job to the mock DB and returns the full job object
-    const newJob = await addJob(newJobData);
-    setJobs(prevJobs => [newJob, ...prevJobs]);
-    toast({
-      title: "Job Created",
-      description: `New job "${newJob.title}" has been added.`
-    });
+    }
   }, [toast]);
 
-  const handleJobUpdate = useCallback(async (jobId: string, updates: Partial<Job>) => {
+  // Initialize data on component mount
+  useEffect(() => {
+    fetchData();
+    setIsComponentLoaded(true);
+  }, [fetchData]);
+
+  // Handle new job creation
+  const handleJobCreated = useCallback(async (newJobData: Omit<Job, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {
-        let updatedJobTitle = '';
+      const newJob = await addJob(newJobData);
+      setJobs(prevJobs => [newJob, ...prevJobs]);
+      toast({
+        title: "Job Created",
+        description: `New job "${newJob.title}" has been added.`
+      });
+    } catch (error) {
+      console.error("❌ Error creating job:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to create the job."
+      });
+    }
+  }, [toast]);
+
+  // Handle job updates (including drag/drop)
+  const handleJobUpdate = useCallback((jobId: string, updates: Partial<Job>) => {
         setJobs(prevJobs => {
             const jobIndex = prevJobs.findIndex(j => j.id === jobId);
             if (jobIndex === -1) {
-                console.error("Job not found in setJobs callback:", jobId);
+                console.error("Job not found for update:", jobId);
                 return prevJobs;
             }
+
             const jobToUpdate = prevJobs[jobIndex];
-            
-            const updatedJob: Job = {
+            const updatedJob = {
                 ...jobToUpdate,
                 ...updates,
                 schedule: {
@@ -75,31 +93,56 @@ function SchedulingPageContent() {
                 },
                 updatedAt: new Date()
             };
-            updatedJobTitle = updatedJob.title;
-
+            
             const newJobs = [...prevJobs];
             newJobs[jobIndex] = updatedJob;
-
-            dbUpdateJob(updatedJob);
             
+            // Also update the mock database directly to ensure persistence across re-renders
+            const dbJobIndex = mockData.jobs.findIndex((j: Job) => j.id === jobId);
+            if (dbJobIndex !== -1) {
+                mockData.jobs[dbJobIndex] = updatedJob;
+            }
+
             return newJobs;
         });
 
         toast({
             title: "Job Updated",
-            description: `Job "${updatedJobTitle || 'Job'}" has been updated.`
+            description: `Job "${updates.title || jobs.find(j => j.id === jobId)?.title}" has been updated.`
         });
+  }, [toast, jobs]);
 
-    } catch (error) {
-        console.error("Failed to update job:", error);
-        toast({
-            variant: "destructive",
-            title: "Error",
-            description: "Failed to update the job."
-        });
+  // Handle job drag and drop specifically
+  const handleJobDrop = useCallback((jobId: string, newTechnicianId: string, newStartTime: Date) => {
+    const jobToMove = jobs.find(j => j.id === jobId);
+    if (!jobToMove) return;
+
+    const durationMs = jobToMove.duration ? jobToMove.duration * 60 * 1000 : 60 * 60 * 1000;
+    const newEndTime = new Date(newStartTime.getTime() + durationMs);
+
+    const updates: Partial<Job> = {
+      technicianId: newTechnicianId,
+      status: 'scheduled',
+      schedule: {
+        ...jobToMove.schedule,
+        start: newStartTime,
+        end: newEndTime,
+        unscheduled: false
+      }
+    };
+
+    handleJobUpdate(jobId, updates);
+  }, [jobs, handleJobUpdate]);
+
+  // Handle job status changes
+  const handleJobStatusChange = useCallback((jobId: string, newStatus: Job['status']) => {
+    const updates: Partial<Job> = { status: newStatus };
+    if (newStatus === 'unscheduled') {
+      updates.schedule = { ...jobs.find(j => j.id === jobId)?.schedule, unscheduled: true };
+      updates.technicianId = '';
     }
-  }, [toast]);
-
+    handleJobUpdate(jobId, updates);
+  }, [jobs, handleJobUpdate]);
 
   // Handle date navigation
   const handleDateNavigation = useCallback((direction: 'prev' | 'next') => {
@@ -108,29 +151,60 @@ function SchedulingPageContent() {
     setCurrentDate(prevDate => addDays(prevDate, increment * sign));
   }, [activeView]);
 
+  // Enrich jobs with customer and technician data
   const enrichedJobsAndEvents = useMemo(() => {
-    const enrichedJobs = jobs.map(job => {
+    const enrichedJobs = jobs.flatMap(job => {
       const customer = customers.find(c => c.id === job.customerId);
-      const technician = technicians.find(t => t.id === job.technicianId);
-      return {
+      const allTechniciansForJob = [job.technicianId, ...(job.additionalTechnicians || [])].filter(Boolean);
+
+      if (allTechniciansForJob.length === 0 && job.status !== 'unscheduled') {
+        return [{
           ...job,
           originalId: job.id,
           customerName: customer?.primaryContact.name || 'Unknown Customer',
+          technicianName: 'Unassigned',
+          technicianId: 'unassigned',
+          color: '#A0A0A0',
+          isGhost: false,
+          type: 'job' as const
+        }];
+      }
+
+      if (job.status === 'unscheduled') {
+        return [{
+          ...job,
+          originalId: job.id,
+          customerName: customer?.primaryContact.name || 'Unknown Customer',
+          technicianName: 'Unassigned',
+          type: 'job' as const
+        }];
+      }
+
+      return allTechniciansForJob.map((techId, index) => {
+        const technician = technicians.find(t => t.id === techId);
+        return {
+          ...job,
+          originalId: job.id,
+          id: index === 0 ? job.id : `${job.id}-ghost-${techId}`,
+          customerName: customer?.primaryContact.name || 'Unknown Customer',
           technicianName: technician?.name || 'Unassigned',
+          technicianId: techId,
           color: technician?.color || '#A0A0A0',
-          type: 'job' as const,
-      };
+          isGhost: index !== 0,
+          type: 'job' as const
+        };
+      });
     });
 
     const enrichedEvents = googleEvents.map(event => ({ 
-        ...event, 
-        type: 'google_event' as const 
+      ...event, 
+      type: 'google_event' as const 
     }));
 
     return [...enrichedJobs, ...enrichedEvents];
   }, [jobs, customers, technicians, googleEvents]);
 
-
+  // Split items for display
   const scheduledItems = enrichedJobsAndEvents.filter(item => 
     (item.type === 'job' && item.status !== 'unscheduled') || item.type === 'google_event'
   );
@@ -139,8 +213,13 @@ function SchedulingPageContent() {
     item.type === 'job' && item.status === 'unscheduled'
   );
 
-  if (loading) {
-    return <div className="p-4">Loading Schedule...</div>;
+  // Show loading state
+  if (loading || !isComponentLoaded) {
+    return (
+      <div className="flex items-center justify-center h-[calc(100vh-8rem)]">
+        <div className="p-4 text-lg">Loading Schedule...</div>
+      </div>
+    );
   }
 
   return (
@@ -150,7 +229,8 @@ function SchedulingPageContent() {
           items={scheduledItems}
           unscheduledJobs={unscheduledJobs}
           technicians={technicians}
-          onJobUpdate={handleJobUpdate}
+          onJobDrop={handleJobDrop}
+          onJobStatusChange={handleJobStatusChange}
           onJobCreated={handleJobCreated}
           currentDate={currentDate}
           onCurrentDateChange={setCurrentDate}

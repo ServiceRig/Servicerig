@@ -1,5 +1,3 @@
-
-
 'use client';
 import React, { useState, useEffect } from 'react';
 import { useDrag } from 'react-dnd';
@@ -36,14 +34,13 @@ const getStatusColor = (status?: Job['status']) => {
 
 type DraggableItem = (Job & { isGhost?: boolean; originalId: string; type: 'job' }) | (GoogleCalendarEvent & { type: 'google_event' });
 
-
 interface DraggableJobProps {
     item: DraggableItem;
     children?: React.ReactNode;
-    onJobUpdate?: (jobId: string, updates: Partial<Job>) => void;
+    onStatusChange?: (jobId: string, newStatus: Job['status']) => void;
     isCompact?: boolean;
     startHour?: number;
-    onJobCreated?: (newJob: Job) => void;
+    onJobCreated?: (newJob: Omit<Job, 'id' | 'createdAt' | 'updatedAt'>) => void;
 }
 
 const InfoRow = ({ icon: Icon, label, children }: { icon: React.ElementType, label: string, children: React.ReactNode }) => (
@@ -65,16 +62,25 @@ const formatDuration = (seconds: number) => {
     return `${h}:${m}:${s}`;
 }
 
-
-export const DraggableJob: React.FC<DraggableJobProps> = ({ item, children, onJobUpdate, isCompact, startHour = 7, onJobCreated }) => {
+export const DraggableJob: React.FC<DraggableJobProps> = ({ 
+    item, 
+    children, 
+    onStatusChange, 
+    isCompact, 
+    startHour = 7, 
+    onJobCreated 
+}) => {
     const [{ isDragging }, drag] = useDrag(() => ({
         type: ItemTypes.JOB,
-        item: { id: item.type === 'job' ? item.originalId : item.eventId }, // Use the original ID for the drag item
+        item: { 
+            id: item.type === 'job' ? (item.originalId || item.id) : item.eventId,
+            originalId: item.type === 'job' ? item.originalId : undefined
+        },
         canDrag: item.type === 'job' && !item.isGhost,
         collect: (monitor) => ({
             isDragging: !!monitor.isDragging(),
         }),
-    }));
+    }), [item]);
     
     const [elapsedTime, setElapsedTime] = useState(0);
     const [isActive, setIsActive] = useState(false);
@@ -94,15 +100,17 @@ export const DraggableJob: React.FC<DraggableJobProps> = ({ item, children, onJo
         return () => {
             if (interval) clearInterval(interval);
         };
-
     }, [item]);
 
     const handleStatusChange = (newStatus: Job['status']) => {
-        if (item.type === 'job' && onJobUpdate) {
-            onJobUpdate(item.originalId, { status: newStatus });
+        if (item.type === 'job' && onStatusChange) {
+            const jobId = item.originalId || item.id;
+            console.log("🔄 Status change in DraggableJob:", { jobId, newStatus });
+            onStatusChange(jobId, newStatus);
         }
     }
     
+    // If children are provided (for unscheduled jobs), render them with drag functionality
     if (children) {
         return (
             <div ref={drag} style={{ opacity: isDragging ? 0.5 : 1 }}>
@@ -111,13 +119,36 @@ export const DraggableJob: React.FC<DraggableJobProps> = ({ item, children, onJo
         );
     }
     
-    const durationMinutes = (new Date(item.end).getTime() - new Date(item.start).getTime()) / (1000 * 60);
-    const jobStartHour = new Date(item.start).getHours();
-    const jobStartMinute = new Date(item.start).getMinutes();
+    // For scheduled jobs, check if we have valid schedule data
+    if (!item.start || !item.end) {
+        console.warn("⚠️ Job missing start/end times:", item);
+        return null;
+    }
+
+    const startTime = new Date(item.start);
+    const endTime = new Date(item.end);
+    
+    if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
+        console.warn("⚠️ Job has invalid start/end times:", { item, start: item.start, end: item.end });
+        return null;
+    }
+    
+    const durationMinutes = (endTime.getTime() - startTime.getTime()) / (1000 * 60);
+    const jobStartHour = startTime.getHours();
+    const jobStartMinute = startTime.getMinutes();
     
     const topPosition = ((jobStartHour - startHour) * 60) + jobStartMinute;
+    const height = Math.max(durationMinutes, 15); // Minimum 15 minutes height
 
     const isGoogleEvent = item.type === 'google_event';
+
+    console.log("🎨 Rendering scheduled job:", {
+        title: isGoogleEvent ? item.summary : item.title,
+        topPosition,
+        height,
+        startTime: startTime.toISOString(),
+        endTime: endTime.toISOString()
+    });
 
     const jobTrigger = isCompact ? (
         <div
@@ -127,20 +158,26 @@ export const DraggableJob: React.FC<DraggableJobProps> = ({ item, children, onJo
                 item.type === 'job' && item.isGhost && "opacity-60",
                 isGoogleEvent && "bg-blue-400 border-blue-500 opacity-80"
             )}
-            style={{ backgroundColor: item.type === 'job' ? item.color : undefined, textShadow: '0 1px 2px rgba(0,0,0,0.4)' }}
+            style={{ 
+                backgroundColor: item.type === 'job' ? (item.color || '#3B82F6') : '#3B82F6', 
+                textShadow: '0 1px 2px rgba(0,0,0,0.4)' 
+            }}
         >
             <p className="font-bold truncate">{isGoogleEvent ? item.summary : item.title}</p>
             <p className="truncate">{isGoogleEvent ? item.createdBy : item.customerName}</p>
         </div>
     ) : (
-         <div
+        <div
             className={cn(
                 "h-full w-full p-2 rounded-md border text-xs cursor-pointer overflow-hidden",
                 getStatusColor(item.type === 'job' ? item.status : undefined),
                 item.type === 'job' && item.isGhost && "opacity-60",
                 isGoogleEvent && "bg-blue-300 border-blue-500 opacity-90"
             )}
-             style={{ backgroundColor: item.type === 'job' ? item.color : undefined, textShadow: '0 1px 2px rgba(0,0,0,0.4)' }}
+            style={{ 
+                backgroundColor: item.type === 'job' ? (item.color || '#3B82F6') : '#3B82F6', 
+                textShadow: '0 1px 2px rgba(0,0,0,0.4)' 
+            }}
         >
             <p className="font-bold truncate text-white">{isGoogleEvent ? item.summary : item.title}</p>
             <p className="truncate text-white">{isGoogleEvent ? item.createdBy : item.customerName}</p>
@@ -152,19 +189,23 @@ export const DraggableJob: React.FC<DraggableJobProps> = ({ item, children, onJo
         title: item.summary,
         description: item.description,
         schedule: {
-            start: new Date(item.start),
-            end: new Date(item.end),
+            start: startTime,
+            end: endTime,
+            unscheduled: false
         }
     } : undefined;
-
 
     return (
         <div
             ref={drag}
-            className={cn("absolute z-10", isCompact ? "inset-x-1" : "left-2 right-2", item.type === 'job' && item.isGhost ? 'pointer-events-none' : 'cursor-grab')}
+            className={cn(
+                "absolute z-10", 
+                isCompact ? "inset-x-1" : "left-2 right-2", 
+                item.type === 'job' && item.isGhost ? 'pointer-events-none' : 'cursor-grab'
+            )}
             style={{
                 top: `${topPosition}px`,
-                height: `${durationMinutes}px`,
+                height: `${height}px`,
                 opacity: isDragging ? 0.5 : 1,
             }}
         >
@@ -175,32 +216,40 @@ export const DraggableJob: React.FC<DraggableJobProps> = ({ item, children, onJo
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>{isGoogleEvent ? item.summary : item.title}</DialogTitle>
-                         {item.type === 'job' && (
+                        {item.type === 'job' && (
                             <DialogDescription>
-                                Job ID: {item.originalId.toUpperCase()}
+                                Job ID: {(item.originalId || item.id).toUpperCase()}
                             </DialogDescription>
-                         )}
-                         {isGoogleEvent && (
-                              <DialogDescription className="flex items-center gap-2">
+                        )}
+                        {isGoogleEvent && (
+                            <DialogDescription className="flex items-center gap-2">
                                 <LinkIcon className="h-4 w-4" /> Synced from Google Calendar
                             </DialogDescription>
-                         )}
+                        )}
                     </DialogHeader>
                     {item.type === 'job' ? (
                         <div className="space-y-4">
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="text-sm text-muted-foreground">Status</label>
-                                     <Select value={item.status} onValueChange={(value) => handleStatusChange(value as Job['status'])} disabled={item.isGhost}>
+                                    <Select 
+                                        value={item.status} 
+                                        onValueChange={(value) => handleStatusChange(value as Job['status'])} 
+                                        disabled={item.isGhost}
+                                    >
                                         <SelectTrigger>
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {allStatuses.map(s => <SelectItem key={s} value={s} className="capitalize">{s.replace('_', ' ')}</SelectItem>)}
+                                            {allStatuses.map(s => (
+                                                <SelectItem key={s} value={s} className="capitalize">
+                                                    {s.replace('_', ' ')}
+                                                </SelectItem>
+                                            ))}
                                         </SelectContent>
                                     </Select>
                                 </div>
-                                 <div>
+                                <div>
                                     <label className="text-sm text-muted-foreground">Job Timer</label>
                                     <div className="text-2xl font-mono font-bold p-2 border rounded-md text-center">
                                         {formatDuration(elapsedTime)}
@@ -209,31 +258,43 @@ export const DraggableJob: React.FC<DraggableJobProps> = ({ item, children, onJo
                             </div>
                             <InfoRow icon={User} label="Customer">{item.customerName}</InfoRow>
                             <InfoRow icon={MapPin} label="Address">123 Main St, Anytown, USA</InfoRow>
-                            <InfoRow icon={Wrench} label="Service Type">{item.details.serviceType}</InfoRow>
-                            <InfoRow icon={Calendar} label="Date">{format(new Date(item.schedule.start), 'eeee, MMMM d, yyyy')}</InfoRow>
-                            <InfoRow icon={Clock} label="Time">{format(new Date(item.schedule.start), 'h:mm a')} - {format(new Date(item.schedule.end), 'h:mm a')}</InfoRow>
+                            <InfoRow icon={Wrench} label="Service Type">{item.details?.serviceType || 'Service'}</InfoRow>
+                            <InfoRow icon={Calendar} label="Date">{format(startTime, 'eeee, MMMM d, yyyy')}</InfoRow>
+                            <InfoRow icon={Clock} label="Time">{format(startTime, 'h:mm a')} - {format(endTime, 'h:mm a')}</InfoRow>
                             <InfoRow icon={User} label="Technician">{item.technicianName || 'Unassigned'}</InfoRow>
-                            <div><p className="text-sm text-muted-foreground">Description</p><p className="font-medium whitespace-pre-wrap">{item.description}</p></div>
-                             <div className="mt-6 flex justify-end gap-2">
-                                <Button asChild variant="outline"><Link href={`/dashboard/jobs/${item.originalId}`}>View Full Job Details</Link></Button>
+                            <div>
+                                <p className="text-sm text-muted-foreground">Description</p>
+                                <p className="font-medium whitespace-pre-wrap">{item.description}</p>
+                            </div>
+                            <div className="mt-6 flex justify-end gap-2">
+                                <Button asChild variant="outline">
+                                    <Link href={`/dashboard/jobs/${item.originalId || item.id}`}>
+                                        View Full Job Details
+                                    </Link>
+                                </Button>
                             </div>
                         </div>
                     ) : (
-                         <div className="space-y-4">
+                        <div className="space-y-4">
                             <InfoRow icon={User} label="Created By">{item.createdBy}</InfoRow>
-                            <InfoRow icon={Calendar} label="Date">{format(new Date(item.start), 'eeee, MMMM d, yyyy')}</InfoRow>
-                            <InfoRow icon={Clock} label="Time">{format(new Date(item.start), 'h:mm a')} - {format(new Date(item.end), 'h:mm a')}</InfoRow>
-                            <div><p className="text-sm text-muted-foreground">Description</p><p className="font-medium whitespace-pre-wrap">{item.description || 'No description provided.'}</p></div>
-                             <div className="mt-6 flex justify-end gap-2">
-                                <Button variant="outline"><LinkIcon className="mr-2 h-4 w-4" /> Open in Google Calendar</Button>
+                            <InfoRow icon={Calendar} label="Date">{format(startTime, 'eeee, MMMM d, yyyy')}</InfoRow>
+                            <InfoRow icon={Clock} label="Time">{format(startTime, 'h:mm a')} - {format(endTime, 'h:mm a')}</InfoRow>
+                            <div>
+                                <p className="text-sm text-muted-foreground">Description</p>
+                                <p className="font-medium whitespace-pre-wrap">{item.description || 'No description provided.'}</p>
+                            </div>
+                            <div className="mt-6 flex justify-end gap-2">
+                                <Button variant="outline">
+                                    <LinkIcon className="mr-2 h-4 w-4" /> Open in Google Calendar
+                                </Button>
                                 {onJobCreated && (
-                                     <ScheduleJobDialog
+                                    <ScheduleJobDialog
                                         onJobCreated={onJobCreated}
                                         initialJobData={initialJobDataFromEvent}
                                         triggerButton={
                                             <Button><Edit className="mr-2 h-4 w-4" /> Convert to Job</Button>
                                         }
-                                     />
+                                    />
                                 )}
                             </div>
                         </div>
