@@ -16,6 +16,7 @@ import { useRole } from '@/hooks/use-role';
 import { DateRangePicker } from '../date-range-picker';
 import type { DateRange } from 'react-day-picker';
 import { ArrowUpDown } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 
 const formatCurrency = (amount: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
 
@@ -41,6 +42,8 @@ export function MasterListView({ jobs, estimates, serviceAgreements, customers, 
     const [jobSortConfig, setJobSortConfig] = useState<SortConfig<any>>({ key: 'schedule.start', direction: 'descending'});
     const [estimateSortConfig, setEstimateSortConfig] = useState<SortConfig<any>>({ key: 'createdAt', direction: 'descending' });
     const [agreementSortConfig, setAgreementSortConfig] = useState<SortConfig<any>>({ key: 'billingSchedule.nextDueDate', direction: 'ascending' });
+    
+    const [selectedJobIds, setSelectedJobIds] = useState<Set<string>>(new Set());
 
 
     const getHref = (path: string) => {
@@ -122,6 +125,26 @@ export function MasterListView({ jobs, estimates, serviceAgreements, customers, 
         return sortData(filtered, agreementSortConfig);
     }, [enrichedAgreements, searchTerm, dateRange, agreementSortConfig]);
     
+    const handleSelectAllJobs = (checked: boolean | 'indeterminate') => {
+        if (checked === true) {
+            setSelectedJobIds(new Set(filteredJobs.map(job => job.id)));
+        } else {
+            setSelectedJobIds(new Set());
+        }
+    };
+    
+    const handleSelectJob = (jobId: string, checked: boolean) => {
+        setSelectedJobIds(prev => {
+            const newSet = new Set(prev);
+            if (checked) {
+                newSet.add(jobId);
+            } else {
+                newSet.delete(jobId);
+            }
+            return newSet;
+        });
+    };
+
     const SortableHeader = ({ title, field, sortConfig, setSortConfig }: { title: string, field: string, sortConfig: SortConfig<any>, setSortConfig: any }) => (
         <TableHead>
             <Button variant="ghost" onClick={() => requestSort(field, sortConfig, setSortConfig)}>
@@ -157,6 +180,13 @@ export function MasterListView({ jobs, estimates, serviceAgreements, customers, 
                         <Table>
                             <TableHeader>
                                 <TableRow>
+                                    <TableHead className="w-[50px]">
+                                        <Checkbox
+                                            checked={filteredJobs.length > 0 && selectedJobIds.size === filteredJobs.length}
+                                            onCheckedChange={handleSelectAllJobs}
+                                            aria-label="Select all jobs"
+                                        />
+                                    </TableHead>
                                     <SortableHeader title="Title" field="title" sortConfig={jobSortConfig} setSortConfig={setJobSortConfig} />
                                     <SortableHeader title="Customer" field="customerName" sortConfig={jobSortConfig} setSortConfig={setJobSortConfig} />
                                     <SortableHeader title="Technician" field="technicianName" sortConfig={jobSortConfig} setSortConfig={setJobSortConfig} />
@@ -167,7 +197,14 @@ export function MasterListView({ jobs, estimates, serviceAgreements, customers, 
                             </TableHeader>
                             <TableBody>
                                 {filteredJobs.map(job => (
-                                    <TableRow key={job.id}>
+                                    <TableRow key={job.id} data-state={selectedJobIds.has(job.id) ? 'selected' : ''}>
+                                        <TableCell>
+                                            <Checkbox
+                                                checked={selectedJobIds.has(job.id)}
+                                                onCheckedChange={(checked) => handleSelectJob(job.id, !!checked)}
+                                                aria-label={`Select job ${job.id}`}
+                                            />
+                                        </TableCell>
                                         <TableCell className="font-medium">{job.title}</TableCell>
                                         <TableCell>{job.customerName}</TableCell>
                                         <TableCell>{job.technicianName}</TableCell>
