@@ -30,7 +30,6 @@ interface ScheduleViewProps {
     items: SchedulableItem[];
     unscheduledJobs: (Job & { originalId: string })[];
     technicians: Technician[];
-    onJobDrop: (jobId: string, technicianId: string, startTime: Date) => void;
     onJobUpdate: (jobId: string, updates: Partial<Job>) => void;
     onJobCreated: (newJob: Job) => void;
     currentDate: Date;
@@ -109,7 +108,7 @@ const TimeAxis = ({ startHour, endHour }: { startHour: number, endHour: number }
 };
 
 
-const DailyView = ({ items, technicians, onJobDrop, onJobUpdate, currentDate, startHour, endHour }: { items: SchedulableItem[], technicians: Technician[], onJobDrop: (jobId: string, techId: string, startTime: Date) => void, onJobUpdate: (jobId: string, updates: Partial<Job>) => void, currentDate: Date, startHour: number, endHour: number }) => {
+const DailyView = ({ items, technicians, onJobUpdate, currentDate, startHour, endHour }: { items: SchedulableItem[], technicians: Technician[], onJobUpdate: (jobId: string, updates: Partial<Job>) => void, currentDate: Date, startHour: number, endHour: number }) => {
     const [selectedTech, setSelectedTech] = React.useState<string | 'all'>('all');
     
     const filteredItems = items.filter(item => 
@@ -119,6 +118,14 @@ const DailyView = ({ items, technicians, onJobDrop, onJobUpdate, currentDate, st
     
     const visibleTechnicians = selectedTech === 'all' ? technicians : technicians.filter(t => t.id === selectedTech);
     const hours = Array.from({ length: endHour - startHour + 1 }, (_, i) => i + startHour);
+
+    const handleDrop = (jobId: string, techId: string, startTime: Date) => {
+        onJobUpdate(jobId, { 
+            technicianId: techId, 
+            status: 'scheduled', 
+            schedule: { start: startTime, end: new Date(startTime.getTime() + 60 * 60 * 1000), unscheduled: false }
+        });
+    }
 
     return (
         <div className="flex flex-col h-full">
@@ -152,7 +159,7 @@ const DailyView = ({ items, technicians, onJobDrop, onJobUpdate, currentDate, st
                                                     key={`${hour}-${minute}`} 
                                                     technicianId={tech.id} 
                                                     startTime={slotTime} 
-                                                    onDrop={onJobDrop} 
+                                                    onDrop={handleDrop} 
                                                     startHour={startHour}
                                                 />
                                             )
@@ -173,13 +180,21 @@ const DailyView = ({ items, technicians, onJobDrop, onJobUpdate, currentDate, st
 };
 
 
-const WeeklyView = ({ items, technicians, onJobDrop, onJobUpdate, currentDate, startHour, endHour }: { items: SchedulableItem[], technicians: Technician[], onJobDrop: (jobId: string, techId: string, startTime: Date) => void, onJobUpdate: (jobId: string, updates: Partial<Job>) => void, currentDate: Date, startHour: number, endHour: number }) => {
+const WeeklyView = ({ items, technicians, onJobUpdate, currentDate, startHour, endHour }: { items: SchedulableItem[], technicians: Technician[], onJobUpdate: (jobId: string, updates: Partial<Job>) => void, currentDate: Date, startHour: number, endHour: number }) => {
     const { isFitToScreen } = useScheduleView();
     const weekStartsOn = startOfWeek(currentDate, { weekStartsOn: 1 }); // Monday
     const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStartsOn, i));
     const allTechsAndUnassigned = [...technicians, { id: 'unassigned', name: 'Unassigned', color: '#888888' }];
     const hours = Array.from({ length: endHour - startHour + 1 }, (_, i) => i + startHour);
     const gridOffset = 78;
+
+    const handleDrop = (jobId: string, techId: string, startTime: Date) => {
+        onJobUpdate(jobId, { 
+            technicianId: techId, 
+            status: 'scheduled', 
+            schedule: { start: startTime, end: new Date(startTime.getTime() + 60 * 60 * 1000), unscheduled: false }
+        });
+    }
 
     return (
         <ScrollArea className="h-full" viewportClassName="h-full">
@@ -207,7 +222,7 @@ const WeeklyView = ({ items, technicians, onJobDrop, onJobUpdate, currentDate, s
                                                             key={`${hour}-${minute}`}
                                                             technicianId={tech.id}
                                                             startTime={slotTime}
-                                                            onDrop={onJobDrop}
+                                                            onDrop={handleDrop}
                                                             startHour={startHour}
                                                         />
                                                     );
@@ -244,7 +259,6 @@ export function ScheduleView({
   items,
   unscheduledJobs,
   technicians,
-  onJobDrop,
   onJobUpdate,
   onJobCreated,
   currentDate,
@@ -326,10 +340,10 @@ export function ScheduleView({
           </CardHeader>
           <CardContent className="flex-grow overflow-auto p-0">
             <TabsContent value="day" className="h-full mt-0 p-4">
-              <DailyView items={items} technicians={technicians} onJobDrop={onJobDrop} onJobUpdate={onJobUpdate} currentDate={currentDate} startHour={startHour} endHour={endHour}/>
+              <DailyView items={items} technicians={technicians} onJobUpdate={onJobUpdate} currentDate={currentDate} startHour={startHour} endHour={endHour}/>
             </TabsContent>
             <TabsContent value="week" className="h-full mt-0">
-              <WeeklyView items={items} technicians={technicians} onJobDrop={onJobDrop} onJobUpdate={onJobUpdate} currentDate={currentDate} startHour={startHour} endHour={endHour}/>
+              <WeeklyView items={items} technicians={technicians} onJobUpdate={onJobUpdate} currentDate={currentDate} startHour={startHour} endHour={endHour}/>
             </TabsContent>
           </CardContent>
         </Tabs>
