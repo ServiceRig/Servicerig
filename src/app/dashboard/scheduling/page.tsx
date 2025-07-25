@@ -203,18 +203,11 @@ function SchedulingPageContent() {
     const updates: Partial<Job> = { status: newStatus };
 
     if (newStatus === 'unscheduled') {
-      updates.schedule = { ...job.schedule, unscheduled: true };
       updates.technicianId = '';
+      updates.schedule = { ...job.schedule, unscheduled: true };
     }
     handleJobUpdate(jobId, updates);
   }, [jobs, handleJobUpdate]);
-
-  // Handle date navigation
-  const handleDateNavigation = useCallback((direction: 'prev' | 'next') => {
-    const increment = activeView === 'day' ? 1 : 7;
-    const sign = direction === 'prev' ? -1 : 1;
-    setCurrentDate(prevDate => addDays(prevDate, increment * sign));
-  }, [activeView]);
 
   const handleStageJobs = useCallback((jobIds: string[], reschedule: boolean = false) => {
     const jobsToStage = jobs.filter(job => jobIds.includes(job.id));
@@ -237,6 +230,13 @@ function SchedulingPageContent() {
     }
 
   }, [jobs, customers, handleJobStatusChange, toast]);
+
+  // Handle date navigation
+  const handleDateNavigation = useCallback((direction: 'prev' | 'next') => {
+    const increment = activeView === 'day' ? 1 : 7;
+    const sign = direction === 'prev' ? -1 : 1;
+    setCurrentDate(prevDate => addDays(prevDate, increment * sign));
+  }, [activeView]);
 
   // Enrich jobs with customer and technician data
   const enrichedJobsAndEvents: SchedulableItem[] = useMemo(() => {
