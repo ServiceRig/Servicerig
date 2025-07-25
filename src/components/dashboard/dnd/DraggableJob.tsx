@@ -33,10 +33,28 @@ const getStatusColor = (status?: Job['status']) => {
     }
 };
 
-type DraggableItem = (Job & { isGhost?: boolean; originalId: string; type: 'job' }) | (GoogleCalendarEvent & { type: 'google_event' });
+type SchedulableItem = {
+    id: string;
+    originalId: string;
+    title: string;
+    start: Date;
+    end: Date;
+    type: 'job' | 'google_event';
+    customerName?: string;
+    technicianId?: string;
+    technicianName?: string;
+    color?: string;
+    isGhost?: boolean;
+    status?: Job['status'];
+    description?: string;
+    details?: Job['details'];
+    createdBy?: string;
+    matchedTechnicianId?: string;
+};
+
 
 interface DraggableJobProps {
-    item: DraggableItem;
+    item: SchedulableItem;
     children?: React.ReactNode;
     onStatusChange?: (jobId: string, newStatus: Job['status']) => void;
     isCompact?: boolean;
@@ -138,7 +156,7 @@ export const DraggableJob: React.FC<DraggableJobProps> = ({
         const minutes = time.getMinutes();
         const totalMinutes = hours * 60 + minutes;
         const startMinutes = startHour * 60;
-        const position = (totalMinutes - startMinutes) * (60 / 60); // Assuming 1px per minute
+        const position = (totalMinutes - startMinutes); // 1px per minute
         return Math.max(0, position); // Ensure we don't return negative positions
     };
     
@@ -156,11 +174,11 @@ export const DraggableJob: React.FC<DraggableJobProps> = ({
                 isGoogleEvent && "bg-blue-400 border-blue-500 opacity-80"
             )}
             style={{ 
-                backgroundColor: item.type === 'job' ? (item.color || '#3B82F6') : '#3B82F6', 
+                backgroundColor: item.color || (isGoogleEvent ? '#3B82F6' : undefined),
                 textShadow: '0 1px 2px rgba(0,0,0,0.4)' 
             }}
         >
-            <p className="font-bold truncate">{isGoogleEvent ? item.summary : item.title}</p>
+            <p className="font-bold truncate">{item.title}</p>
             <p className="truncate">{isGoogleEvent ? item.createdBy : item.customerName}</p>
         </div>
     ) : (
@@ -171,19 +189,19 @@ export const DraggableJob: React.FC<DraggableJobProps> = ({
                 item.type === 'job' && item.isGhost && "opacity-60",
                 isGoogleEvent && "bg-blue-300 border-blue-500 opacity-90"
             )}
-            style={{ 
-                backgroundColor: item.type === 'job' ? (item.color || '#3B82F6') : '#3B82F6', 
+             style={{ 
+                backgroundColor: item.color || (isGoogleEvent ? '#3B82F6' : undefined),
                 textShadow: '0 1px 2px rgba(0,0,0,0.4)' 
             }}
         >
-            <p className="font-bold truncate text-white">{isGoogleEvent ? item.summary : item.title}</p>
+            <p className="font-bold truncate text-white">{item.title}</p>
             <p className="truncate text-white">{isGoogleEvent ? item.createdBy : item.customerName}</p>
             <p className="truncate text-white/80">{item.type === 'job' ? item.technicianName : 'Google Event'}</p>
         </div>
     );
     
     const initialJobDataFromEvent = item.type === 'google_event' ? {
-        title: item.summary,
+        title: item.title,
         description: item.description,
         schedule: {
             start: startTime,
@@ -212,7 +230,7 @@ export const DraggableJob: React.FC<DraggableJobProps> = ({
                 </DialogTrigger>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>{isGoogleEvent ? item.summary : item.title}</DialogTitle>
+                        <DialogTitle>{item.title}</DialogTitle>
                         {item.type === 'job' && (
                             <DialogDescription>
                                 Job ID: {(item.originalId || item.id).toUpperCase()}
