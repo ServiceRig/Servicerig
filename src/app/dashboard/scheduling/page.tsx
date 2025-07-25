@@ -56,34 +56,48 @@ function SchedulingPageContent() {
   }, [toast]);
 
  const handleJobUpdate = useCallback(async (jobId: string, updates: Partial<Job>) => {
-    const jobToUpdate = jobs.find(j => j.id === jobId);
-    if (!jobToUpdate) {
-      console.error("Job to update not found:", jobId);
-      return;
+    try {
+        const jobToUpdate = jobs.find(j => j.id === jobId);
+        if (!jobToUpdate) {
+            console.error("Job to update not found:", jobId);
+            return;
+        }
+
+        const updatedJob: Job = {
+            ...jobToUpdate,
+            ...updates,
+            schedule: {
+                ...jobToUpdate.schedule,
+                ...updates.schedule,
+            },
+            updatedAt: new Date()
+        };
+        
+        await dbUpdateJob(updatedJob); // Update mock DB
+
+        setJobs(prevJobs => {
+            const jobIndex = prevJobs.findIndex(j => j.id === jobId);
+            if (jobIndex === -1) {
+                return prevJobs; 
+            }
+            const newJobs = [...prevJobs];
+            newJobs[jobIndex] = updatedJob;
+            return newJobs;
+        });
+
+        toast({
+            title: "Job Updated",
+            description: `Job "${updatedJob.title}" has been updated.`
+        });
+    } catch (error) {
+        console.error("Failed to update job:", error);
+        toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Failed to update the job."
+        });
     }
-
-    const updatedJob = {
-      ...jobToUpdate,
-      ...updates,
-      schedule: {
-        ...jobToUpdate.schedule,
-        ...updates.schedule,
-      },
-      updatedAt: new Date()
-    };
-    
-    await dbUpdateJob(updatedJob);
-
-    setJobs(prevJobs => {
-      const jobIndex = prevJobs.findIndex(j => j.id === jobId);
-      if (jobIndex === -1) {
-        return prevJobs;
-      }
-      const newJobs = [...prevJobs];
-      newJobs[jobIndex] = updatedJob;
-      return newJobs;
-    });
-  }, [jobs]);
+}, [jobs, toast]);
 
 
   // Handle date navigation
@@ -152,6 +166,7 @@ function SchedulingPageContent() {
 export default function SchedulingPage() {
   return <SchedulingPageContent />;
 }
+
 
 
 
