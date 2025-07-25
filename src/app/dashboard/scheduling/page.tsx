@@ -6,7 +6,7 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import { ScheduleView } from "@/components/dashboard/schedule-view";
 import { mockData } from "@/lib/mock-data";
 import { Job, Customer, Technician, GoogleCalendarEvent } from "@/lib/types";
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { addDays } from 'date-fns';
 import { addJob, updateJob as dbUpdateJob } from '@/lib/firestore/jobs';
 import { useToast } from '@/hooks/use-toast';
@@ -26,53 +26,41 @@ function SchedulingPageContent() {
   const { toast } = useToast();
   
   // Fetch initial data
-  const fetchData = useCallback(async () => {
-    try {
-      setLoading(true);
-      const initialJobs = mockData.jobs as Job[];
-      const initialCustomers = await getAllCustomers();
-      const initialTechnicians = mockData.technicians as Technician[];
-      const initialEvents = mockData.googleCalendarEvents as GoogleCalendarEvent[];
-      
-      setJobs(initialJobs);
-      setCustomers(initialCustomers);
-      setTechnicians(initialTechnicians);
-      setGoogleEvents(initialEvents);
-    } catch (error) {
-      console.error("❌ Error fetching data:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to load schedule data."
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, [toast]);
-
-  // Initialize data on component mount
   useEffect(() => {
+    const fetchData = async () => {
+        try {
+            setLoading(true);
+            const initialJobs = mockData.jobs as Job[];
+            const initialCustomers = await getAllCustomers();
+            const initialTechnicians = mockData.technicians as Technician[];
+            const initialEvents = mockData.googleCalendarEvents as GoogleCalendarEvent[];
+            
+            setJobs(initialJobs);
+            setCustomers(initialCustomers);
+            setTechnicians(initialTechnicians);
+            setGoogleEvents(initialEvents);
+        } catch (error) {
+            console.error("❌ Error fetching data:", error);
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Failed to load schedule data."
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
     fetchData();
     setIsComponentLoaded(true);
-  }, [fetchData]);
+  }, [toast]);
 
   // Handle new job creation
-  const handleJobCreated = useCallback(async (newJobData: Omit<Job, 'id' | 'createdAt' | 'updatedAt'>) => {
-    try {
-      const newJob = await addJob(newJobData);
-      setJobs(prevJobs => [newJob, ...prevJobs]);
-      toast({
-        title: "Job Created",
-        description: `New job "${newJob.title}" has been added.`
-      });
-    } catch (error) {
-      console.error("❌ Error creating job:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to create the job."
-      });
-    }
+  const handleJobCreated = useCallback((newJob: Job) => {
+    setJobs(prevJobs => [newJob, ...prevJobs]);
+    toast({
+      title: "Job Created",
+      description: `New job "${newJob.title}" has been added.`
+    });
   }, [toast]);
 
   // Handle job updates (including drag/drop)
@@ -80,7 +68,7 @@ function SchedulingPageContent() {
     setJobs(prevJobs => {
         const jobIndex = prevJobs.findIndex(j => j.id === jobId);
         if (jobIndex === -1) {
-            console.error("Job not found for update:", jobId);
+            console.error(`❌ Job with ID ${jobId} not found in state!`);
             return prevJobs;
         }
 
@@ -94,12 +82,11 @@ function SchedulingPageContent() {
             },
             updatedAt: new Date()
         };
+
+        dbUpdateJob(updatedJob);
         
         const newJobs = [...prevJobs];
         newJobs[jobIndex] = updatedJob;
-        
-        // Also update the mock database
-        dbUpdateJob(updatedJob);
 
         return newJobs;
     });
