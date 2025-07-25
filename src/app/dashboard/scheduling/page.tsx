@@ -46,54 +46,48 @@ function SchedulingPageContent() {
   }, [fetchData]);
   
   const handleJobCreated = useCallback(async (newJob: Job) => {
+    // Add to local state immediately for responsiveness
+    setJobs(prevJobs => [newJob, ...prevJobs]);
     toast({
       title: "Job Created",
       description: `New job "${newJob.title}" has been added.`
     });
-    // Add to local state immediately for responsiveness
-    setJobs(prevJobs => [newJob, ...prevJobs]);
-    // Optionally re-fetch to ensure sync with "DB"
-    await fetchData();
-  }, [toast, fetchData]);
+  }, [toast]);
 
   const handleJobUpdate = useCallback(async (jobId: string, updates: Partial<Job>) => {
     setJobs(prevJobs => {
         const jobIndex = prevJobs.findIndex(j => j.id === jobId);
         if (jobIndex === -1) {
             console.error(`Job with ID ${jobId} not found in state.`);
-            return prevJobs; // Return previous state if job not found
+            return prevJobs;
         }
-        
-        const jobToUpdate = prevJobs[jobIndex];
 
-        // Create a new job object with the updates applied
-        const updatedJob = { 
-          ...jobToUpdate, 
-          ...updates, 
-          updatedAt: new Date(),
+        const jobToUpdate = prevJobs[jobIndex];
+        const updatedJob = {
+            ...jobToUpdate,
+            ...updates,
+            updatedAt: new Date(),
         };
 
-        // If schedule is part of the updates, merge it with existing schedule
-        if(updates.schedule) {
+        if (updates.schedule) {
             updatedJob.schedule = {
                 ...jobToUpdate.schedule,
-                ...updates.schedule
-            }
+                ...updates.schedule,
+            };
         }
+        
+        // Persist to the mock database
+        updateJob(updatedJob);
 
-        // Create a new array for the state update
         const newJobs = [...prevJobs];
         newJobs[jobIndex] = updatedJob;
-
-        // Persist the full updated job to the mock DB
-        updateJob(updatedJob);
         
         return newJobs;
     });
 
     toast({
         title: "Job Updated",
-        description: `Job "${updates.title || 'Job'}" has been updated.`
+        description: `Job #${jobId} has been updated.`
     });
   }, [toast]);
 
@@ -117,12 +111,8 @@ function SchedulingPageContent() {
             type: 'job' as const,
         };
 
-        if (job.status === 'unscheduled') {
-            return [{ ...enrichedJobBase, technicianId: 'unscheduled', technicianName: 'Unassigned', isGhost: false }];
-        }
-
         if (allTechniciansForJob.length === 0) {
-            return [{ ...enrichedJobBase, technicianId: 'unassigned', technicianName: 'Unassigned', isGhost: false }];
+            return [{ ...enrichedJobBase, technicianId: 'unscheduled', technicianName: 'Unassigned', isGhost: false }];
         }
         
         return allTechniciansForJob.map((techId, index) => {
@@ -183,3 +173,4 @@ function SchedulingPageContent() {
 export default function SchedulingPage() {
   return <SchedulingPageContent />;
 }
+
