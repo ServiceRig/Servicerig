@@ -3,7 +3,7 @@
 
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { ScheduleView } from "@/components/dashboard/schedule-view";
+import { ScheduleView } from "@/components/dashboard/scheduling/ScheduleView";
 import { mockData } from "@/lib/mock-data";
 import { Job, Customer, Technician, GoogleCalendarEvent, UserRole, Estimate, ServiceAgreement } from "@/lib/types";
 import { useEffect, useState, useCallback, useMemo } from "react";
@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { getAllCustomers } from '@/lib/firestore/customers';
 import { MasterListView } from '@/components/dashboard/scheduling/MasterListView';
 import { ToBeScheduledList } from '@/components/dashboard/scheduling/ToBeScheduledList';
+import { DragIndicator } from '@/components/dashboard/scheduling/DragIndicator';
 
 type SchedulableItem = {
     id: string;
@@ -210,15 +211,16 @@ function SchedulingPageContent() {
   }, [jobs, handleJobUpdate]);
 
   const handleStageJobs = useCallback((jobIds: string[], reschedule: boolean = false) => {
-    const jobsToStage = jobs.filter(job => jobIds.includes(job.id));
-    const customerEnrichedJobs = jobsToStage.map(job => ({
-        ...job,
-        customerName: customers.find(c => c.id === job.customerId)?.primaryContact.name || 'Unknown',
-    }));
+    const jobsToStage = jobs
+        .filter(job => jobIds.includes(job.id))
+        .map(job => ({
+            ...job,
+            customerName: customers.find(c => c.id === job.customerId)?.primaryContact.name || 'Unknown',
+        }));
     
     setStagedJobs(prev => {
         const existingIds = new Set(prev.map(j => j.id));
-        const newJobs = customerEnrichedJobs.filter(j => !existingIds.has(j.id));
+        const newJobs = jobsToStage.filter(j => !existingIds.has(j.id));
         return [...prev, ...newJobs];
     });
 
@@ -309,13 +311,14 @@ function SchedulingPageContent() {
 
   return (
     <DndProvider backend={HTML5Backend}>
+       <DragIndicator />
       <div className="flex flex-col gap-6">
         {/* Top Section: Schedule and To-Be-Scheduled List */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-[350px_1fr] gap-6">
            <div className="lg:col-span-1">
                 <ToBeScheduledList jobs={stagedJobs} />
            </div>
-           <div className="lg:col-span-3">
+           <div className="lg:col-span-1">
                <ScheduleView
                     items={enrichedJobsAndEvents}
                     technicians={technicians}
