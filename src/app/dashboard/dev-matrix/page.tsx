@@ -74,6 +74,8 @@ const StatusBadge = ({ status }: { status: FeatureStatus }) => {
 };
 
 export default function DevMatrixPage() {
+    const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    
     return (
         <div className="space-y-6">
             <Card>
@@ -85,25 +87,32 @@ export default function DevMatrixPage() {
                     <Accordion type="single" collapsible className="w-full">
                         <AccordionItem value="item-1">
                             <AccordionTrigger className="text-lg font-semibold">High-Level Summary</AccordionTrigger>
-                            <AccordionContent className="space-y-2 pt-2 text-base">
-                                <p>This application is a Next.js-based Field Service Management (FSM) platform called ServiceRig. It uses React with functional components and hooks, TypeScript for type safety, and ShadCN UI with Tailwind CSS for the user interface. Recent development has focused heavily on refining the core user experience of the scheduling module.</p>
-                                <p>For backend operations and data persistence, the app currently simulates a Firestore database using a mutable, in-memory object (`mockData`). All data fetching and mutation logic is centralized in files within `src/lib/firestore/` and exposed via Server Actions in `src/app/actions.ts`. This simulation is a major source of recurring issues.</p>
+                            <AccordionContent className="space-y-4 pt-2 text-base">
+                                <div>
+                                    <h4 className="font-semibold text-base mb-1">[{today}]</h4>
+                                    <p>The application now features a fully functional drag-and-drop scheduling board. A significant amount of work went into refining this core user experience, resolving several data synchronization bugs, and iterating on the visual feedback to create an intuitive "ghosting" preview. The mock data architecture remains a potential source of issues, but the primary scheduling workflow is now stable.</p>
+                                </div>
+                                <div className="pl-4 border-l-2 border-slate-200">
+                                     <h4 className="font-semibold text-base text-muted-foreground mb-1">[Previous Entry]</h4>
+                                    <p className="text-muted-foreground">This application is a Next.js-based Field Service Management (FSM) platform called ServiceRig. It uses React with functional components and hooks, TypeScript for type safety, and ShadCN UI with Tailwind CSS for the user interface. Recent development has focused heavily on refining the core user experience of the scheduling module.</p>
+                                    <p className="mt-2 text-muted-foreground">For backend operations and data persistence, the app currently simulates a Firestore database using a mutable, in-memory object (`mockData`). All data fetching and mutation logic is centralized in files within `src/lib/firestore/` and exposed via Server Actions in `src/app/actions.ts`. This simulation is a major source of recurring issues.</p>
+                                </div>
                             </AccordionContent>
                         </AccordionItem>
                         <AccordionItem value="item-2">
                             <AccordionTrigger className="text-lg font-semibold">Recent Work Summary & Architectural Challenges</AccordionTrigger>
-                            <AccordionContent className="space-y-4 pt-2 text-base">
+                            <AccordionContent className="space-y-6 pt-2 text-base">
                                 <div className="p-4 border-l-4 border-blue-300 bg-blue-50">
-                                    <h4 className="font-bold text-blue-800">Focus: Refining the Core Scheduling Experience</h4>
-                                    <p className="mt-2 text-blue-900/90">Our latest efforts centered on making the drag-and-drop scheduling board robust and intuitive. This involved tackling significant state synchronization challenges inherent in our mock data architecture.</p>
-                                    <h5 className="font-semibold mt-3">Key Challenge: State Synchronization on Drop</h5>
-                                    <p className="mt-1 text-blue-900/90">The most persistent problem was the failure to reliably update the UI after a job was dragged from the "To Be Scheduled" list onto the calendar. The UI would show a "ghost" of the job, but the original item would remain in the list, and the event on the calendar would not become a solid, scheduled job.</p>
-                                    <ul className="list-disc pl-5 mt-1 space-y-1">
-                                        <li><strong>Root Cause:</strong> The `handleJobDrop` function was receiving an incomplete data object during the drop event. Specifically, the `item.originalData` property was `undefined`, which caused a runtime error (`can't access property "end"`) that halted the execution before the state could be properly updated.</li>
-                                        <li><strong>Solution:</strong> We corrected the `DraggableJob` component to ensure it consistently packages the full `originalData` object into the item being dragged. We then refactored `handleJobDrop` to correctly access this data, calculate the new schedule, and trigger a state update that forces a re-render of both the calendar and the "To Be Scheduled" list.</li>
-                                    </ul>
+                                     <h4 className="font-bold text-blue-800">Focus: Robust Drag-and-Drop Scheduling & Ghosting Preview [{today}]</h4>
+                                     <p className="mt-2 text-blue-900/90">The latest cycle was dedicated to fixing a persistent and critical bug in the scheduling board's drag-and-drop functionality. We also refined the UI to be more intuitive.</p>
+                                     <h5 className="font-semibold mt-3">Key Challenge: State Desynchronization on Drop</h5>
+                                     <ul className="list-disc pl-5 mt-1 space-y-1">
+                                        <li><strong>Symptom:</strong> After dragging a job from the "To Be Scheduled" list and dropping it onto the calendar, the "ghost" preview would remain, the original item would not be removed from the list, and the job's state was not updated in the backend.</li>
+                                        <li><strong>Root Cause Analysis:</strong> Through console logs, we identified a `TypeError: can't access property "end", itemData is undefined`. This revealed that the `onDrop` event handler was receiving an incomplete data payload. The `originalData` object, which contained the full job details, was not being correctly packaged and passed by the `react-dnd` `useDrag` hook in our `DraggableJob` component.</li>
+                                        <li><strong>Solution:</strong> The fix involved modifying the `DraggableJob` component to ensure it consistently includes the `originalData` object within the item payload for the drag operation. Subsequently, the `handleJobDrop` function in the main scheduling page was updated to correctly access this data, preventing the runtime error and allowing the subsequent state updates (updating the job's schedule, clearing the ghost, and removing the job from the staged list) to execute successfully.</li>
+                                     </ul>
                                      <h5 className="font-semibold mt-3">Evolving the Visual Feedback</h5>
-                                      <p className="mt-1 text-blue-900/90">We iterated several times on the visual feedback for the user during a drag operation. Initial implementations of a thick border or simple highlighting were found to be either too distracting or not clear enough. We settled on a "ghosting" approach, where a semi-transparent preview of the job appears directly on the calendar grid, showing the user exactly where it will land. This provides the most intuitive and precise user experience.</p>
+                                      <p className="mt-1 text-blue-900/90">We iterated several times on the visual feedback for the user during a drag operation. Initial implementations of a thick border or simple highlighting were found to be either too distracting or not clear enough. We settled on the "ghosting" approach, where a semi-transparent preview of the job appears directly on the calendar grid, showing the user exactly where it will land. This provides the most intuitive and precise user experience.</p>
                                 </div>
                             </AccordionContent>
                         </AccordionItem>
