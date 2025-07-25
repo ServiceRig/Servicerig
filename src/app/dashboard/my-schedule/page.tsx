@@ -183,18 +183,30 @@ export default function MySchedulePage() {
       return;
     }
     
-    // The Routes API can optimize the order of waypoints. 
-    // By providing the waypoints, Google Maps will calculate the best sequence.
-    const origin = "Your Current Location"; // This would ideally be a dynamic value
-    const destination = origin; // Return to start
+    // The Google Maps Directions API can optimize the order of waypoints.
     const waypoints = todaysJobs
+        .slice(0, -1) // All but the last job are waypoints
         .map(job => job.customer?.companyInfo.address)
-        .filter(Boolean) // Filter out any undefined addresses
+        .filter(Boolean)
         .join('|');
 
-    const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}&waypoints=${encodeURIComponent(waypoints)}&travelmode=driving`;
+    const origin = todaysJobs[0].customer?.companyInfo.address;
+    const destination = todaysJobs[todaysJobs.length - 1].customer?.companyInfo.address;
+
+    if (!origin || !destination) {
+        alert("Could not determine origin or destination address.");
+        return;
+    }
+
+    const googleMapsUrl = new URL('https://www.google.com/maps/dir/');
+    googleMapsUrl.searchParams.append('api', '1');
+    googleMapsUrl.searchParams.append('origin', origin as string);
+    googleMapsUrl.searchParams.append('destination', destination as string);
+    googleMapsUrl.searchParams.append('waypoints', waypoints);
+    googleMapsUrl.searchParams.append('travelmode', 'driving');
+    googleMapsUrl.searchParams.append('optimizeWaypoints', 'true');
     
-    window.open(googleMapsUrl, '_blank');
+    window.open(googleMapsUrl.toString(), '_blank');
   };
 
   return (
