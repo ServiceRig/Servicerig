@@ -42,10 +42,12 @@ const JobCard = ({ job, role }: { job: EnrichedJob, role: string | null }) => {
   const customerName = job.customer?.primaryContact.name || 'N/A';
   const customerInitials = customerName.split(' ').map(n => n[0]).join('');
   const getHref = (path: string) => `${path}?role=${role || ''}`;
+  const addressObj = job.customer?.companyInfo.address;
+  const fullAddress = addressObj ? `${addressObj.street}, ${addressObj.city}, ${addressObj.state} ${addressObj.zipCode}` : 'No address available';
   
   const handleNavigate = () => {
-    if (job.customer?.companyInfo.address) {
-      const address = encodeURIComponent(job.customer.companyInfo.address as string);
+    if (fullAddress !== 'No address available') {
+      const address = encodeURIComponent(fullAddress);
       const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${address}`;
       window.open(googleMapsUrl, '_blank');
     }
@@ -90,7 +92,7 @@ const JobCard = ({ job, role }: { job: EnrichedJob, role: string | null }) => {
         </div>
         <div className="flex items-start gap-3 text-muted-foreground">
           <MapPin className="h-5 w-5 mt-1 shrink-0" />
-          <p className="text-sm">{job.customer?.companyInfo.address}</p>
+          <p className="text-sm">{fullAddress}</p>
         </div>
       </CardContent>
       <CardFooter className="grid grid-cols-3 gap-2">
@@ -114,7 +116,8 @@ const JobCard = ({ job, role }: { job: EnrichedJob, role: string | null }) => {
 
 const TodaysJobListItem = ({ job, role }: { job: EnrichedJob, role: string | null }) => {
     const customerName = job.customer?.primaryContact.name || 'N/A';
-    const customerAddress = job.customer?.companyInfo.address || 'No address';
+    const addressObj = job.customer?.companyInfo.address;
+    const customerAddress = addressObj ? `${addressObj.street}, ${addressObj.city}` : 'No address';
     const getHref = (path: string) => `${path}?role=${role || ''}`;
 
     return (
@@ -186,22 +189,32 @@ export default function MySchedulePage() {
     // The Google Maps Directions API can optimize the order of waypoints.
     const waypoints = todaysJobs
         .slice(0, -1) // All but the last job are waypoints
-        .map(job => job.customer?.companyInfo.address)
+        .map(job => {
+          const addressObj = job.customer?.companyInfo.address;
+          return addressObj ? `${addressObj.street}, ${addressObj.city}, ${addressObj.state} ${addressObj.zipCode}` : null;
+        })
         .filter(Boolean)
         .join('|');
 
-    const origin = todaysJobs[0].customer?.companyInfo.address;
-    const destination = todaysJobs[todaysJobs.length - 1].customer?.companyInfo.address;
+    const origin = (() => {
+      const addressObj = todaysJobs[0].customer?.companyInfo.address;
+      return addressObj ? `${addressObj.street}, ${addressObj.city}, ${addressObj.state} ${addressObj.zipCode}` : null;
+    })();
+
+    const destination = (() => {
+      const addressObj = todaysJobs[todaysJobs.length - 1].customer?.companyInfo.address;
+      return addressObj ? `${addressObj.street}, ${addressObj.city}, ${addressObj.state} ${addressObj.zipCode}` : null;
+    })();
 
     if (!origin || !destination) {
-        alert("Could not determine origin or destination address.");
+        alert("Could not determine origin or destination address for all jobs.");
         return;
     }
 
     const googleMapsUrl = new URL('https://www.google.com/maps/dir/');
     googleMapsUrl.searchParams.append('api', '1');
-    googleMapsUrl.searchParams.append('origin', origin as string);
-    googleMapsUrl.searchParams.append('destination', destination as string);
+    googleMapsUrl.searchParams.append('origin', origin);
+    googleMapsUrl.searchParams.append('destination', destination);
     googleMapsUrl.searchParams.append('waypoints', waypoints);
     googleMapsUrl.searchParams.append('travelmode', 'driving');
     googleMapsUrl.searchParams.append('optimizeWaypoints', 'true');
