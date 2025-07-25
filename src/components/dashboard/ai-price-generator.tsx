@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useActionState, useState, useEffect, useTransition } from 'react';
@@ -85,14 +86,14 @@ export function AiPriceGenerator({ onItemAdded }: AiPriceGeneratorProps) {
                 description: saveState.message,
             });
             onItemAdded(saveState.item);
-        } else if (saveState.message) {
+        } else if (saveState.message && !saveState.success) {
             toast({
                 title: 'Error',
                 description: saveState.message,
                 variant: 'destructive',
             })
         }
-    }, [saveState, toast, onItemAdded])
+    }, [saveState, toast, onItemAdded]);
 
     const handleFieldChange = (field: keyof GeneratePriceOutput, value: string | number | string[]) => {
         if (editableResult) {

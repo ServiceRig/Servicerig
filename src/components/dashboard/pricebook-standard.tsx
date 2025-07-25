@@ -1,7 +1,8 @@
 
+
 'use client';
 
-import { useState, useMemo, useActionState, useEffect } from 'react';
+import { useState, useMemo, useActionState, useEffect, useCallback } from 'react';
 import { useFormStatus } from 'react-dom';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -54,7 +55,7 @@ export function PricebookStandard({ items, onItemAdded }: PricebookStandardProps
         });
         onItemAdded(saveState.item);
         setIsDialogOpen(false);
-    } else if (saveState.message) {
+    } else if (saveState.message && !saveState.success) {
         toast({
             variant: 'destructive',
             title: 'Validation Error',
