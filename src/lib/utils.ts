@@ -1,6 +1,7 @@
+
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
-import type { Estimate, Invoice } from "./types";
+import type { Estimate, Invoice, Job, ServiceAgreement } from "./types";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -42,6 +43,38 @@ export const getInvoiceStatusStyles = (status: Invoice['status']) => {
     case 'sent':
       return 'bg-blue-500 hover:bg-blue-600 text-white';
     case 'draft':
+    default:
+      return 'bg-gray-500 hover:bg-gray-600 text-white';
+  }
+};
+
+export const getJobStatusStyles = (status: Job['status']) => {
+  switch (status) {
+    case 'in_progress':
+    case 'started':
+      return 'bg-yellow-500 hover:bg-yellow-600 text-white';
+    case 'complete':
+    case 'invoiced':
+      return 'bg-green-500 hover:bg-green-600 text-white';
+    case 'scheduled':
+      return 'bg-blue-500 hover:bg-blue-600 text-white';
+    case 'unscheduled':
+    case 'on_hold':
+    case 'awaiting_parts':
+    default:
+      return 'bg-gray-500 hover:bg-gray-600 text-white';
+  }
+};
+
+export const getServiceAgreementStatusStyles = (status: ServiceAgreement['status']) => {
+  switch (status) {
+    case 'active':
+      return 'bg-green-500 hover:bg-green-600 text-white';
+    case 'paused':
+      return 'bg-yellow-500 hover:bg-yellow-600 text-white';
+    case 'cancelled':
+    case 'expired':
+      return 'bg-red-500 hover:bg-red-600 text-white';
     default:
       return 'bg-gray-500 hover:bg-gray-600 text-white';
   }

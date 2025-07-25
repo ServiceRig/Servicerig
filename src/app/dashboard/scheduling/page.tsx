@@ -5,12 +5,13 @@ import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { ScheduleView } from "@/components/dashboard/schedule-view";
 import { mockData } from "@/lib/mock-data";
-import { Job, Customer, Technician, GoogleCalendarEvent } from "@/lib/types";
+import { Job, Customer, Technician, GoogleCalendarEvent, UserRole, Estimate, ServiceAgreement } from "@/lib/types";
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { addDays, setHours, setMinutes } from 'date-fns';
 import { addJob, updateJob as dbUpdateJob } from '@/lib/firestore/jobs';
 import { useToast } from '@/hooks/use-toast';
 import { getAllCustomers } from '@/lib/firestore/customers';
+import { MasterListView } from '@/components/dashboard/scheduling/MasterListView';
 
 type SchedulableItem = {
     id: string;
@@ -29,6 +30,7 @@ type SchedulableItem = {
     details?: Job['details'];
     createdBy?: string;
     matchedTechnicianId?: string;
+    originalData?: any;
 };
 
 
@@ -38,6 +40,9 @@ function SchedulingPageContent() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [technicians, setTechnicians] = useState<Technician[]>([]);
   const [googleEvents, setGoogleEvents] = useState<GoogleCalendarEvent[]>([]);
+  const [estimates, setEstimates] = useState<Estimate[]>([]);
+  const [serviceAgreements, setServiceAgreements] = useState<ServiceAgreement[]>([]);
+  
   const [loading, setLoading] = useState(true);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [activeView, setActiveView] = useState('week');
@@ -53,11 +58,16 @@ function SchedulingPageContent() {
         const initialCustomers = await getAllCustomers();
         const initialTechnicians = mockData.technicians as Technician[];
         const initialEvents = mockData.googleCalendarEvents as GoogleCalendarEvent[];
+        const initialEstimates = mockData.estimates as Estimate[];
+        const initialServiceAgreements = mockData.serviceAgreements as ServiceAgreement[];
         
         setJobs(initialJobs);
         setCustomers(initialCustomers);
         setTechnicians(initialTechnicians);
         setGoogleEvents(initialEvents);
+        setEstimates(initialEstimates);
+        setServiceAgreements(initialServiceAgreements);
+
     } catch (error) {
         console.error("❌ Error fetching data:", error);
         toast({
@@ -84,12 +94,11 @@ function SchedulingPageContent() {
       updatedAt: new Date()
     };
     
-    setJobs(prevJobs => {
-        // In a real app, you'd call a server action and then update state
-        // For mock data, we update both our "DB" and state
-        mockData.jobs.unshift(newJob);
-        return [newJob, ...prevJobs];
-    });
+    // In a real app, you'd call a server action and then update state
+    // For mock data, we update both our "DB" and state
+    mockData.jobs.unshift(newJob);
+    setJobs(prevJobs => [newJob, ...prevJobs]);
+
 
     toast({
       title: "Job Created",
@@ -116,13 +125,11 @@ function SchedulingPageContent() {
         },
         updatedAt: new Date(),
       };
+      
+      dbUpdateJob(updatedJob);
 
-      // Create a new array for state update to trigger re-render
       const newJobs = [...prevJobs];
       newJobs[jobIndex] = updatedJob;
-      
-      // Also update the mock "DB"
-      dbUpdateJob(updatedJob);
 
       return newJobs;
     });
@@ -134,18 +141,18 @@ function SchedulingPageContent() {
   }, [toast]);
 
   // Handle job drag and drop specifically
-  const handleJobDrop = useCallback((item: {id: string, type: 'job' | 'google_event', originalData: SchedulableItem}, newTechnicianId: string, newStartTime: Date) => {
-    const { id, type, originalData } = item;
+  const handleJobDrop = useCallback((item: SchedulableItem, newTechnicianId: string, newStartTime: Date) => {
+    const { id, type } = item;
     
     if (type === 'google_event') {
         // Convert Google Event to a ServiceRig job
-        const durationMs = new Date(originalData.end).getTime() - new Date(originalData.start).getTime();
+        const durationMs = new Date(item.end).getTime() - new Date(item.start).getTime();
         const newEndTime = new Date(newStartTime.getTime() + durationMs);
 
         // A real implementation might try to find an existing customer
         const newJobData = {
-            title: originalData.title,
-            description: originalData.description || `Synced from Google Calendar event by ${originalData.createdBy}`,
+            title: item.title,
+            description: item.description || `Synced from Google Calendar event by ${item.createdBy}`,
             customerId: 'cust1', // Placeholder customer
             technicianId: newTechnicianId,
             status: 'scheduled' as const,
@@ -164,7 +171,7 @@ function SchedulingPageContent() {
         setGoogleEvents(prevEvents => prevEvents.filter(event => event.eventId !== id));
         // A real app would also make an API call to delete the Google Calendar event
         
-        toast({ title: 'Event Converted to Job', description: `Google Calendar event "${originalData.title}" is now a ServiceRig job.`});
+        toast({ title: 'Event Converted to Job', description: `Google Calendar event "${item.title}" is now a ServiceRig job.`});
         
     } else { // It's a regular job
         const jobToMove = jobs.find(j => j.id === id);
@@ -190,9 +197,10 @@ function SchedulingPageContent() {
 
   // Handle job status changes
   const handleJobStatusChange = useCallback((jobId: string, newStatus: Job['status']) => {
-    const updates: Partial<Job> = { status: newStatus };
     const job = jobs.find(j => j.id === jobId);
     if (!job) return;
+    
+    const updates: Partial<Job> = { status: newStatus };
 
     if (newStatus === 'unscheduled') {
       updates.schedule = { ...job.schedule, unscheduled: true };
@@ -217,6 +225,7 @@ function SchedulingPageContent() {
         if (job.status === 'unscheduled') {
             return [{
                 ...job,
+                id: job.id,
                 originalId: job.id,
                 start: new Date(job.schedule.start),
                 end: new Date(job.schedule.end),
@@ -229,6 +238,7 @@ function SchedulingPageContent() {
         if (allTechniciansForJob.length === 0) {
             return [{
                 ...job,
+                id: job.id,
                 originalId: job.id,
                 start: new Date(job.schedule.start),
                 end: new Date(job.schedule.end),
@@ -245,8 +255,8 @@ function SchedulingPageContent() {
             const technician = technicians.find(t => t.id === techId);
             return {
                 ...job,
-                originalId: job.id,
                 id: index === 0 ? job.id : `${job.id}-ghost-${techId}`,
+                originalId: job.id,
                 start: new Date(job.schedule.start),
                 end: new Date(job.schedule.end),
                 customerName: customer?.primaryContact.name || 'Unknown Customer',
@@ -312,20 +322,29 @@ function SchedulingPageContent() {
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className="flex h-[calc(100vh-8rem)] flex-col">
-        <ScheduleView
-          items={scheduledItems}
-          unscheduledJobs={unscheduledJobs}
+      <div className="flex h-full flex-col gap-6">
+        <div className="h-[calc(100vh-8rem)]">
+          <ScheduleView
+            items={scheduledItems}
+            unscheduledJobs={unscheduledJobs}
+            technicians={technicians}
+            onJobDrop={handleJobDrop}
+            onJobStatusChange={handleJobStatusChange}
+            onJobCreated={handleJobCreated}
+            currentDate={currentDate}
+            onCurrentDateChange={setCurrentDate}
+            onPrevious={() => handleDateNavigation('prev')}
+            onNext={() => handleDateNavigation('next')}
+            activeView={activeView}
+            onActiveViewChange={setActiveView}
+          />
+        </div>
+        <MasterListView
+          jobs={jobs}
+          estimates={estimates}
+          serviceAgreements={serviceAgreements}
+          customers={customers}
           technicians={technicians}
-          onJobDrop={handleJobDrop}
-          onJobStatusChange={handleJobStatusChange}
-          onJobCreated={handleJobCreated}
-          currentDate={currentDate}
-          onCurrentDateChange={setCurrentDate}
-          onPrevious={() => handleDateNavigation('prev')}
-          onNext={() => handleDateNavigation('next')}
-          activeView={activeView}
-          onActiveViewChange={setActiveView}
         />
       </div>
     </DndProvider>
