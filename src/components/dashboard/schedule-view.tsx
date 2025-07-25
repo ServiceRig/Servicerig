@@ -149,12 +149,19 @@ const DailyView = ({
 }) => {
     const [selectedTech, setSelectedTech] = React.useState<string | 'all'>('all');
     
-    const filteredItems = items.filter(item => 
-        isSameDay(new Date(item.start), currentDate) && 
-        (selectedTech === 'all' || (item.type === 'job' && item.technicianId === selectedTech))
-    );
+    const filteredItems = items.filter(item => {
+        if (!isSameDay(new Date(item.start), currentDate)) return false;
+        if (selectedTech === 'all') return true;
+        if (item.type === 'job') {
+            return item.technicianId === selectedTech || (item.technicianId === 'unassigned' && selectedTech === 'unassigned');
+        }
+        return false;
+    });
+
+    const visibleTechnicians = selectedTech === 'all' 
+        ? [...technicians, { id: 'unassigned', name: 'Unassigned', color: '#888888' }] 
+        : technicians.filter(t => t.id === selectedTech);
     
-    const visibleTechnicians = selectedTech === 'all' ? technicians : technicians.filter(t => t.id === selectedTech);
     const hours = Array.from({ length: endHour - startHour + 1 }, (_, i) => i + startHour);
 
     const handleDrop = useCallback((jobId: string, techId: string, startTime: Date) => {
