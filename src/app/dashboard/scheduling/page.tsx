@@ -57,54 +57,48 @@ function SchedulingPageContent() {
 
   const handleJobUpdate = useCallback(async (jobId: string, updates: Partial<Job>) => {
     try {
-      const jobToUpdate = jobs.find(j => j.id === jobId);
-      if (!jobToUpdate) {
-        console.error("Job to update not found:", jobId);
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Could not find the job to update.",
+        let updatedJobTitle = '';
+        setJobs(prevJobs => {
+            const jobIndex = prevJobs.findIndex(j => j.id === jobId);
+            if (jobIndex === -1) {
+                console.error("Job not found in setJobs callback:", jobId);
+                return prevJobs;
+            }
+            const jobToUpdate = prevJobs[jobIndex];
+            
+            const updatedJob: Job = {
+                ...jobToUpdate,
+                ...updates,
+                schedule: {
+                    ...jobToUpdate.schedule,
+                    ...updates.schedule,
+                },
+                updatedAt: new Date()
+            };
+            updatedJobTitle = updatedJob.title;
+
+            const newJobs = [...prevJobs];
+            newJobs[jobIndex] = updatedJob;
+
+            dbUpdateJob(updatedJob);
+            
+            return newJobs;
         });
-        return;
-      }
-  
-      const updatedJob: Job = {
-        ...jobToUpdate,
-        ...updates,
-        schedule: {
-          ...jobToUpdate.schedule,
-          ...updates.schedule,
-        },
-        updatedAt: new Date()
-      };
-      
-      await dbUpdateJob(updatedJob);
-  
-      setJobs(prevJobs => {
-        const jobIndex = prevJobs.findIndex(j => j.id === jobId);
-        if (jobIndex === -1) {
-          // If not found, it might be a new job from an external source, so add it
-          return [updatedJob, ...prevJobs];
-        }
-        const newJobs = [...prevJobs];
-        newJobs[jobIndex] = updatedJob;
-        return newJobs;
-      });
-  
-      toast({
-        title: "Job Updated",
-        description: `Job "${updatedJob.title}" has been updated.`
-      });
-  
+
+        toast({
+            title: "Job Updated",
+            description: `Job "${updatedJobTitle || 'Job'}" has been updated.`
+        });
+
     } catch (error) {
-      console.error("Failed to update job:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to update the job."
-      });
+        console.error("Failed to update job:", error);
+        toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Failed to update the job."
+        });
     }
-  }, [jobs, toast]);
+  }, [toast]);
 
 
   // Handle date navigation
@@ -173,8 +167,3 @@ function SchedulingPageContent() {
 export default function SchedulingPage() {
   return <SchedulingPageContent />;
 }
-
-
-
-
-
