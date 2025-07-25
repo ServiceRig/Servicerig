@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScheduleJobDialog } from '../scheduling/ScheduleJobDialog';
+import { getEmptyImage } from 'react-dnd-html5-backend';
 
 const getStatusColor = (status?: Job['status']) => {
     if (!status) return 'bg-blue-200 border-blue-400 text-blue-800'; // Default for Google Events
@@ -60,6 +61,7 @@ interface DraggableJobProps {
     isCompact?: boolean;
     startHour?: number;
     onJobCreated?: (newJob: Omit<Job, 'id' | 'createdAt' | 'updatedAt'>) => void;
+    isGhost?: boolean; // New prop to render the item as a ghost
 }
 
 const InfoRow = ({ icon: Icon, label, children }: { icon: React.ElementType, label: string, children: React.ReactNode }) => (
@@ -87,9 +89,10 @@ export const DraggableJob: React.FC<DraggableJobProps> = ({
     onStatusChange, 
     isCompact, 
     startHour = 7, 
-    onJobCreated 
+    onJobCreated,
+    isGhost: isGhostProp = false,
 }) => {
-    const [{ isDragging }, drag] = useDrag(() => ({
+    const [{ isDragging }, drag, preview] = useDrag(() => ({
         type: ItemTypes.JOB,
         item: { id: item.id, type: item.type, originalData: item },
         canDrag: (item.type === 'job' && !item.isGhost) || item.type === 'google_event',
@@ -98,6 +101,10 @@ export const DraggableJob: React.FC<DraggableJobProps> = ({
         }),
     }), [item]);
     
+    useEffect(() => {
+        preview(getEmptyImage(), { captureDraggingState: true });
+    }, [preview]);
+
     const [elapsedTime, setElapsedTime] = useState(0);
     const [isActive, setIsActive] = useState(false);
 
@@ -211,6 +218,23 @@ export const DraggableJob: React.FC<DraggableJobProps> = ({
             unscheduled: false
         }
     } : undefined;
+    
+     if (isGhostProp) {
+        return (
+             <div
+                className={cn(
+                    "absolute z-10 opacity-50",
+                    isCompact ? "inset-x-1" : "left-2 right-2", 
+                )}
+                style={{
+                    top: `${topPosition}px`,
+                    height: `${height}px`,
+                }}
+            >
+                {jobTrigger}
+            </div>
+        )
+    }
 
     return (
         <div
@@ -218,12 +242,12 @@ export const DraggableJob: React.FC<DraggableJobProps> = ({
             className={cn(
                 "absolute z-10", 
                 isCompact ? "inset-x-1" : "left-2 right-2", 
-                (item.type === 'job' && item.isGhost) ? 'pointer-events-none' : 'cursor-grab'
+                (item.type === 'job' && item.isGhost) ? 'pointer-events-none' : 'cursor-grab',
+                 isDragging && 'opacity-0' // Hide the original component while dragging
             )}
             style={{
                 top: `${topPosition}px`,
                 height: `${height}px`,
-                opacity: isDragging ? 0.5 : 1,
             }}
         >
             <Dialog>

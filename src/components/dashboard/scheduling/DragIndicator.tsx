@@ -5,60 +5,8 @@ import { useDragLayer } from 'react-dnd';
 import { ItemTypes } from '@/lib/constants';
 import type { SchedulableItem } from './ScheduleView';
 
-function getItemStyles(initialOffset: any, currentOffset: any) {
-    if (!initialOffset || !currentOffset) {
-        return {
-            display: 'none',
-        };
-    }
-    // Offset the preview to be above and to the right of the cursor
-    const transform = `translate(${currentOffset.x + 10}px, ${currentOffset.y - 30}px)`;
-    return {
-        transform,
-        WebkitTransform: transform,
-    };
-}
-
-export function DragIndicator() {
-    const { itemType, isDragging, item, initialOffset, currentOffset } = useDragLayer(
-        (monitor) => ({
-            item: monitor.getItem(),
-            itemType: monitor.getItemType(),
-            initialOffset: monitor.getInitialSourceClientOffset(),
-            currentOffset: monitor.getSourceClientOffset(),
-            isDragging: monitor.isDragging(),
-        })
-    );
-
-    function renderItem() {
-        switch (itemType) {
-            case ItemTypes.JOB:
-                const job = item.originalData as SchedulableItem;
-                if (!job) return null;
-                
-                return (
-                    <div className="p-2 border rounded-md bg-accent/80 text-accent-foreground shadow-lg backdrop-blur-sm">
-                        <p className="font-semibold">{job.title}</p>
-                        <p className="text-sm">{job.customerName}</p>
-                    </div>
-                );
-            default:
-                return null;
-        }
-    }
-
-    if (!isDragging) {
-        return null;
-    }
-
-    return (
-        <div style={{ position: 'fixed', pointerEvents: 'none', zIndex: 100, left: 0, top: 0, width: '100%', height: '100%' }}>
-            <div style={getItemStyles(initialOffset, currentOffset)}>
-                {renderItem()}
-            </div>
-        </div>
-    );
-}
+// This component is no longer needed for visual feedback as ghosting is handled in ScheduleView
+// but we keep the hook for potential future use or for other drag types.
 
 export function useIsDraggingTechnician(techId: string) {
     const { itemType, isDragging, item } = useDragLayer(

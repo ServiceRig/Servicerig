@@ -13,7 +13,6 @@ import { useToast } from '@/hooks/use-toast';
 import { getAllCustomers } from '@/lib/firestore/customers';
 import { MasterListView } from '@/components/dashboard/scheduling/MasterListView';
 import { ToBeScheduledList } from '@/components/dashboard/scheduling/ToBeScheduledList';
-import { DragIndicator } from '@/components/dashboard/scheduling/DragIndicator';
 
 type SchedulableItem = {
     id: string;
@@ -51,6 +50,7 @@ function SchedulingPageContent() {
   const [isComponentLoaded, setIsComponentLoaded] = useState(false);
   
   const [stagedJobs, setStagedJobs] = useState<Job[]>([]);
+  const [ghostJob, setGhostJob] = useState<SchedulableItem | null>(null);
 
   const { toast } = useToast();
   
@@ -146,6 +146,7 @@ function SchedulingPageContent() {
 
   // Handle job drag and drop specifically
   const handleJobDrop = useCallback((item: {id: string, type: 'job' | 'google_event', originalData: SchedulableItem}, newTechnicianId: string, newStartTime: Date) => {
+    setGhostJob(null); // Hide ghost on drop
     const { id, type, originalData } = item;
     
     if (type === 'google_event' && originalData) {
@@ -196,6 +197,23 @@ function SchedulingPageContent() {
     }
   }, [jobs, handleJobUpdate, handleJobCreated, toast]);
 
+  const handleDragHover = useCallback((draggedItem: any, techId: string, time: Date) => {
+    const itemData = draggedItem.originalData;
+    const durationMs = (new Date(itemData.end).getTime() - new Date(itemData.start).getTime());
+    const newEndTime = new Date(time.getTime() + durationMs);
+    const tech = technicians.find(t => t.id === techId);
+
+    setGhostJob({
+      ...itemData,
+      start: time,
+      end: newEndTime,
+      technicianId: techId,
+      technicianName: tech?.name,
+      color: tech?.color,
+      isGhost: true,
+    });
+  }, [technicians]);
+
   // Handle job status changes
   const handleJobStatusChange = useCallback((jobId: string, newStatus: Job['status']) => {
     const job = jobs.find(j => j.id === jobId);
@@ -204,7 +222,8 @@ function SchedulingPageContent() {
     const updates: Partial<Job> = { status: newStatus };
 
     if (newStatus === 'unscheduled') {
-      updates.schedule = { ...job.schedule, unscheduled: true };
+        updates.schedule = { ...job.schedule, unscheduled: true };
+        // Don't clear technicianId on reschedule
     }
     handleJobUpdate(jobId, updates);
   }, [jobs, handleJobUpdate]);
@@ -294,9 +313,13 @@ function SchedulingPageContent() {
       description: event.description,
       matchedTechnicianId: event.matchedTechnicianId
     }));
-
-    return [...enrichedJobs, ...enrichedEvents];
-  }, [jobs, customers, technicians, googleEvents]);
+    
+    const items = [...enrichedJobs, ...enrichedEvents];
+    if (ghostJob) {
+        items.push(ghostJob);
+    }
+    return items;
+  }, [jobs, customers, technicians, googleEvents, ghostJob]);
 
 
   // Show loading state
@@ -310,18 +333,18 @@ function SchedulingPageContent() {
 
   return (
     <DndProvider backend={HTML5Backend}>
-       <DragIndicator />
       <div className="flex flex-col gap-6">
         {/* Top Section: Schedule and To-Be-Scheduled List */}
-        <div className="grid grid-cols-1 lg:grid-cols-[350px_1fr] gap-6">
-           <div className="lg:col-span-1">
+        <div className="grid grid-cols-1 xl:grid-cols-[1fr,3fr] gap-6">
+           <div className="xl:col-span-1">
                 <ToBeScheduledList jobs={stagedJobs} />
            </div>
-           <div className="lg:col-span-1">
+           <div className="xl:col-span-1">
                <ScheduleView
                     items={enrichedJobsAndEvents}
                     technicians={technicians}
                     onJobDrop={handleJobDrop}
+                    onDragHover={handleDragHover}
                     onJobStatusChange={handleJobStatusChange}
                     onJobCreated={handleJobCreated}
                     currentDate={currentDate}

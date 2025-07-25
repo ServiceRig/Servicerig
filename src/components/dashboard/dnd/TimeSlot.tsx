@@ -2,48 +2,46 @@
 'use client';
 
 import React from 'react';
-import { useDrop } from 'react-dnd';
+import { useDrop, useDragLayer } from 'react-dnd';
 import { ItemTypes } from '@/lib/constants';
 import { cn } from '@/lib/utils';
+import { DraggableJob } from './DraggableJob';
+import type { SchedulableItem } from '../scheduling/ScheduleView';
 
 interface TimeSlotProps {
   technicianId: string;
   startTime: Date;
   onDrop: (item: any, technicianId: string, startTime: Date) => void;
+  onHover: (techId: string, time: Date) => void;
   startHour?: number;
 }
 
-export const TimeSlot: React.FC<TimeSlotProps> = ({ technicianId, startTime, onDrop, startHour = 7 }) => {
+export const TimeSlot: React.FC<TimeSlotProps> = ({ technicianId, startTime, onDrop, onHover, startHour = 7 }) => {
   const [{ isOver, canDrop }, drop] = useDrop(() => ({
     accept: ItemTypes.JOB,
     drop: (item: any) => {
-        // Ensure we pass a clean date object to avoid timezone issues.
         const cleanStartTime = new Date(startTime);
         onDrop(item, technicianId, cleanStartTime);
     },
+    hover: (item, monitor) => {
+        if (monitor.isOver({ shallow: true })) {
+            onHover(technicianId, startTime);
+        }
+    },
     collect: (monitor) => ({
-      isOver: !!monitor.isOver(),
+      isOver: !!monitor.isOver({ shallow: true }),
       canDrop: !!monitor.canDrop(),
     }),
-  }), [technicianId, startTime, onDrop]);
+  }), [technicianId, startTime, onDrop, onHover]);
+
 
   return (
     <div
       ref={drop}
-      className="absolute w-full h-[15px]" // The drop target area is the full 15-min slot
+      className="absolute w-full h-[15px]" 
       style={{
-        top: `${(startTime.getHours() - startHour + startTime.getMinutes() / 60) * 60}px`,
+        top: `${(startTime.getHours() - startHour) * 60 + startTime.getMinutes()}px`,
       }}
-    >
-      <div
-        className={cn(
-          "w-full transition-all",
-          // The visual indicator is a line at the top of the slot
-          isOver && canDrop 
-            ? 'h-1 bg-accent opacity-100' // Prominent line on hover
-            : 'h-[1px] bg-gray-300/50'  // Subtle line for the grid
-        )}
-      />
-    </div>
+    />
   );
 };

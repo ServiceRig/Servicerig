@@ -45,6 +45,7 @@ interface ScheduleViewProps {
     items: SchedulableItem[];
     technicians: Technician[];
     onJobDrop: (item: {id: string, type: 'job' | 'google_event', originalData: SchedulableItem}, newTechnicianId: string, newStartTime: Date) => void;
+    onDragHover: (item: any, techId: string, time: Date) => void;
     onJobStatusChange: (jobId: string, newStatus: Job['status']) => void;
     onJobCreated: (newJob: Omit<Job, 'id' | 'createdAt' | 'updatedAt'>) => void;
     currentDate: Date;
@@ -75,7 +76,7 @@ const TimeAxis = ({ startHour, endHour }: { startHour: number, endHour: number }
     );
 };
 
-const TechnicianColumn = ({ tech, items, currentDate, startHour, endHour, onJobDrop, onJobStatusChange }: { tech: Technician, items: SchedulableItem[], currentDate: Date, startHour: number, endHour: number, onJobDrop: any, onJobStatusChange: any }) => {
+const TechnicianColumn = ({ tech, items, currentDate, startHour, endHour, onJobDrop, onDragHover, onJobStatusChange }: { tech: Technician, items: SchedulableItem[], currentDate: Date, startHour: number, endHour: number, onJobDrop: any, onDragHover: any, onJobStatusChange: any }) => {
     const isDraggingOver = useIsDraggingTechnician(tech.id);
     const hours = Array.from({ length: endHour - startHour + 1 }, (_, i) => i + startHour);
     
@@ -95,6 +96,7 @@ const TechnicianColumn = ({ tech, items, currentDate, startHour, endHour, onJobD
                                 technicianId={tech.id} 
                                 startTime={slotTime}
                                 onDrop={onJobDrop}
+                                onHover={onDragHover}
                                 startHour={startHour}
                             />
                         )
@@ -108,7 +110,7 @@ const TechnicianColumn = ({ tech, items, currentDate, startHour, endHour, onJobD
                     />
                 ))}
                 {items
-                    .filter(item => (item.type === 'job' && item.technicianId === tech.id) || (item.type === 'google_event' && item.matchedTechnicianId === tech.id))
+                    .filter(item => ((item.type === 'job' && item.technicianId === tech.id) || (item.type === 'google_event' && item.matchedTechnicianId === tech.id)) && !item.isGhost)
                     .map(item => (
                         <DraggableJob 
                             key={`daily-${item.id}`} 
@@ -117,12 +119,22 @@ const TechnicianColumn = ({ tech, items, currentDate, startHour, endHour, onJobD
                             startHour={startHour}
                         />
                     ))}
+                 {items
+                    .filter(item => item.isGhost && item.technicianId === tech.id)
+                    .map(item => (
+                        <DraggableJob 
+                            key={`daily-ghost-${item.id}`} 
+                            item={item} 
+                            isGhost
+                            startHour={startHour}
+                        />
+                    ))}
             </div>
         </div>
     )
 }
 
-const DailyView = ({ items, technicians, onJobDrop, onJobStatusChange, currentDate, startHour, endHour }: any) => {
+const DailyView = ({ items, technicians, onJobDrop, onDragHover, onJobStatusChange, currentDate, startHour, endHour }: any) => {
     const [selectedTech, setSelectedTech] = React.useState<string | 'all'>('all');
     
     const filteredItems = items.filter((item: SchedulableItem) => {
@@ -166,6 +178,7 @@ const DailyView = ({ items, technicians, onJobDrop, onJobStatusChange, currentDa
                                 startHour={startHour}
                                 endHour={endHour}
                                 onJobDrop={onJobDrop}
+                                onDragHover={onDragHover}
                                 onJobStatusChange={onJobStatusChange}
                            />
                         ))}
@@ -176,7 +189,7 @@ const DailyView = ({ items, technicians, onJobDrop, onJobStatusChange, currentDa
     );
 };
 
-const WeeklyView = ({ items, technicians, onJobDrop, onJobStatusChange, currentDate, startHour, endHour }: any) => {
+const WeeklyView = ({ items, technicians, onJobDrop, onDragHover, onJobStatusChange, currentDate, startHour, endHour }: any) => {
     const { isFitToScreen } = useScheduleView();
     const weekStartsOn = startOfWeek(currentDate, { weekStartsOn: 1 }); // Monday
     const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStartsOn, i));
@@ -201,6 +214,12 @@ const WeeklyView = ({ items, technicians, onJobDrop, onJobStatusChange, currentD
                                         const itemsForThisTechAndDay = items.filter((item: SchedulableItem) => 
                                             ((item.type === 'job' && item.technicianId === tech.id) || 
                                              (item.type === 'google_event' && item.matchedTechnicianId === tech.id)) && 
+                                            isSameDay(new Date(item.start), day) && !item.isGhost
+                                        );
+                                        
+                                        const ghostItemForThisCell = items.find((item: SchedulableItem) => 
+                                            item.isGhost && 
+                                            item.technicianId === tech.id && 
                                             isSameDay(new Date(item.start), day)
                                         );
 
@@ -220,6 +239,7 @@ const WeeklyView = ({ items, technicians, onJobDrop, onJobStatusChange, currentD
                                                                     technicianId={tech.id}
                                                                     startTime={slotTime}
                                                                     onDrop={onJobDrop}
+                                                                    onHover={onDragHover}
                                                                     startHour={startHour}
                                                                 />
                                                             );
@@ -236,6 +256,15 @@ const WeeklyView = ({ items, technicians, onJobDrop, onJobStatusChange, currentD
                                                             />
                                                         );
                                                     })}
+                                                    {ghostItemForThisCell && (
+                                                         <DraggableJob 
+                                                            key={`weekly-ghost-${ghostItemForThisCell.id}`} 
+                                                            item={ghostItemForThisCell} 
+                                                            isGhost
+                                                            isCompact
+                                                            startHour={startHour} 
+                                                        />
+                                                    )}
                                                 </div>
                                             </div>
                                         );
@@ -263,6 +292,7 @@ export function ScheduleView({
   items,
   technicians,
   onJobDrop,
+  onDragHover,
   onJobStatusChange,
   onJobCreated,
   currentDate,
@@ -339,7 +369,8 @@ export function ScheduleView({
                         <DailyView 
                             items={items} 
                             technicians={technicians} 
-                            onJobDrop={onJobDrop} 
+                            onJobDrop={onJobDrop}
+                            onDragHover={onDragHover}
                             onJobStatusChange={onJobStatusChange}
                             currentDate={currentDate} 
                             startHour={startHour} 
@@ -350,7 +381,8 @@ export function ScheduleView({
                         <WeeklyView 
                             items={items} 
                             technicians={technicians} 
-                            onJobDrop={onJobDrop} 
+                            onJobDrop={onJobDrop}
+                            onDragHover={onDragHover} 
                             onJobStatusChange={onJobStatusChange}
                             currentDate={currentDate} 
                             startHour={startHour} 
