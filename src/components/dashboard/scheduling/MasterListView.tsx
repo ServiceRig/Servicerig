@@ -15,7 +15,7 @@ import type { Job, Estimate, ServiceAgreement, Customer, Technician } from '@/li
 import { useRole } from '@/hooks/use-role';
 import { DateRangePicker } from '../date-range-picker';
 import type { DateRange } from 'react-day-picker';
-import { ArrowUpDown } from 'lucide-react';
+import { ArrowUpDown, CalendarCheck, CalendarPlus } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 
 const formatCurrency = (amount: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
@@ -167,6 +167,16 @@ export function MasterListView({ jobs, estimates, serviceAgreements, customers, 
                         className="max-w-md"
                     />
                     <DateRangePicker className="max-w-md" />
+                </div>
+                <div className="mt-4 flex items-center gap-2">
+                    <Button disabled={selectedJobIds.size === 0}>
+                        <CalendarPlus className="mr-2 h-4 w-4" />
+                        Schedule Jobs
+                    </Button>
+                    <Button variant="outline" disabled={selectedJobIds.size === 0}>
+                        <CalendarCheck className="mr-2 h-4 w-4" />
+                        Reschedule
+                    </Button>
                 </div>
             </CardHeader>
             <CardContent>
