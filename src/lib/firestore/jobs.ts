@@ -67,14 +67,14 @@ export async function addJob(jobData: Omit<Job, 'id' | 'createdAt' | 'updatedAt'
  * Updates an existing job in the mock data.
  * @param updatedJob The job object with updated fields.
  */
-export async function updateJob(updatedJob: Job): Promise<void> {
+export async function updateJob(updatedJob: Partial<Job> & { id: string }): Promise<void> {
     console.log("Updating job in DB:", updatedJob.id);
     const index = mockData.jobs.findIndex(j => j.id === updatedJob.id);
     if (index !== -1) {
         mockData.jobs[index] = { ...mockData.jobs[index], ...updatedJob };
     } else {
         console.warn(`Job with id ${updatedJob.id} not found for update, adding it instead.`);
-        mockData.jobs.unshift(updatedJob);
+        mockData.jobs.unshift(updatedJob as Job);
     }
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise(resolve => setTimeout(resolve, 50));
 }
