@@ -1,3 +1,4 @@
+
 'use client';
 import React, { useState, useEffect } from 'react';
 import { useDrag } from 'react-dnd';
@@ -134,21 +135,28 @@ export const DraggableJob: React.FC<DraggableJobProps> = ({
     }
     
     const durationMinutes = (endTime.getTime() - startTime.getTime()) / (1000 * 60);
-    const jobStartHour = startTime.getHours();
-    const jobStartMinute = startTime.getMinutes();
+
+    const getTopPosition = (time: Date) => {
+        const hours = time.getHours();
+        const minutes = time.getMinutes();
+        const totalMinutes = hours * 60 + minutes;
+        const startMinutes = startHour * 60;
+        const position = (totalMinutes - startMinutes) * (60 / 60); // Assuming 1px per minute
+        console.log('⏰ Time calculation:', {
+            time: time.toLocaleTimeString(),
+            hours,
+            minutes,
+            totalMinutes,
+            startMinutes,
+            position
+        });
+        return Math.max(0, position); // Ensure we don't return negative positions
+    };
     
-    const topPosition = ((jobStartHour - startHour) * 60) + jobStartMinute;
+    const topPosition = getTopPosition(startTime);
     const height = Math.max(durationMinutes, 15); // Minimum 15 minutes height
 
     const isGoogleEvent = item.type === 'google_event';
-
-    console.log("🎨 Rendering scheduled job:", {
-        title: isGoogleEvent ? item.summary : item.title,
-        topPosition,
-        height,
-        startTime: startTime.toISOString(),
-        endTime: endTime.toISOString()
-    });
 
     const jobTrigger = isCompact ? (
         <div

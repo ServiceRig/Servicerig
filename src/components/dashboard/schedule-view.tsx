@@ -1,3 +1,4 @@
+
 'use client';
 import React, { useState, useCallback } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
@@ -220,14 +221,18 @@ const DailyView = ({
                                     ))}
                                     {filteredItems
                                         .filter(j => j.type === 'job' && j.technicianId === tech.id)
-                                        .map(item => (
-                                            <DraggableJob 
-                                                key={`daily-${item.id}`} 
-                                                item={item} 
-                                                onStatusChange={onJobStatusChange} 
-                                                startHour={startHour}
-                                            />
-                                        ))}
+                                        .map(item => {
+                                            console.log('🎨 DAILY: Rendering job for tech:', tech.name, 'job:', item.title || item.id);
+                                            console.log('🎨 DAILY: Job time:', item.start);
+                                            return (
+                                                <DraggableJob 
+                                                    key={`daily-${item.id}`} 
+                                                    item={item} 
+                                                    onStatusChange={onJobStatusChange} 
+                                                    startHour={startHour}
+                                                />
+                                            );
+                                        })}
                                 </div>
                             </div>
                         ))}
@@ -285,24 +290,11 @@ const WeeklyView = ({
                             </div>
                             <div className="grid h-full" style={{ gridTemplateColumns: `repeat(${allTechsAndUnassigned.length}, 1fr)` }}>
                                 {allTechsAndUnassigned.map((tech, techIndex) => {
-                                    // DEBUG: Check what items are available for this tech/day
                                     const itemsForThisTechAndDay = items.filter(item => 
                                         (item.type === 'job' && item.technicianId === tech.id || 
                                          item.type === 'google_event' && item.matchedTechnicianId === tech.id) && 
                                         isSameDay(new Date(item.start), day)
                                     );
-
-                                    console.log(`📅 ${format(day, 'EEE')} - ${tech.name}:`, {
-                                        totalItems: items.length,
-                                        itemsForThisSlot: itemsForThisTechAndDay.length,
-                                        itemsForThisSlot_details: itemsForThisTechAndDay.map(item => ({
-                                            id: item.id,
-                                            title: item.title,
-                                            start: item.start,
-                                            technicianId: item.technicianId,
-                                            status: item.status
-                                        }))
-                                    });
 
                                     return (
                                         <div key={tech.id} className={cn("relative h-full", techIndex > 0 && "border-l border-dashed")}>
@@ -326,7 +318,6 @@ const WeeklyView = ({
                                                     })
                                                 )}
                                                 {itemsForThisTechAndDay.map(item => {
-                                                    console.log(`🎨 Rendering job: ${item.title} for ${tech.name} on ${format(day, 'EEE')}`);
                                                     return (
                                                         <DraggableJob 
                                                             key={`weekly-${item.id}-${day.toISOString()}`} 
@@ -375,11 +366,6 @@ export function ScheduleView({
 }: ScheduleViewProps) {
     const { role } = useRole();
     const { startHour, endHour } = mockData.scheduleSettings;
-    
-    console.log("🖥️ === SCHEDULE VIEW RENDER ===");
-    console.log("Items received:", items.length);
-    console.log("Unscheduled jobs:", unscheduledJobs.length);
-    console.log("Active view:", activeView);
     
     return (
         <div className="flex flex-col md:flex-row gap-4 h-full">
