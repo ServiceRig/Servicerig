@@ -9,7 +9,7 @@ import { mockData } from "@/lib/mock-data";
 import { Job, Customer, Technician, GoogleCalendarEvent } from "@/lib/types";
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { addDays } from 'date-fns';
-import { addJob, updateJob } from '@/lib/firestore/jobs';
+import { addJob, updateJob as dbUpdateJob } from '@/lib/firestore/jobs';
 import { useToast } from '@/hooks/use-toast';
 import { getAllCustomers } from '@/lib/firestore/customers';
 
@@ -46,6 +46,7 @@ function SchedulingPageContent() {
   }, [fetchData]);
   
   const handleJobCreated = useCallback(async (newJobData: Omit<Job, 'id' | 'createdAt' | 'updatedAt'>) => {
+    // This function adds the job to the mock DB and returns the full job object
     const newJob = await addJob(newJobData);
     setJobs(prevJobs => [newJob, ...prevJobs]);
     toast({
@@ -55,19 +56,35 @@ function SchedulingPageContent() {
   }, [toast]);
 
   const handleJobUpdate = useCallback((jobId: string, updates: Partial<Job>) => {
-    const jobToMove = jobs.find(j => j.id === jobId);
-    if (!jobToMove) return;
+        setJobs(prevJobs => {
+            const jobIndex = prevJobs.findIndex(j => j.id === jobId);
+            if (jobIndex === -1) {
+                console.error("Job not found in state:", jobId);
+                return prevJobs;
+            }
 
-    const updatedJob = { ...jobToMove, ...updates };
-    
-    if (updates.schedule) {
-        updatedJob.schedule = { ...jobToMove.schedule, ...updates.schedule };
-    }
+            const jobToMove = prevJobs[jobIndex];
+            
+            // Create the updated job by merging previous data with new updates
+            const updatedJob: Job = {
+                ...jobToMove,
+                ...updates,
+                schedule: {
+                    ...jobToMove.schedule,
+                    ...updates.schedule,
+                },
+                updatedAt: new Date()
+            };
 
-    setJobs(prevJobs => prevJobs.map(j => j.id === jobId ? updatedJob : j));
-    updateJob(updatedJob);
+            // Also update the job in our mock database
+            dbUpdateJob(updatedJob);
 
-  }, [jobs]);
+            const newJobs = [...prevJobs];
+            newJobs[jobIndex] = updatedJob;
+            
+            return newJobs;
+        });
+    }, []);
 
   // Handle date navigation
   const handleDateNavigation = useCallback((direction: 'prev' | 'next') => {

@@ -120,16 +120,16 @@ const DailyView = ({ items, technicians, onJobUpdate, currentDate, startHour, en
     const hours = Array.from({ length: endHour - startHour + 1 }, (_, i) => i + startHour);
 
     const handleDrop = (jobId: string, techId: string, startTime: Date) => {
-        const job = items.find(j => j.id === jobId);
+        const job = items.find(j => j.type === 'job' && j.originalId === jobId);
         if (!job) return;
 
-        const duration = job.type === 'job' ? (job.duration || 60) : 60;
+        const duration = job.duration || 60;
         const endTime = new Date(startTime.getTime() + duration * 60 * 1000);
 
         onJobUpdate(jobId, { 
             technicianId: techId, 
             status: 'scheduled', 
-            schedule: { start: startTime, end: endTime, unscheduled: false }
+            schedule: { start: startTime, end: endTime, unscheduled: false } as Job['schedule']
         });
     }
 
@@ -195,16 +195,16 @@ const WeeklyView = ({ items, technicians, onJobUpdate, currentDate, startHour, e
     const gridOffset = 78;
 
     const handleDrop = (jobId: string, techId: string, startTime: Date) => {
-        const job = items.find(j => j.id === jobId);
+        const job = items.find(j => j.type === 'job' && j.originalId === jobId);
         if (!job) return;
 
-        const duration = job.type === 'job' ? (job.duration || 60) : 60;
+        const duration = job.duration || 60;
         const endTime = new Date(startTime.getTime() + duration * 60 * 1000);
 
         onJobUpdate(jobId, { 
             technicianId: techId, 
             status: 'scheduled', 
-            schedule: { start: startTime, end: endTime, unscheduled: false }
+            schedule: { start: startTime, end: endTime, unscheduled: false } as Job['schedule']
         });
     }
 
