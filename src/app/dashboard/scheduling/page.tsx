@@ -174,8 +174,9 @@ function SchedulingPageContent() {
         
         toast({ title: 'Event Converted to Job', description: `Google Calendar event "${originalData.title}" is now a ServiceRig job.`});
         
-    } else { 
-        const jobToMove = jobs.find(j => j.id === id);
+    } else {
+        const jobIdToMove = originalData.id;
+        const jobToMove = jobs.find(j => j.id === jobIdToMove);
         if (!jobToMove) return;
 
         const durationMs = jobToMove.duration ? jobToMove.duration * 60 * 1000 : (60 * 60 * 1000);
@@ -192,8 +193,8 @@ function SchedulingPageContent() {
           }
         };
 
-        handleJobUpdate(id, updates);
-        setStagedJobs(prev => prev.filter(job => job.id !== id));
+        handleJobUpdate(jobIdToMove, updates);
+        setStagedJobs(prev => prev.filter(job => job.id !== jobIdToMove));
     }
   }, [jobs, handleJobUpdate, handleJobCreated, toast]);
 
@@ -335,7 +336,7 @@ function SchedulingPageContent() {
     <DndProvider backend={HTML5Backend}>
       <div className="flex flex-col gap-6">
         {/* Top Section: Schedule and To-Be-Scheduled List */}
-        <div className="grid grid-cols-1 xl:grid-cols-[350px,1fr] gap-6">
+        <div className="grid grid-cols-1 xl:grid-cols-[1fr,3fr] gap-6">
            <div className="xl:col-span-1">
                 <ToBeScheduledList jobs={stagedJobs} />
            </div>
