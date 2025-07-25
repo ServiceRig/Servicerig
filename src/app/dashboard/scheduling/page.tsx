@@ -9,7 +9,7 @@ import { mockData } from "@/lib/mock-data";
 import { Job, Customer, Technician, GoogleCalendarEvent } from "@/lib/types";
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { addDays } from 'date-fns';
-import { updateJob, addJob } from '@/lib/firestore/jobs';
+import { addJob, updateJob } from '@/lib/firestore/jobs';
 import { useToast } from '@/hooks/use-toast';
 import { getAllCustomers } from '@/lib/firestore/customers';
 
@@ -26,7 +26,7 @@ function SchedulingPageContent() {
   const { toast } = useToast();
   
   const fetchData = useCallback(async () => {
-      // setLoading(true); // Don't show loading spinner on re-fetches
+      setLoading(true);
       const initialJobs = mockData.jobs as Job[];
       const initialCustomers = await getAllCustomers();
       const initialTechnicians = mockData.technicians as Technician[];
@@ -45,7 +45,8 @@ function SchedulingPageContent() {
     fetchData();
   }, [fetchData]);
   
-  const handleJobCreated = useCallback(async (newJob: Job) => {
+  const handleJobCreated = useCallback(async (newJobData: Omit<Job, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const newJob = await addJob(newJobData);
     setJobs(prevJobs => [newJob, ...prevJobs]);
     toast({
       title: "Job Created",
@@ -53,37 +54,19 @@ function SchedulingPageContent() {
     });
   }, [toast]);
 
-  const handleJobUpdate = useCallback((jobId: string, newTechnicianId: string, newStartTime: Date) => {
+  const handleJobUpdate = useCallback((jobId: string, updates: Partial<Job>) => {
     const jobToMove = jobs.find(j => j.id === jobId);
-    if (!jobToMove) {
-      console.error(`Job with ID ${jobId} not found`);
-      return;
+    if (!jobToMove) return;
+
+    const updatedJob = { ...jobToMove, ...updates };
+    
+    if (updates.schedule) {
+        updatedJob.schedule = { ...jobToMove.schedule, ...updates.schedule };
     }
 
-    const updatedJob = {
-        ...jobToMove,
-        technicianId: newTechnicianId,
-        schedule: {
-            ...jobToMove.schedule,
-            start: newStartTime,
-            end: new Date(newStartTime.getTime() + (jobToMove.duration || 60) * 60 * 1000),
-            unscheduled: false
-        },
-        status: 'scheduled' as const,
-        updatedAt: new Date()
-    };
-    
-    setJobs(prevJobs => {
-        const jobIndex = prevJobs.findIndex(j => j.id === jobId);
-        if (jobIndex === -1) {
-            return [...prevJobs, updatedJob]; // Failsafe: if not found, add it
-        }
-        const newJobs = [...prevJobs];
-        newJobs[jobIndex] = updatedJob;
-        return newJobs;
-    });
-
+    setJobs(prevJobs => prevJobs.map(j => j.id === jobId ? updatedJob : j));
     updateJob(updatedJob);
+
   }, [jobs]);
 
   // Handle date navigation
@@ -96,31 +79,16 @@ function SchedulingPageContent() {
   const enrichedJobsAndEvents = useMemo(() => {
     const enrichedJobs = jobs.map(job => {
       const customer = customers.find(c => c.id === job.customerId);
-      const allTechniciansForJob = [job.technicianId, ...(job.additionalTechnicians || [])].filter(Boolean);
-      
-      const enrichedJobBase = {
+      const technician = technicians.find(t => t.id === job.technicianId);
+      return {
           ...job,
           originalId: job.id,
           customerName: customer?.primaryContact.name || 'Unknown Customer',
+          technicianName: technician?.name || 'Unassigned',
+          color: technician?.color || '#A0A0A0',
           type: 'job' as const,
       };
-
-      if (allTechniciansForJob.length === 0 || job.status === 'unscheduled') {
-          return [{ ...enrichedJobBase, technicianId: 'unscheduled', technicianName: 'Unassigned', isGhost: false }];
-      }
-      
-      return allTechniciansForJob.map((techId, index) => {
-          const technician = technicians.find(t => t.id === techId);
-          return {
-              ...enrichedJobBase,
-              id: index === 0 ? job.id : `${job.id}-ghost-${techId}`,
-              technicianId: techId,
-              technicianName: technician?.name || 'Unassigned',
-              color: technician?.color || '#A0A0A0',
-              isGhost: index !== 0
-          };
-      });
-    }).flat();
+    });
 
     const enrichedEvents = googleEvents.map(event => ({ 
         ...event, 

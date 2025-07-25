@@ -78,3 +78,4 @@ export async function updateJob(updatedJob: Partial<Job> & { id: string }): Prom
     }
     await new Promise(resolve => setTimeout(resolve, 50));
 }
+
