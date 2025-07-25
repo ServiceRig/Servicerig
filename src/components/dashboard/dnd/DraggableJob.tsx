@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useDrag } from 'react-dnd';
 import { ItemTypes } from '@/lib/constants';
-import { Job, GoogleCalendarEvent } from '@/lib/types';
+import { Job, GoogleCalendarEvent, UserRole } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandGroup, CommandItem, CommandList }from "@/components/ui/command";
