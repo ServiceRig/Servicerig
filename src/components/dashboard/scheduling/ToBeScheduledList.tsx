@@ -6,7 +6,7 @@ import type { Job } from "@/lib/types";
 import { DraggableJob } from "../dnd/DraggableJob";
 
 interface ToBeScheduledListProps {
-  jobs: Job[];
+  jobs: (Job & { customerName?: string })[];
 }
 
 export function ToBeScheduledList({ jobs }: ToBeScheduledListProps) {

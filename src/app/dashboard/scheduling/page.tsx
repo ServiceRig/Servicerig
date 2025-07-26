@@ -201,7 +201,6 @@ function SchedulingPageContent() {
         };
 
         handleJobUpdate(jobIdToMove, updates);
-        setStagedJobs(prev => prev.filter(job => job.id !== jobIdToMove));
     }
   }, [jobs, handleJobUpdate, handleJobCreated, toast]);
 
@@ -241,27 +240,13 @@ function SchedulingPageContent() {
   }, [jobs, handleJobUpdate]);
 
   const handleStageJobs = useCallback((jobIds: string[], reschedule: boolean = false) => {
-    const jobsToStage = jobs
-        .filter(job => jobIds.includes(job.id))
-        .map(job => ({
-            ...job,
-            customerName: customers.find(c => c.id === job.customerId)?.primaryContact.name || 'Unknown',
-        }));
-    
-    setStagedJobs(prev => {
-        const existingIds = new Set(prev.map(j => j.id));
-        const newJobs = jobsToStage.filter(j => !existingIds.has(j.id));
-        return [...prev, ...newJobs];
-    });
-
     if (reschedule) {
         jobIds.forEach(id => handleJobStatusChange(id, 'unscheduled'));
         toast({ title: "Jobs Unscheduled", description: `${jobIds.length} jobs have been moved to the 'To Be Scheduled' list.`});
     } else {
-        toast({ title: "Jobs Staged", description: `${jobIds.length} jobs are ready to be scheduled.`});
+         toast({ title: "Staging not implemented", description: "This action is a placeholder."});
     }
-
-  }, [jobs, customers, handleJobStatusChange, toast]);
+  }, [handleJobStatusChange, toast]);
 
   // Handle date navigation
   const handleDateNavigation = useCallback((direction: 'prev' | 'next') => {
@@ -270,6 +255,16 @@ function SchedulingPageContent() {
     setCurrentDate(prevDate => addDays(prevDate, increment * sign));
   }, [activeView]);
 
+  const unscheduledJobs = useMemo(() => {
+    return jobs
+        .filter(job => job.status === 'unscheduled')
+        .map(job => ({
+            ...job,
+            customerName: customers.find(c => c.id === job.customerId)?.primaryContact.name || 'Unknown',
+        }));
+  }, [jobs, customers]);
+
+
   // Enrich jobs with customer and technician data
   const enrichedJobsAndEvents: SchedulableItem[] = useMemo(() => {
     const enrichedJobs = jobs.flatMap(job => {
@@ -277,7 +272,7 @@ function SchedulingPageContent() {
         const allTechniciansForJob = [job.technicianId, ...(job.additionalTechnicians || [])].filter(Boolean);
 
         if (job.status === 'unscheduled') {
-            return []; // Unscheduled jobs are handled in the Master List / To Be Scheduled list
+            return []; // Unscheduled jobs are handled in their own list
         }
         
         if (allTechniciansForJob.length === 0) {
@@ -351,7 +346,7 @@ function SchedulingPageContent() {
         <div className="flex h-full flex-col gap-6">
             <div className="flex-grow grid grid-cols-1 lg:grid-cols-4 gap-6">
                 <div className="lg:col-span-1 h-full">
-                     <ToBeScheduledList jobs={stagedJobs} />
+                     <ToBeScheduledList jobs={unscheduledJobs} />
                 </div>
                 <div className="lg:col-span-3 h-full">
                    <ScheduleView
