@@ -456,6 +456,8 @@ function InvoiceDetailsPageContent({ invoiceId }: { invoiceId: string }) {
   }
   
   const isInternalUser = role === UserRole.Admin || role === UserRole.Dispatcher;
+  const address = invoice.customer.companyInfo.address;
+  const fullAddress = address ? `${address.street}, ${address.city}, ${address.state} ${address.zipCode}` : 'No address provided';
 
   return (
     <>
@@ -505,7 +507,7 @@ function InvoiceDetailsPageContent({ invoiceId }: { invoiceId: string }) {
                   <div>
                       <h3 className="font-semibold mb-2">Bill To:</h3>
                       <p className="font-bold">{invoice.customer.primaryContact.name}</p>
-                      <p>{invoice.customer.companyInfo.address}</p>
+                      <p>{fullAddress}</p>
                       <p>{invoice.customer.primaryContact.email}</p>
                   </div>
               </div>
