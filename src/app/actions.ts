@@ -1424,7 +1424,7 @@ type AddCustomerState = {
   errors?: any;
 }
 
-export async function addCustomer(prevState: AddCustomerState, formData: FormData): Promise<AddCustomerState> {
+export async function addCustomer(prevState: AddCustomerState, formData: FormData) {
     const validatedFields = addCustomerSchema.safeParse({
         firstName: formData.get('firstName'),
         lastName: formData.get('lastName'),
