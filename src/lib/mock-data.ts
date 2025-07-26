@@ -1,5 +1,5 @@
 
-import { Customer, Invoice, Job, Technician, UserRole, Equipment, Estimate, EstimateTemplate, PricebookItem, InventoryItem, Payment, ServiceAgreement, Refund, TaxLine, PaymentPlan, Deposit, ChangeOrder, AuditLogEntry, TaxZone, PartRequest, ShoppingListItem, PurchaseOrder, PurchaseOrderPart, EquipmentLog, PartUsageLog, User, Vendor, GoogleCalendarEvent } from './types';
+import { Customer, Invoice, Job, Technician, UserRole, Equipment, Estimate, EstimateTemplate, PricebookItem, InventoryItem, Payment, ServiceAgreement, Refund, TaxLine, PaymentPlan, Deposit, ChangeOrder, AuditLogEntry, TaxZone, PartRequest, ShoppingListItem, PurchaseOrder, PurchaseOrderPart, EquipmentLog, PartUsageLog, User, Vendor, GoogleCalendarEvent, Referral, CommunicationLog } from './types';
 
 const getDay = (day: number) => {
     const newDate = new Date();
@@ -12,6 +12,16 @@ const getDay = (day: number) => {
 // Wrapping our mock data in a single object makes it mutable across requests
 // in a Node.js development server environment. This simulates a persistent store.
 export const mockData: { [key: string]: any } = {
+  communicationLog: [
+    { id: 'comm1', customerId: 'cust1', type: 'Email', direction: 'outbound', content: 'Sent invoice INV-2024-001.', timestamp: new Date('2024-07-10T14:21:00Z'), staffMemberId: 'system' },
+    { id: 'comm2', customerId: 'cust1', type: 'Call', direction: 'inbound', content: 'Customer called to confirm appointment for job3.', timestamp: new Date('2024-07-14T10:00:00Z'), staffMemberId: 'dispatch1' },
+    { id: 'comm3', customerId: 'cust2', type: 'SMS', direction: 'outbound', content: 'Your technician, Jane Smith, is on the way.', timestamp: new Date('2024-06-01T09:30:00Z'), staffMemberId: 'system' },
+  ] as CommunicationLog[],
+  referrals: [
+      { id: 'ref1', referrerCustomerId: 'cust1', referredCustomerName: 'New Client A', referredCustomerContact: 'new.a@example.com', referralCodeUsed: 'ALICEW-REF', status: 'converted', dateReferred: new Date('2024-05-15'), convertedDate: new Date('2024-05-20'), convertedJobId: 'job_ref_1', incentiveEarned: 50 },
+      { id: 'ref2', referrerCustomerId: 'cust1', referredCustomerName: 'New Client B', referredCustomerContact: 'new.b@example.com', referralCodeUsed: 'ALICEW-REF', status: 'contacted', dateReferred: new Date('2024-06-20') },
+      { id: 'ref3', referrerCustomerId: 'cust2', referredCustomerName: 'New Client C', referredCustomerContact: '555-000-1111', referralCodeUsed: 'BOBD-REF', status: 'pending', dateReferred: new Date('2024-07-10') },
+  ] as Referral[],
   googleCalendarEvents: [
       {
           eventId: 'gcal_event_1',
@@ -366,6 +376,10 @@ export const mockData: { [key: string]: any } = {
           { id: 'tech1', name: 'John Doe' },
           { id: 'tech2', name: 'Jane Smith' },
       ],
+      referralCode: 'ALICEW-REF',
+      successfulConversions: 2,
+      availableCredit: 100,
+      referralTier: 'Silver',
     },
     {
       id: 'cust2',
@@ -381,6 +395,7 @@ export const mockData: { [key: string]: any } = {
           { id: 'tech3', name: 'Mike Johnson' },
           { id: 'tech4', name: 'Emily Brown' },
       ],
+      referralCode: 'BOBD-REF',
     },
       {
       id: 'cust3',
@@ -394,6 +409,7 @@ export const mockData: { [key: string]: any } = {
        recentTechnicians: [
           { id: 'tech1', name: 'John Doe' },
       ],
+      referralCode: 'CHARLIEM-REF',
     },
   ] as Customer[],
   jobs: [
