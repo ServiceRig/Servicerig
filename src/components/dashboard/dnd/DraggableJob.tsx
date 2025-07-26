@@ -95,7 +95,7 @@ export const DraggableJob: React.FC<DraggableJobProps> = ({
 }) => {
     const [{ isDragging }, drag, preview] = useDrag(() => ({
         type: ItemTypes.JOB,
-        item: { id: item.id, type: item.type, originalData: item },
+        item: { id: item.id, type: item.type, originalData: item }, // Correctly pass the full item object
         collect: (monitor) => ({
             isDragging: !!monitor.isDragging(),
         }),
