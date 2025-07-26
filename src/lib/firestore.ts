@@ -3,7 +3,7 @@
 import { mockData } from './mock-data';
 import { getJobsByCustomerId } from './firestore/jobs';
 import { getEstimatesByCustomerId, getEstimatesByJobId, getEstimateById } from './firestore/estimates';
-import type { Customer, CustomerData, JobData, EstimateData, PurchaseOrderData, ChangeOrder } from './types';
+import type { Customer, CustomerData, JobData, EstimateData, PurchaseOrderData, ChangeOrder, Referral, CommunicationLog } from './types';
 
 // In a real app, these would be Firestore SDK calls (getDoc, getDocs, query, where).
 // For now, we simulate the data fetching and shaping.
@@ -21,7 +21,9 @@ export async function getCustomerData(customerId: string): Promise<CustomerData 
   const invoicesForCustomer = mockData.invoices.filter((i: any) => i.customerId === customerId);
   const estimatesForCustomer = await getEstimatesByCustomerId(customerId);
   const depositsForCustomer = mockData.deposits.filter((d: any) => d.customerId === customerId);
-  
+  const referralsForCustomer = mockData.referrals.filter((r: Referral) => r.referrerCustomerId === customerId);
+  const communicationLogForCustomer = mockData.communicationLog.filter((cl: CommunicationLog) => cl.customerId === customerId);
+
   // Enrich job data with technician names
   const enrichedJobs = jobsForCustomer.map(job => {
       const technician = mockData.technicians.find((t: any) => t.id === job.technicianId);
@@ -43,6 +45,8 @@ export async function getCustomerData(customerId: string): Promise<CustomerData 
     jobs: enrichedJobs,
     estimates: estimatesForCustomer,
     deposits: depositsForCustomer,
+    referrals: referralsForCustomer,
+    communicationLog: communicationLogForCustomer,
     totals: {
       totalBilled,
       totalPaid,

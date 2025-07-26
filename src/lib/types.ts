@@ -80,6 +80,12 @@ export type Customer = {
   hasOpenInvoices?: boolean; // For UI badge
   smartTags?: ('High Churn Risk' | 'Frequent No-Show' | 'Recent Issue')[];
   recentTechnicians?: { id: string; name: string; avatarUrl?: string }[];
+  // New referral fields
+  referralCode?: string;
+  referralsMade?: number;
+  successfulConversions?: number;
+  availableCredit?: number;
+  referralTier?: 'Bronze' | 'Silver' | 'Gold';
 };
 
 export type UsedPart = {
@@ -445,6 +451,7 @@ export type PricebookItem = {
   materials?: { name: string, quantity: number }[];
   isCustom?: boolean;
   createdAt: Timestamp | Date;
+  inventoryParts?: { partId: string; quantity: number; }[];
 }
 
 // Inventory Item model from /inventoryItems/{itemId}
@@ -558,6 +565,41 @@ export interface CustomerLinkedRecords {
   deposits: number;
 }
 
+// --- New Types from Revamp ---
+export type Referral = {
+    id: string;
+    referrerCustomerId: string; // Who made the referral
+    referredCustomerName: string;
+    referredCustomerContact: string; // email or phone
+    referralCodeUsed: string;
+    status: 'pending' | 'contacted' | 'converted' | 'declined';
+    dateReferred: Timestamp | Date;
+    convertedDate?: Timestamp | Date;
+    convertedJobId?: string;
+    incentiveEarned?: number;
+};
+
+export type ReferralIncentive = {
+    id: string;
+    customerId: string;
+    type: 'credit' | 'cash';
+    amount: number;
+    earnedDate: Timestamp | Date;
+    redeemedDate?: Timestamp | Date;
+    relatedReferralId: string;
+    status: 'available' | 'redeemed';
+};
+
+export type CommunicationLog = {
+    id: string;
+    customerId: string;
+    type: 'Email' | 'Call' | 'SMS' | 'Note';
+    direction: 'inbound' | 'outbound';
+    content: string;
+    timestamp: Timestamp | Date;
+    staffMemberId: string;
+};
+
 export interface CustomerData {
   customer: Customer;
   equipment: Equipment[];
@@ -566,6 +608,8 @@ export interface CustomerData {
   deposits: Deposit[];
   totals: CustomerTotals;
   linkedRecords: CustomerLinkedRecords;
+  referrals?: Referral[];
+  communicationLog?: CommunicationLog[];
 }
 
 export interface JobData {
@@ -612,5 +656,3 @@ export type GoogleCalendarEvent = {
     source: 'google';
     syncedAt: Timestamp | Date | any; // Any for FieldValue
 }
-
-    
