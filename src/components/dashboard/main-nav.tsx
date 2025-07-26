@@ -1,5 +1,4 @@
 
-
 'use client';
 import {
   SidebarMenu,
@@ -10,7 +9,7 @@ import {
   SidebarMenuSubButton,
 } from "@/components/ui/sidebar";
 import { UserRole } from "@/lib/types";
-import { LayoutDashboard, Calendar, UserSquare, Users, BarChart3, Book, Warehouse, Calculator, FileText, FileDiff, FileSignature, ClipboardList, DollarSign, Clock, AppWindow, Settings, LifeBuoy, LogOut, FilePlus, Bot, ListChecks, UserCog, History, HardHat, ShoppingBasket, LandPlot, Palette, Link as LinkIcon, Building, Code, CreditCard } from "lucide-react";
+import { LayoutDashboard, Calendar, UserSquare, Users, BarChart3, Book, Warehouse, Calculator, FileText, FileDiff, FileSignature, ClipboardList, DollarSign, Clock, AppWindow, Settings, LifeBuoy, LogOut, FilePlus, Bot, ListChecks, UserCog, History, HardHat, ShoppingBasket, LandPlot, Palette, Link as LinkIcon, Building, Code, CreditCard, Gamepad2 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from 'next/navigation';
 
@@ -60,6 +59,7 @@ const settingsItems = [
       ]
     },
     { href: "/dashboard/dev-matrix", icon: Code, label: "Dev Matrix" },
+    { href: "/dashboard/game-plan", icon: Gamepad2, label: "Game Plan" },
     { href: "/dashboard/support", icon: LifeBuoy, label: "Support" },
 ]
 
