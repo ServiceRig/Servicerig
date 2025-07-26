@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useMemo, useActionState, useEffect, useCallback } from 'react';
@@ -41,7 +40,12 @@ function AddOrEditItemDialog({ isOpen, onOpenChange, onItemAdded }: { isOpen: bo
     const [materials, setMaterials] = useState<{name: string, quantity: number}[]>([]);
 
     useEffect(() => {
-        if (saveState.message && !isOpen) return;
+        if (!isOpen) {
+             // Reset form when dialog closes
+            setMaterials([]);
+            // You might want to reset the saveState as well if it holds errors
+            return;
+        }
 
         if (saveState.success && saveState.item) {
             toast({
@@ -50,7 +54,6 @@ function AddOrEditItemDialog({ isOpen, onOpenChange, onItemAdded }: { isOpen: bo
             });
             onItemAdded(saveState.item);
             onOpenChange(false);
-            setMaterials([]); // Reset materials list
         } else if (saveState.message && !saveState.success) {
             toast({
                 variant: 'destructive',
