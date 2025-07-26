@@ -1,7 +1,7 @@
 
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
-import type { Estimate, Invoice, Job, ServiceAgreement } from "./types";
+import type { Estimate, Invoice, Job, ServiceAgreement, ChangeOrder } from "./types";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -79,3 +79,14 @@ export const getServiceAgreementStatusStyles = (status: ServiceAgreement['status
       return 'bg-gray-500 hover:bg-gray-600 text-white';
   }
 };
+
+export const getChangeOrderStatusStyles = (status: ChangeOrder['status']) => {
+    switch (status) {
+      case 'approved': return 'bg-green-500 text-white';
+      case 'invoiced':
+      case 'completed': return 'bg-blue-500 text-white';
+      case 'rejected': return 'bg-red-500 text-white';
+      case 'pending_approval': return 'bg-yellow-500 text-white';
+      default: return 'bg-gray-500 text-white';
+    }
+}
