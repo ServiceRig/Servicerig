@@ -573,6 +573,7 @@ export interface JobData {
     customer: Customer;
     technician: Technician | null;
     estimates: Estimate[];
+    changeOrders: ChangeOrder[];
 }
 
 export interface EstimateData {

@@ -7,9 +7,9 @@ import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { Clock, Calendar, User, Building, Phone, MapPin, Wrench, FileText, ChevronRight, Navigation } from 'lucide-react';
-import { cn, getEstimateStatusStyles } from '@/lib/utils';
-import type { Job } from '@/lib/types';
+import { Clock, Calendar, User, Building, Phone, MapPin, Wrench, FileText, ChevronRight, Navigation, FileDiff } from 'lucide-react';
+import { cn, getEstimateStatusStyles, getJobStatusStyles } from '@/lib/utils';
+import type { Job, ChangeOrder } from '@/lib/types';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
 
 const getStatusStyles = (status: Job['status']) => {
@@ -24,6 +24,17 @@ const getStatusStyles = (status: Job['status']) => {
       return 'bg-gray-500 hover:bg-gray-600 text-white';
   }
 };
+
+const getChangeOrderStatusStyles = (status: ChangeOrder['status']) => {
+    switch (status) {
+      case 'approved': return 'bg-green-500 text-white';
+      case 'invoiced':
+      case 'completed': return 'bg-blue-500 text-white';
+      case 'rejected': return 'bg-red-500 text-white';
+      case 'pending_approval': return 'bg-yellow-500 text-white';
+      default: return 'bg-gray-500 text-white';
+    }
+}
 
 const InfoRow = ({ icon: Icon, label, children, actionButton }: { icon: React.ElementType, label: string, children: React.ReactNode, actionButton?: React.ReactNode }) => (
     <div className="flex items-start gap-4">
@@ -48,7 +59,7 @@ export default async function JobDetailsPage({ params, searchParams }: { params:
     notFound();
   }
 
-  const { job, customer, technician, estimates } = data;
+  const { job, customer, technician, estimates, changeOrders } = data;
   const duration = (new Date(job.schedule.end).getTime() - new Date(job.schedule.start).getTime()) / (1000 * 60);
   const getHref = (path: string) => `${path}?role=${role}`;
   const fullAddress = `${customer.companyInfo.address.street}, ${customer.companyInfo.address.city}, ${customer.companyInfo.address.state} ${customer.companyInfo.address.zipCode}`;
@@ -139,6 +150,44 @@ export default async function JobDetailsPage({ params, searchParams }: { params:
                                     <TableCell className="text-right">
                                         <Button asChild variant="outline" size="sm">
                                             <Link href={getHref(`/dashboard/estimates/${estimate.id}`)}>View Estimate</Link>
+                                        </Button>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
+          )}
+
+           {changeOrders.length > 0 && (
+             <Card>
+                <CardHeader>
+                    <CardTitle>Linked Change Orders</CardTitle>
+                </CardHeader>
+                <CardContent>
+                     <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Title</TableHead>
+                                <TableHead>Status</TableHead>
+                                <TableHead className="text-right">Amount</TableHead>
+                                <TableHead className="text-right">Action</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {changeOrders.map((co) => (
+                                <TableRow key={co.id}>
+                                    <TableCell className="font-medium">{co.title}</TableCell>
+                                    <TableCell>
+                                        <Badge className={cn("capitalize", getChangeOrderStatusStyles(co.status))}>
+                                          {co.status.replace(/_/g, ' ')}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell className="text-right">{formatCurrency(co.total)}</TableCell>
+                                    <TableCell className="text-right">
+                                        <Button asChild variant="outline" size="sm">
+                                            <Link href={getHref(`/dashboard/change-orders/${co.id}`)}>View</Link>
                                         </Button>
                                     </TableCell>
                                 </TableRow>

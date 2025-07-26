@@ -3,7 +3,7 @@
 import { mockData } from './mock-data';
 import { getJobsByCustomerId } from './firestore/jobs';
 import { getEstimatesByCustomerId, getEstimatesByJobId, getEstimateById } from './firestore/estimates';
-import type { Customer, CustomerData, JobData, EstimateData, PurchaseOrderData } from './types';
+import type { Customer, CustomerData, JobData, EstimateData, PurchaseOrderData, ChangeOrder } from './types';
 
 // In a real app, these would be Firestore SDK calls (getDoc, getDocs, query, where).
 // For now, we simulate the data fetching and shaping.
@@ -77,12 +77,15 @@ export async function getJobData(jobId: string): Promise<JobData | null> {
 
   const technician = mockData.technicians.find((t: any) => t.id === job.technicianId);
   const estimates = await getEstimatesByJobId(jobId);
+  const changeOrders = mockData.changeOrders.filter((co: ChangeOrder) => co.jobId === jobId);
+
 
   const jobData: JobData = {
     job,
     customer,
     technician: technician || null, // A job might not have a technician
     estimates: estimates,
+    changeOrders: changeOrders,
   };
 
   // Simulate network delay
