@@ -1,5 +1,4 @@
 
-
 // This file contains the TypeScript types for your Firestore collections.
 
 // A generic type for Firestore Timestamps. In Firestore, these are objects,
@@ -397,7 +396,7 @@ export interface ChangeOrder {
   description: string;
   lineItems: LineItem[];
   total: number;
-  status: 'draft' | 'approved' | 'rejected' | 'invoiced';
+  status: 'draft' | 'pending_approval' | 'approved' | 'rejected' | 'completed' | 'invoiced';
   createdAt: Timestamp | Date;
   updatedAt: Timestamp | Date;
   customerName?: string; // For UI enrichment
@@ -612,3 +611,5 @@ export type GoogleCalendarEvent = {
     source: 'google';
     syncedAt: Timestamp | Date | any; // Any for FieldValue
 }
+
+    

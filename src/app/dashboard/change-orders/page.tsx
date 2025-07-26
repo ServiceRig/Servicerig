@@ -12,8 +12,9 @@ import { mockData } from '@/lib/mock-data';
 import { format } from 'date-fns';
 import type { ChangeOrder } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { MoreHorizontal } from 'lucide-react';
+import { MoreHorizontal, PlusCircle } from 'lucide-react';
 import Link from 'next/link';
+import { useRole } from '@/hooks/use-role';
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
@@ -24,15 +25,19 @@ const getStatusStyles = (status: ChangeOrder['status']) => {
     case 'approved':
       return 'bg-green-500 hover:bg-green-600 text-white';
     case 'invoiced':
+    case 'completed':
         return 'bg-blue-500 hover:bg-blue-600 text-white';
     case 'rejected':
       return 'bg-red-500 hover:bg-red-600 text-white';
+    case 'pending_approval':
+        return 'bg-yellow-500 hover:bg-yellow-600 text-white';
     default:
       return 'bg-gray-500 hover:bg-gray-600 text-white';
   }
 };
 
 export default function ChangeOrdersPage() {
+    const { role } = useRole();
     const [changeOrders, setChangeOrders] = useState<ChangeOrder[]>(() => {
         return mockData.changeOrders.map(co => ({
             ...co,
@@ -49,14 +54,26 @@ export default function ChangeOrdersPage() {
             co.jobTitle?.toLowerCase().includes(searchTerm.toLowerCase())
         );
     }, [changeOrders, searchTerm]);
+    
+    const getHref = (path: string) => `/dashboard${path}?role=${role || 'admin'}`;
 
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Change Orders</CardTitle>
-                <CardDescription>
-                    Manage and track approved changes to ongoing jobs.
-                </CardDescription>
+                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div>
+                        <CardTitle>Change Orders</CardTitle>
+                        <CardDescription>
+                            Manage and track approved changes to ongoing jobs.
+                        </CardDescription>
+                    </div>
+                     <Button asChild>
+                        <Link href={getHref('/change-orders/new')}>
+                            <PlusCircle className="mr-2 h-4 w-4" />
+                            New Change Order
+                        </Link>
+                    </Button>
+                </div>
                  <div className="mt-4">
                     <Input 
                         placeholder="Search by title, customer, or job..."
@@ -84,7 +101,7 @@ export default function ChangeOrdersPage() {
                             <TableRow key={co.id}>
                                 <TableCell className="font-medium">{co.title}</TableCell>
                                 <TableCell>
-                                    <Link href={`/dashboard/jobs/${co.jobId}`} className="hover:underline text-primary">
+                                    <Link href={getHref(`/jobs/${co.jobId}`)} className="hover:underline text-primary">
                                         {co.jobTitle}
                                     </Link>
                                 </TableCell>
@@ -92,7 +109,7 @@ export default function ChangeOrdersPage() {
                                 <TableCell>{format(new Date(co.createdAt), 'MMM d, yyyy')}</TableCell>
                                 <TableCell>
                                     <Badge className={cn('capitalize', getStatusStyles(co.status))}>
-                                        {co.status}
+                                        {co.status.replace(/_/g, ' ')}
                                     </Badge>
                                 </TableCell>
                                 <TableCell className="text-right font-semibold">{formatCurrency(co.total)}</TableCell>
@@ -105,6 +122,7 @@ export default function ChangeOrdersPage() {
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent>
                                             <DropdownMenuItem>View Details</DropdownMenuItem>
+                                             <DropdownMenuItem>Edit</DropdownMenuItem>
                                             <DropdownMenuItem disabled={co.status === 'invoiced'}>
                                                 Generate Invoice
                                             </DropdownMenuItem>
@@ -128,3 +146,5 @@ export default function ChangeOrdersPage() {
         </Card>
     );
 }
+
+    

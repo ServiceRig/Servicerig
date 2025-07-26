@@ -254,7 +254,37 @@ export const mockData: { [key: string]: any } = {
       status: 'invoiced',
       createdAt: new Date('2024-06-01T11:00:00Z'),
       updatedAt: new Date('2024-06-01T11:30:00Z'),
-    }
+    },
+    {
+      id: 'co3',
+      jobId: 'job3',
+      customerId: 'cust1',
+      title: 'Relocate outdoor unit',
+      description: 'Customer wants to move the outdoor condenser unit to the side of the house.',
+       lineItems: [
+        { description: 'Labor for unit relocation', quantity: 4, unitPrice: 150.00 },
+        { description: 'New copper lineset (25ft)', quantity: 1, unitPrice: 300.00 },
+      ],
+      total: 900.00,
+      status: 'pending_approval',
+      createdAt: new Date('2024-07-15T09:00:00Z'),
+      updatedAt: new Date('2024-07-15T09:30:00Z'),
+    },
+    {
+      id: 'co4',
+      jobId: 'job4',
+      customerId: 'cust3',
+      title: 'Replace Angle Stops',
+      description: 'Existing angle stops are seized and cannot be shut off. Must be replaced to install faucet.',
+       lineItems: [
+        { description: '1/2" Angle Stop (2x)', quantity: 2, unitPrice: 35.00 },
+        { description: 'Labor for replacement', quantity: 1, unitPrice: 150.00 },
+      ],
+      total: 220.00,
+      status: 'draft',
+      createdAt: new Date('2024-07-22T10:00:00Z'),
+      updatedAt: new Date('2024-07-22T10:00:00Z'),
+    },
   ] as ChangeOrder[],
   deposits: [
     { id: 'dep1', customerId: 'cust2', amount: 500.00, status: 'available', createdAt: new Date('2024-07-01'), originalInvoiceId: 'inv_dep_123' },
