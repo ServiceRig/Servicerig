@@ -110,8 +110,8 @@ const TechnicianColumn = ({ tech, items, currentDate, startHour, endHour, onJobD
                     />
                 ))}
                 {items
-                    .filter(item => ((item.type === 'job' && item.technicianId === tech.id) || (item.type === 'google_event' && item.matchedTechnicianId === tech.id)) && !item.originalData.isGhost)
-                    .map(item => (
+                    .filter((item: SchedulableItem) => ((item.type === 'job' && item.technicianId === tech.id) || (item.type === 'google_event' && item.matchedTechnicianId === tech.id)) && !item.isGhost)
+                    .map((item: SchedulableItem) => (
                         <DraggableJob 
                             key={`daily-${item.id}`} 
                             item={item} 
@@ -120,8 +120,8 @@ const TechnicianColumn = ({ tech, items, currentDate, startHour, endHour, onJobD
                         />
                     ))}
                  {items
-                    .filter(item => item.isGhost && item.technicianId === tech.id)
-                    .map(item => (
+                    .filter((item: SchedulableItem) => item.isGhost && item.technicianId === tech.id)
+                    .map((item: SchedulableItem) => (
                         <DraggableJob 
                             key={`daily-ghost-${item.id}`} 
                             item={item} 
