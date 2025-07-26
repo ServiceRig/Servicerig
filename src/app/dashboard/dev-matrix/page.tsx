@@ -74,26 +74,8 @@ const StatusBadge = ({ status }: { status: FeatureStatus }) => {
     return <Badge className={styles[status]}>{status}</Badge>;
 };
 
-const projectStartDate = new Date('2024-06-01T09:00:00Z');
-
 export default function DevMatrixPage() {
     const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-    const [hoursWorked, setHoursWorked] = useState(0);
-
-    useEffect(() => {
-        const calculateHours = () => {
-            const now = new Date();
-            const diffMs = now.getTime() - projectStartDate.getTime();
-            const diffHours = diffMs / (1000 * 60 * 60);
-            setHoursWorked(diffHours);
-        }
-
-        calculateHours();
-        const interval = setInterval(calculateHours, 1000);
-
-        return () => clearInterval(interval);
-
-    }, []);
     
     return (
         <div className="space-y-6">
@@ -107,9 +89,6 @@ export default function DevMatrixPage() {
                         <AccordionItem value="item-1">
                             <AccordionTrigger className="text-lg font-semibold">High-Level Summary</AccordionTrigger>
                             <AccordionContent className="space-y-4 pt-2 text-base">
-                                <div className="font-semibold text-lg text-primary">
-                                    <p>Total Hours Worked: {hoursWorked.toFixed(6)}</p>
-                                </div>
                                 <div>
                                     <h4 className="font-semibold text-base mb-1">[{today}]</h4>
                                     <p>The application now features a fully functional drag-and-drop scheduling board. A significant amount of work went into refining this core user experience, resolving several data synchronization bugs, and iterating on the visual feedback to create an intuitive "ghosting" preview. The mock data architecture remains a potential source of issues, but the primary scheduling workflow is now stable.</p>
