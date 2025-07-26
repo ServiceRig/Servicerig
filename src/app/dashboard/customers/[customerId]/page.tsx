@@ -28,24 +28,24 @@ export default async function CustomerDetailsPage({ params }: { params: { custom
   const changeOrders = mockData.changeOrders.filter((co: any) => co.customerId === customerId); // Temporary
 
   const tabs = [
+    { value: 'referrals', label: 'Referrals', icon: UserPlus, component: <CustomerReferrals customer={customer} referrals={referrals || []} /> },
     { value: 'estimates', label: 'Estimates', icon: Calculator, component: <CustomerEstimates estimates={estimates} /> },
     { value: 'invoices', label: 'Invoices', icon: FileText, component: <CustomerInvoices invoices={invoices} /> },
     { value: 'jobs', label: 'Jobs', icon: Briefcase, component: <CustomerJobs jobs={jobs} /> },
     { value: 'change_orders', label: 'Change Orders', icon: FileDiff, component: <CustomerChangeOrders changeOrders={changeOrders} /> },
-    { value: 'referrals', label: 'Referrals', icon: UserPlus, component: <CustomerReferrals customer={customer} referrals={referrals || []} /> },
     { value: 'analytics', label: 'Analytics', icon: BarChart, component: <CustomerAnalytics /> },
     { value: 'communication', label: 'Communication', icon: MessageSquare, component: <CustomerCommunication logs={communicationLog || []} /> },
   ];
 
   return (
     <div className="space-y-6">
-      <CustomerHeader customer={customer} totals={totals}/>
+      <CustomerHeader customer={customer} />
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div className="lg:col-span-3 xl:col-span-3">
           <CustomerInfoPanel customer={customer} />
         </div>
         <div className="lg:col-span-9 xl:col-span-9">
-          <Tabs defaultValue="estimates" className="w-full">
+          <Tabs defaultValue="referrals" className="w-full">
             <TabsList className="grid w-full grid-cols-3 md:grid-cols-4 lg:grid-cols-7">
               {tabs.map(tab => (
                 <TabsTrigger key={tab.value} value={tab.value}>
