@@ -39,7 +39,7 @@ const gamePlan = [
         status: 'Partial',
         difficulty: 'Medium',
         icon: UserCog,
-        current: 'Full CRUD for customers and a detail page showing related records.',
+        current: 'Full CRUD for customers and a detail page showing all related records.',
         nextSteps: [
             'Add a communication log to the customer record (e.g., calls, emails).',
             'Implement a follow-up/task system for sales or customer service.',
