@@ -74,9 +74,10 @@ const StatusBadge = ({ status }: { status: FeatureStatus }) => {
     return <Badge className={styles[status]}>{status}</Badge>;
 };
 
+const projectStartDate = new Date('2024-06-01T09:00:00Z');
+
 export default function DevMatrixPage() {
     const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-    const projectStartDate = useMemo(() => new Date('2024-06-01T09:00:00Z'), []);
     const [hoursWorked, setHoursWorked] = useState(0);
 
     useEffect(() => {
@@ -92,7 +93,7 @@ export default function DevMatrixPage() {
 
         return () => clearInterval(interval);
 
-    }, [projectStartDate]);
+    }, []);
     
     return (
         <div className="space-y-6">
