@@ -12,7 +12,7 @@ import { mockData } from '@/lib/mock-data';
 import { format } from 'date-fns';
 import type { ChangeOrder } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { MoreHorizontal, PlusCircle } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, ArrowUpDown } from 'lucide-react';
 import Link from 'next/link';
 import { useRole } from '@/hooks/use-role';
 
@@ -36,6 +36,14 @@ const getStatusStyles = (status: ChangeOrder['status']) => {
   }
 };
 
+type SortableKeys = keyof (ChangeOrder & { customerName?: string; jobTitle?: string });
+
+type SortConfig = {
+    key: SortableKeys;
+    direction: 'ascending' | 'descending';
+} | null;
+
+
 export default function ChangeOrdersPage() {
     const { role } = useRole();
     const [changeOrders, setChangeOrders] = useState<ChangeOrder[]>(() => {
@@ -46,16 +54,56 @@ export default function ChangeOrdersPage() {
         }));
     });
     const [searchTerm, setSearchTerm] = useState('');
+    const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'createdAt', direction: 'descending' });
 
-    const filteredChangeOrders = useMemo(() => {
-        return changeOrders.filter(co =>
-            co.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            co.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            co.jobTitle?.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-    }, [changeOrders, searchTerm]);
+    const requestSort = (key: SortableKeys) => {
+        let direction: 'ascending' | 'descending' = 'ascending';
+        if (sortConfig && sortConfig.key === key && sortConfig.direction === 'ascending') {
+            direction = 'descending';
+        }
+        setSortConfig({ key, direction });
+    };
+
+    const sortedAndFilteredChangeOrders = useMemo(() => {
+        let sortableItems = [...changeOrders];
+        
+        // Filtering
+        if (searchTerm) {
+            sortableItems = sortableItems.filter(co =>
+                co.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                co.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                co.jobTitle?.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+        }
+
+        // Sorting
+        if (sortConfig !== null) {
+            sortableItems.sort((a, b) => {
+                const aValue = a[sortConfig.key as keyof ChangeOrder];
+                const bValue = b[sortConfig.key as keyof ChangeOrder];
+
+                if (aValue === undefined || aValue === null) return 1;
+                if (bValue === undefined || bValue === null) return -1;
+                
+                if (aValue < bValue) {
+                    return sortConfig.direction === 'ascending' ? -1 : 1;
+                }
+                if (aValue > bValue) {
+                    return sortConfig.direction === 'ascending' ? 1 : -1;
+                }
+                return 0;
+            });
+        }
+
+        return sortableItems;
+    }, [changeOrders, searchTerm, sortConfig]);
     
     const getHref = (path: string) => `/dashboard${path}?role=${role || 'admin'}`;
+    
+    const getSortIndicator = (key: SortableKeys) => {
+        if (!sortConfig || sortConfig.key !== key) return null;
+        return sortConfig.direction === 'ascending' ? '▲' : '▼';
+    }
 
     return (
         <Card>
@@ -87,17 +135,41 @@ export default function ChangeOrdersPage() {
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Title</TableHead>
-                            <TableHead>Job</TableHead>
-                            <TableHead>Customer</TableHead>
-                            <TableHead>Date</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead className="text-right">Amount</TableHead>
+                             <TableHead>
+                                <Button variant="ghost" onClick={() => requestSort('title')}>
+                                    Title {getSortIndicator('title')}
+                                </Button>
+                            </TableHead>
+                            <TableHead>
+                                <Button variant="ghost" onClick={() => requestSort('jobTitle')}>
+                                    Job {getSortIndicator('jobTitle')}
+                                </Button>
+                            </TableHead>
+                            <TableHead>
+                                <Button variant="ghost" onClick={() => requestSort('customerName')}>
+                                    Customer {getSortIndicator('customerName')}
+                                </Button>
+                            </TableHead>
+                            <TableHead>
+                                <Button variant="ghost" onClick={() => requestSort('createdAt')}>
+                                    Date {getSortIndicator('createdAt')}
+                                </Button>
+                            </TableHead>
+                            <TableHead>
+                                <Button variant="ghost" onClick={() => requestSort('status')}>
+                                    Status {getSortIndicator('status')}
+                                </Button>
+                            </TableHead>
+                            <TableHead className="text-right">
+                                <Button variant="ghost" onClick={() => requestSort('total')}>
+                                    Amount {getSortIndicator('total')}
+                                </Button>
+                            </TableHead>
                             <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {filteredChangeOrders.length > 0 ? filteredChangeOrders.map(co => (
+                        {sortedAndFilteredChangeOrders.length > 0 ? sortedAndFilteredChangeOrders.map(co => (
                             <TableRow key={co.id}>
                                 <TableCell className="font-medium">{co.title}</TableCell>
                                 <TableCell>
@@ -141,10 +213,8 @@ export default function ChangeOrdersPage() {
                 </Table>
             </CardContent>
              <CardFooter className="text-sm text-muted-foreground">
-                Showing {filteredChangeOrders.length} of {changeOrders.length} change orders.
+                Showing {sortedAndFilteredChangeOrders.length} of {changeOrders.length} change orders.
             </CardFooter>
         </Card>
     );
 }
-
-    
