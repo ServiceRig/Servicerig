@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Customer } from "@/lib/types";
 import { Mail, Phone, MapPin, User, Clock, Route, FileText, Globe } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { Label } from "@/components/ui/label";
 
 const InfoItem = ({ icon: Icon, label, value }: { icon: React.ElementType, label: string, value?: string }) => (
     <div>
