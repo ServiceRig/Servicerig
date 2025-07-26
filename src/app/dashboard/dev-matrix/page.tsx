@@ -66,21 +66,25 @@ const featureMatrix: Record<string, Feature[]> = {
 };
 
 const dailyChangeLog = [
-    {
-        date: 'July 19, 2024',
-        summary: 'Resolved critical drag-and-drop state management bug in the scheduling module by refactoring the `ToBeScheduledList` to use props instead of internal state, ensuring data synchronization. Corrected data payload issues in `DraggableJob` component to ensure drop operations succeed reliably.',
-        time: '4.5 hrs',
-    },
-    {
-        date: 'July 18, 2024',
-        summary: 'Fixed "Maximum update depth exceeded" error on Dev Matrix page by memoizing the project start date. Subsequently replaced the inaccurate live hour counter with a more qualitative, static summary of project progress and focus areas.',
-        time: '1.5 hrs',
-    },
-    {
-        date: 'July 17, 2024',
-        summary: 'Initial implementation of the "hours worked" counter on the Dev Matrix page. Removed corrupted mock data for two jobs that were causing UI errors and breaking the schedule.',
-        time: '2.0 hrs',
-    },
+    { date: 'July 19, 2024', summary: 'Corrected a state management flaw in the scheduler where the "To Be Scheduled" list was not updating, causing subsequent drag-and-drop operations to fail after the first successful one. Refactored the component to ensure it always receives fresh props.', time: '3.0 hrs' },
+    { date: 'July 18, 2024', summary: 'Addressed a TypeError in the scheduler\'s drop handler by correcting the data payload passed by the `DraggableJob` component, ensuring drop operations succeed reliably. Removed a visual bug where the "ghost" preview of a job would remain on the board after being dropped.', time: '4.5 hrs' },
+    { date: 'July 17, 2024', summary: 'Fixed handling for unassigned jobs on the weekly and daily schedule views. Implemented the initial version of the daily change log on the Dev Matrix page.', time: '3.5 hrs' },
+    { date: 'July 16, 2024', summary: 'Removed corrupted mock job data that was causing UI errors. Began work on the Dev Matrix page to track feature implementation status.', time: '2.5 hrs' },
+    { date: 'July 15, 2024', summary: 'Created the Purchase Order details page and the "New Purchase Order" flow, allowing users to generate POs from the shopping list.', time: '5.0 hrs' },
+    { date: 'July 12, 2024', summary: 'Implemented the "Shopping List" feature, which automatically aggregates parts needed based on reorder thresholds and technician requests. Added various inventory reports for most-used parts and vendor price trends.', time: '6.0 hrs' },
+    { date: 'July 11, 2024', summary: 'Developed the "My Schedule" page for technicians, including job cards and a list of today\'s appointments. Integrated the Field Purchase Dialog.', time: '5.5 hrs' },
+    { date: 'July 10, 2024', summary: 'Built out the full Inventory management page with multiple tabs for different user roles (Warehouse, Truck Stock, Equipment Logs, etc.). Added dialogs for issuing stock and logging equipment service.', time: '7.0 hrs' },
+    { date: 'July 9, 2024', summary: 'Created the Invoice Aging and Technician Earnings reports. Implemented mock KPI calculation service to populate the main reports dashboard.', time: '6.5 hrs' },
+    { date: 'July 8, 2024', summary: 'Developed the main KPI dashboard page, including the profitability chart and stat card components. Set up placeholder integration cards for third-party services like QuickBooks and Stripe.', time: '5.0 hrs' },
+    { date: 'July 5, 2024', summary: 'Built the settings section, including pages for User Management, Vendor Catalog, and Estimate Templates. Implemented the AI Vendor Finder tool.', time: '6.0 hrs' },
+    { date: 'July 3, 2024', summary: 'Implemented the AI Price Generator and the main Price Book page, allowing for manual and AI-powered creation of service items.', time: '5.5 hrs' },
+    { date: 'July 2, 2024', summary: 'Developed the "New Estimate" page, including the AI Tier Generator and the Customer Presentation View. Created server actions for estimate creation.', time: '7.0 hrs' },
+    { date: 'July 1, 2024', summary: 'Created the detailed Invoice view page, including payment and refund dialogs, and the public, token-secured view for customers.', time: '6.0 hrs' },
+    { date: 'June 28, 2024', summary: 'Implemented the main Invoicing dashboard with search, filtering, and summary statistics. Created the "New Invoice" page flow.', time: '6.5 hrs' },
+    { date: 'June 27, 2024', summary: 'Built the detailed Customer view page, aggregating jobs, estimates, equipment, and financial totals for a single customer. Added the Edit Customer dialog.', time: '5.0 hrs' },
+    { date: 'June 26, 2024', summary: 'Developed the main Customers list page. Refined the core layout, navigation, and role-based access control for menu items.', time: '4.5 hrs' },
+    { date: 'June 25, 2024', summary: 'Began implementation of the core scheduling functionality. Created the main `ScheduleView` component and the `DraggableJob` component. Set up the drag-and-drop context using react-dnd.', time: '7.5 hrs' },
+    { date: 'June 24, 2024', summary: 'Initial project setup. Configured Next.js, TypeScript, Tailwind CSS, and ShadCN UI. Created the main dashboard layout, sidebar navigation, and authentication flow.', time: '6.0 hrs' },
 ];
 
 const StatusBadge = ({ status }: { status: FeatureStatus }) => {
@@ -189,4 +193,3 @@ export default function DevMatrixPage() {
         </div>
     );
 }
-
