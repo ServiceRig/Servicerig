@@ -63,6 +63,8 @@ async function CustomerInvoiceView({ invoiceId, token }: { invoiceId: string, to
     }
 
     const { invoice, customer } = data;
+    const address = customer.companyInfo.address;
+    const fullAddress = address ? `${address.street}, ${address.city}, ${address.state} ${address.zipCode}` : 'No address provided';
 
     return (
         <div className="max-w-4xl mx-auto my-8 p-4 sm:p-8 bg-card text-card-foreground rounded-xl shadow-lg border">
@@ -93,7 +95,7 @@ async function CustomerInvoiceView({ invoiceId, token }: { invoiceId: string, to
                 <div className="md:col-span-1">
                     <p className="font-semibold text-muted-foreground mb-1">Bill To</p>
                     <p className="font-bold">{customer.primaryContact.name}</p>
-                    <p>{customer.companyInfo.address}</p>
+                    <p>{fullAddress}</p>
                     <p>{customer.primaryContact.email}</p>
                 </div>
                  <div className="md:col-span-2 grid grid-cols-2 gap-4">
