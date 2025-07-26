@@ -1,5 +1,4 @@
 
-
 'use client';
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
@@ -29,7 +28,7 @@ export function CustomerHeader({ customer }: { customer: Customer }) {
         <div className="flex items-start gap-4">
             <div>
                  <h1 className="text-3xl font-bold flex items-center gap-3">
-                    {customer.primaryContact.firstName} {customer.primaryContact.lastName}
+                    {customer.primaryContact.name}
                     {customer.hasOpenInvoices && <Badge variant="destructive">Unpaid Invoices</Badge>}
                 </h1>
                 <p className="text-lg text-muted-foreground">{customer.companyInfo.name}</p>
