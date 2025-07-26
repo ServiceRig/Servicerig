@@ -1,4 +1,5 @@
 
+
 'use client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Customer } from "@/lib/types";
@@ -14,6 +15,9 @@ const InfoItem = ({ icon: Icon, label, value }: { icon: React.ElementType, label
 );
 
 export function CustomerInfoPanel({ customer }: { customer: Customer }) {
+  const address = customer.companyInfo.address;
+  const fullAddress = address ? `${address.street}, ${address.city}, ${address.state}` : 'No address provided';
+
   return (
     <Card className="sticky top-6">
       <CardHeader>
@@ -27,7 +31,7 @@ export function CustomerInfoPanel({ customer }: { customer: Customer }) {
         </div>
         <Separator />
          <div className="space-y-2">
-            <InfoItem icon={MapPin} label="Service Address" value={`${customer.companyInfo.address.street}, ${customer.companyInfo.address.city}, ${customer.companyInfo.address.state}`} />
+            <InfoItem icon={MapPin} label="Service Address" value={fullAddress} />
         </div>
         <Separator />
         <div className="space-y-2">

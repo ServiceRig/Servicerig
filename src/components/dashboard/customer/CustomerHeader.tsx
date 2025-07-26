@@ -20,7 +20,8 @@ const getTagStyles = (tag: string) => {
 
 export function CustomerHeader({ customer }: { customer: Customer }) {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const fullAddress = `${customer.companyInfo.address.street}, ${customer.companyInfo.address.city}, ${customer.companyInfo.address.state} ${customer.companyInfo.address.zipCode}`;
+  const address = customer.companyInfo.address;
+  const fullAddress = address ? `${address.street}, ${address.city}, ${address.state} ${address.zipCode}` : 'No address provided';
   
   return (
     <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
