@@ -12,6 +12,7 @@ import { CustomerAnalytics } from '@/components/dashboard/customer/CustomerAnaly
 import { CustomerCommunication } from '@/components/dashboard/customer/CustomerCommunication';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FileText, Calculator, FileDiff, Briefcase, UserPlus, BarChart, MessageSquare } from 'lucide-react';
+import { mockData } from '@/lib/mock-data';
 
 
 export default async function CustomerDetailsPage({ params }: { params: { customerId: string } }) {
@@ -23,8 +24,8 @@ export default async function CustomerDetailsPage({ params }: { params: { custom
   }
 
   const { customer, jobs, estimates, communicationLog, referrals, totals, equipment } = customerData;
-  const invoices = mockData.invoices.filter(i => i.customerId === customerId); // Temporary
-  const changeOrders = mockData.changeOrders.filter(co => co.customerId === customerId); // Temporary
+  const invoices = mockData.invoices.filter((i: any) => i.customerId === customerId); // Temporary
+  const changeOrders = mockData.changeOrders.filter((co: any) => co.customerId === customerId); // Temporary
 
   const tabs = [
     { value: 'estimates', label: 'Estimates', icon: Calculator, component: <CustomerEstimates estimates={estimates} /> },
