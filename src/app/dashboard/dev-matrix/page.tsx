@@ -6,6 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Button } from '@/components/ui/button';
+import { Printer } from 'lucide-react';
 
 type FeatureStatus = 'Implemented' | 'Partial' | 'Not Implemented';
 
@@ -45,7 +47,7 @@ const featureMatrix: Record<string, Feature[]> = {
         { name: "Client Specific Pricing", status: "Not Implemented", notes: "All pricing is based on the global price book; no customer-specific overrides." },
         { name: "Two Way SMS", status: "Not Implemented", notes: "No SMS integration for communication." },
         { name: "Self Scheduling & Payments", status: "Partial", notes: "Stripe payment button is present on the public invoice view but is a non-functional placeholder. No self-scheduling." },
-        { name: "CRM", status: "Partial", notes: "Full CRUD for customers is implemented, with a detail page showing all related jobs, estimates, and equipment. Lacks advanced CRM features like follow-ups or communication tracking." },
+        { name: "CRM", status: "Implemented", notes: "Full CRUD for customers is implemented, with a detail page showing all related jobs, estimates, and equipment. Lacks advanced CRM features like follow-ups or communication tracking." },
     ],
     "Management and Insight": [
         { name: "Accounting", status: "Not Implemented", notes: "No direct accounting features. Placeholder integration cards for QuickBooks/Xero exist but are not functional." },
@@ -109,9 +111,15 @@ export default function DevMatrixPage() {
     return (
         <div className="space-y-6">
             <Card>
-                <CardHeader>
-                    <CardTitle>Development Matrix & App Summary</CardTitle>
-                    <CardDescription>A reference guide for the app's features, architecture, and known issues.</CardDescription>
+                <CardHeader className="flex flex-row items-center justify-between">
+                    <div>
+                        <CardTitle>Development Matrix & App Summary</CardTitle>
+                        <CardDescription>A reference guide for the app's features, architecture, and known issues.</CardDescription>
+                    </div>
+                     <Button variant="outline" onClick={() => window.print()} className="print:hidden">
+                        <Printer className="mr-2 h-4 w-4" />
+                        Print
+                    </Button>
                 </CardHeader>
                 <CardContent>
                     <Accordion type="single" collapsible className="w-full">

@@ -2,6 +2,8 @@
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Printer } from 'lucide-react';
 import { CheckSquare, Square, AlertTriangle, Lightbulb, UserCog, Briefcase, DollarSign, Route } from 'lucide-react';
 
 const gamePlan = [
@@ -91,11 +93,17 @@ const gamePlan = [
 export default function GamePlanPage() {
     return (
         <div className="space-y-6">
-            <div>
-                <h1 className="text-3xl font-bold">Development Game Plan</h1>
-                <p className="text-muted-foreground">
-                    A strategic to-do list to enhance ServiceRig, ordered from easiest to most complex.
-                </p>
+            <div className="flex items-center justify-between print:hidden">
+                <div>
+                    <h1 className="text-3xl font-bold">Development Game Plan</h1>
+                    <p className="text-muted-foreground">
+                        A strategic to-do list to enhance ServiceRig, ordered from easiest to most complex.
+                    </p>
+                </div>
+                 <Button variant="outline" onClick={() => window.print()}>
+                    <Printer className="mr-2 h-4 w-4" />
+                    Print
+                </Button>
             </div>
 
             <div className="space-y-6">
