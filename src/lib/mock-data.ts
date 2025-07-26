@@ -435,19 +435,6 @@ export const mockData: { [key: string]: any } = {
       updatedAt: new Date(),
       duration: 120,
     },
-    {
-      id: 'job7',
-      customerId: 'cust1',
-      technicianId: '',
-      schedule: { start: new Date(), end: new Date() },
-      status: 'unscheduled',
-      title: 'Fix Garage Door',
-      description: 'Garage door opener not working.',
-      details: { serviceType: 'Repair', trade: 'Other', category: 'Mechanical' },
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      duration: 60,
-    }
   ] as Job[],
   invoices: [
     {
