@@ -16,9 +16,9 @@ export function ToBeScheduledList({ jobs }: ToBeScheduledListProps) {
         <CardTitle>To Be Scheduled</CardTitle>
         <CardDescription>Drag a job onto the calendar to schedule it.</CardDescription>
       </CardHeader>
-      <CardContent className="flex-grow">
+      <CardContent className="flex-grow p-2">
         <ScrollArea className="h-full">
-          <div className="space-y-2">
+          <div className="space-y-2 p-2">
             {jobs.length > 0 ? (
               jobs.map(job => {
                   const itemForDnd = {
