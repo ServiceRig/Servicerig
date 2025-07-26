@@ -291,10 +291,10 @@ function SchedulingPageContent() {
 
         return allTechniciansForJob.map((techId, index) => {
             const technician = technicians.find(t => t.id === techId);
+            const isPrimary = index === 0;
             return {
                 ...job,
-                // Only the primary technician's job is the "real" one. Others are visual ghosts.
-                id: index === 0 ? job.id : `${job.id}-multitech-${techId}`, 
+                id: isPrimary ? job.id : `${job.id}-multitech-${techId}`,
                 originalId: job.id,
                 start: new Date(job.schedule.start),
                 end: new Date(job.schedule.end),
@@ -302,7 +302,7 @@ function SchedulingPageContent() {
                 technicianName: technician?.name || 'Unassigned',
                 technicianId: techId,
                 color: technician?.color || '#A0A0A0',
-                isGhost: index !== 0, // Mark as ghost for styling if it's not the primary
+                isGhost: !isPrimary, // Mark as ghost for styling if it's not the primary
                 type: 'job' as const,
                 originalData: { ...job, type: 'job' }
             };
