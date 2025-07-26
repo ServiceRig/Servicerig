@@ -1,7 +1,7 @@
 
 
 import { getJobData } from '@/lib/firestore';
-import { notFound, useRouter } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -264,6 +264,7 @@ export default async function JobDetailsPage({ params, searchParams }: { params:
 // Client component to handle router.back()
 function ClientBackButton() {
     'use client';
+    const { useRouter } = require("next/navigation");
     const router = useRouter();
     return (
         <Button variant="outline" size="icon" onClick={() => router.back()}>
