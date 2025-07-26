@@ -51,6 +51,7 @@ type SchedulableItem = {
     details?: Job['details'];
     createdBy?: string;
     matchedTechnicianId?: string;
+    originalData?: any;
 };
 
 
