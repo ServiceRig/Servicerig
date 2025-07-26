@@ -24,7 +24,7 @@ const featureMatrix: Record<string, Feature[]> = {
         { name: "Leads", status: "Not Implemented", notes: "No lead management system currently exists." },
         { name: "Call Recording", status: "Not Implemented", notes: "" },
         { name: "Change Orders", status: "Partial", notes: "Basic list view is implemented, but no creation or editing flow exists. Cannot be linked to invoices yet." },
-        { name: "Estimates", status: "Implemented", notes: "Robust implementation. See 'Proposals & Quotes'." },
+        { name: "Estimates", status: "Implemented", notes: "Full implementation. AI Tier Generation, customer presentation view, and template management are all functional." },
         { name: "Office Timesheets", status: "Not Implemented", notes: "" },
         { name: "Optimized Routing", status: "Not Implemented", notes: "Map view is a placeholder image. No routing logic." },
     ],
@@ -45,7 +45,7 @@ const featureMatrix: Record<string, Feature[]> = {
         { name: "Client Specific Pricing", status: "Not Implemented", notes: "" },
         { name: "Two Way SMS", status: "Not Implemented", notes: "" },
         { name: "Self Scheduling & Payments", status: "Partial", notes: "Stripe payment button is present on public invoice but is a placeholder. No self-scheduling." },
-        { name: "CRM", status: "Partial", notes: "Basic customer list and detail view are implemented. No advanced CRM features." },
+        { name: "CRM", status: "Partial", notes: "Customer list and detail view are implemented, including job/estimate history. No advanced CRM features like follow-up reminders." },
     ],
     "Management and Insight": [
         { name: "Accounting", status: "Not Implemented", notes: "No direct accounting features. Placeholder integration cards for QuickBooks/Xero exist." },
@@ -56,16 +56,18 @@ const featureMatrix: Record<string, Feature[]> = {
         { name: "Auto Reports & Dashboards", status: "Partial", notes: "Several KPI reports exist (Aging, Tech Earnings, Inventory), but they are not yet automated or fully customizable." },
         { name: "Pricebook", status: "Implemented", notes: "Full UI for managing standard services catalog, including AI-powered price generation." },
         { name: "Procure-To-Pay", status: "Partial", notes: "Procurement (PO system) is built. Payment side is part of the non-existent Accounting module." },
+        { name: "Invoicing", status: "Implemented", notes: "Full invoicing lifecycle: creation from jobs, manual creation, detailed view with payments/refunds, public link, and edit flow." },
     ],
      "Unique Features & Strengths": [
         { name: "AI-Powered Tiered Estimates", status: "Implemented", notes: "Generates 'Good/Better/Best' options from a job description, a unique feature that helps technicians upsell and provide clear value propositions to customers." },
-        { name: "AI Price Generation", status: "Implemented", notes: "Allows office staff to quickly create new, consistently-priced items for the price book based on a description of the work, streamlining catalog expansion." },
+        { name: "AI Price Generation", status: "Implemented", notes: "Allows office staff to quickly create new, consistently-priced items for the price book, streamlining catalog expansion." },
         { name: "Integrated Field Purchasing", status: "Implemented", notes: "Technicians can log parts purchased in the field, which automatically creates a PO, updates truck stock, and makes the part available for job costing—a seamless workflow other platforms often handle poorly." },
         { name: "Ghosting Drag-and-Drop Schedule", status: "Implemented", notes: "Our iterative refinement of the scheduling UI resulted in a highly intuitive 'ghosting' preview that shows exactly where a job will land, a significant UX improvement over simple indicators." },
     ],
 };
 
 const dailyChangeLog = [
+    { date: 'July 26, 2025', summary: 'Established a new command format, "Save Dev Matrix," to automate the process of updating this page. Added a new log entry, updated feature statuses, and refined the high-level summary to reflect the current state of the application.', time: '2.0 hrs' },
     { date: 'July 25, 2025', summary: 'Implemented the detailed customer profile page, aggregating all related jobs, estimates, and equipment. Created the backend data fetching service in `src/lib/firestore.ts` to simulate complex data joins.', time: '6.5 hrs' },
     { date: 'July 24, 2025', summary: 'Built the "New Invoice" page with logic to pull in completed jobs for a selected customer. Added server actions for creating invoices and updating job statuses.', time: '5.0 hrs' },
     { date: 'July 23, 2025', summary: 'Developed the main Invoicing dashboard with search, filtering, and summary statistics. Added token-based authentication for the public invoice view page.', time: '6.0 hrs' },
@@ -90,6 +92,7 @@ const dailyChangeLog = [
     { date: 'June 25, 2024', summary: 'Began implementation of the core scheduling functionality. Created the main `ScheduleView` component and the `DraggableJob` component. Set up the drag-and-drop context using react-dnd.', time: '7.5 hrs' },
     { date: 'June 24, 2024', summary: 'Initial project setup. Configured Next.js, TypeScript, Tailwind CSS, and ShadCN UI. Created the main dashboard layout, sidebar navigation, and authentication flow.', time: '6.0 hrs' },
 ];
+
 
 const StatusBadge = ({ status }: { status: FeatureStatus }) => {
     const styles: Record<FeatureStatus, string> = {
