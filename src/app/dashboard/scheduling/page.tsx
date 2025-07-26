@@ -149,6 +149,11 @@ function SchedulingPageContent() {
     const itemData = item.originalData;
     if (!itemData) {
         console.error("Drop failed: itemData is undefined.", item);
+        toast({
+            variant: "destructive",
+            title: "Drop Error",
+            description: "Could not retrieve item data on drop. Please try again."
+        });
         return;
     }
     
@@ -285,14 +290,14 @@ function SchedulingPageContent() {
                 color: '#A0A0A0',
                 isGhost: false,
                 type: 'job' as const,
-                originalData: { ...job, type: 'job' }
+                originalData: { ...job, type: 'job', id: job.id, originalId: job.id, start: new Date(job.schedule.start), end: new Date(job.schedule.end), customerName: customer?.primaryContact.name || 'Unknown Customer', technicianName: 'Unassigned', technicianId: 'unassigned' }
             }];
         }
 
         return allTechniciansForJob.map((techId, index) => {
             const technician = technicians.find(t => t.id === techId);
             const isPrimary = index === 0;
-            return {
+            const itemBase = {
                 ...job,
                 id: isPrimary ? job.id : `${job.id}-multitech-${techId}`,
                 originalId: job.id,
@@ -304,7 +309,10 @@ function SchedulingPageContent() {
                 color: technician?.color || '#A0A0A0',
                 isGhost: !isPrimary, // Mark as ghost for styling if it's not the primary
                 type: 'job' as const,
-                originalData: { ...job, type: 'job' }
+            };
+            return {
+                ...itemBase,
+                originalData: { ...itemBase }
             };
         });
     });
@@ -319,7 +327,7 @@ function SchedulingPageContent() {
       createdBy: event.createdBy,
       description: event.description,
       matchedTechnicianId: event.matchedTechnicianId,
-      originalData: { ...event, type: 'google_event' }
+      originalData: { ...event, type: 'google_event', id: event.eventId, originalId: event.eventId, start: new Date(event.start), end: new Date(event.end), title: event.summary }
     }));
     
     const items = [...enrichedJobs, ...enrichedEvents];
