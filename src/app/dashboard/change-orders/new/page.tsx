@@ -105,7 +105,7 @@ function NewChangeOrderPageContent() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-5xl mx-auto">
         <div className="flex items-center justify-between">
             <div>
                 <h1 className="text-3xl font-bold">New Change Order</h1>
@@ -118,34 +118,35 @@ function NewChangeOrderPageContent() {
 
       <Separator />
       
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-          <div className="lg:col-span-3 space-y-6">
+        <div className="space-y-6">
               <Card>
                   <CardHeader>
                   <CardTitle>Details</CardTitle>
                   <CardDescription>Select the job this change order belongs to and provide a title.</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                  <div className="grid gap-2">
-                      <Label htmlFor="job">Link to Job</Label>
-                      <Select value={selectedJobId} onValueChange={setSelectedJobId}>
-                      <SelectTrigger id="job">
-                          <SelectValue placeholder="Select a job..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                          {jobs.map(job => (
-                            <SelectItem key={job.id} value={job.id}>
-                                {job.title} (Customer: {mockData.customers.find(c => c.id === job.customerId)?.primaryContact.name})
-                            </SelectItem>
-                          ))}
-                      </SelectContent>
-                      </Select>
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="grid gap-2">
+                        <Label htmlFor="job">Link to Job</Label>
+                        <Select value={selectedJobId} onValueChange={setSelectedJobId}>
+                        <SelectTrigger id="job">
+                            <SelectValue placeholder="Select a job..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {jobs.map(job => (
+                                <SelectItem key={job.id} value={job.id}>
+                                    {job.title} (Customer: {mockData.customers.find(c => c.id === job.customerId)?.primaryContact.name})
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="title">Change Order Title</Label>
+                        <Input id="title" placeholder="e.g., Upgrade to Smart Thermostat" value={title} onChange={e => setTitle(e.target.value)} required />
+                    </div>
                   </div>
-                  <div className="grid gap-2">
-                      <Label htmlFor="title">Change Order Title</Label>
-                      <Input id="title" placeholder="e.g., Upgrade to Smart Thermostat" value={title} onChange={e => setTitle(e.target.value)} required />
-                  </div>
-                   <div className="grid gap-2">
+                   <div className="grid gap-2 mt-4">
                       <Label htmlFor="description">Description of Change</Label>
                       <Textarea id="description" placeholder="Describe the reason for the change and the work involved..." value={description} onChange={e => setDescription(e.target.value)} />
                   </div>
@@ -162,9 +163,9 @@ function NewChangeOrderPageContent() {
                       <TableHeader>
                       <TableRow>
                           <TableHead className="w-[60%]">Description</TableHead>
-                          <TableHead className="text-center">Quantity</TableHead>
-                          <TableHead className="text-right">Unit Price</TableHead>
-                          <TableHead className="text-right">Total</TableHead>
+                          <TableHead className="w-[100px] text-center">Quantity</TableHead>
+                          <TableHead className="w-[150px] text-right">Unit Price</TableHead>
+                          <TableHead className="w-[150px] text-right">Total</TableHead>
                           <TableHead className="w-[50px]"></TableHead>
                       </TableRow>
                       </TableHeader>
@@ -196,30 +197,24 @@ function NewChangeOrderPageContent() {
                       <PlusCircle className="mr-2 h-4 w-4" /> Add Line Item
                   </Button>
                   </CardContent>
+                  <CardFooter className="flex justify-end bg-muted/50 p-6">
+                       <div className="w-full max-w-sm space-y-2">
+                            <div className="flex justify-between">
+                                <span className="text-muted-foreground">Subtotal</span>
+                                <span>{formatCurrency(subtotal)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-muted-foreground">Tax (8%)</span>
+                                <span>{formatCurrency(taxAmount)}</span>
+                            </div>
+                            <Separator />
+                            <div className="flex justify-between text-xl font-bold">
+                                <span>Grand Total</span>
+                                <span>{formatCurrency(grandTotal)}</span>
+                            </div>
+                        </div>
+                  </CardFooter>
               </Card>
-          </div>
-          <div className="lg:col-span-2">
-             <Card>
-                <CardHeader>
-                    <CardTitle>Totals</CardTitle>
-                </CardHeader>
-                 <CardContent className="w-full space-y-2">
-                    <div className="flex justify-between">
-                        <span className="text-muted-foreground">Subtotal</span>
-                        <span>{formatCurrency(subtotal)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                        <span className="text-muted-foreground">Tax (8%)</span>
-                        <span>{formatCurrency(taxAmount)}</span>
-                    </div>
-                    <Separator />
-                    <div className="flex justify-between text-xl font-bold">
-                        <span>Grand Total</span>
-                        <span>{formatCurrency(grandTotal)}</span>
-                    </div>
-                </CardContent>
-             </Card>
-          </div>
       </div>
     </div>
   );
