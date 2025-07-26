@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Customer, Referral } from "@/lib/types";
 import { format } from "date-fns";
 import { Copy, Gift } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
@@ -24,11 +25,15 @@ const getStatusBadge = (status: Referral['status']) => {
 }
 
 export function CustomerReferrals({ customer, referrals }: { customer: Customer, referrals: Referral[] }) {
+    const { toast } = useToast();
     
     const handleCopy = () => {
-        navigator.clipboard.writeText(`https://servicerig.com/referral?code=${customer.referralCode}`);
-        // In a real app, you'd use a toast notification here
-        alert('Referral link copied to clipboard!');
+        const referralLink = `https://servicerig.com/referral?code=${customer.referralCode}`;
+        navigator.clipboard.writeText(referralLink);
+        toast({
+            title: "Referral Link Copied!",
+            description: "The customer's unique referral link has been copied to your clipboard.",
+        });
     };
     
   return (
