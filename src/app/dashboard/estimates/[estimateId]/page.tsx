@@ -128,6 +128,8 @@ function EstimateDetailsPageContent({ estimateId }: { estimateId: string }) {
     return notFound();
   }
 
+  const fullAddress = `${customer.companyInfo.address.street}, ${customer.companyInfo.address.city}, ${customer.companyInfo.address.state} ${customer.companyInfo.address.zipCode}`;
+
   return (
     <div className="space-y-6" id="printable-area">
        <div className="hidden print:block">
@@ -153,7 +155,7 @@ function EstimateDetailsPageContent({ estimateId }: { estimateId: string }) {
                 <div>
                     <h3 className="font-semibold mb-2">Bill To:</h3>
                     <p className="font-bold">{customer.primaryContact.name}</p>
-                    <p>{customer.companyInfo.address}</p>
+                    <p>{fullAddress}</p>
                     <p>{customer.primaryContact.email}</p>
                 </div>
             </div>
