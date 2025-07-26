@@ -51,6 +51,7 @@ export default async function JobDetailsPage({ params, searchParams }: { params:
   const { job, customer, technician, estimates } = data;
   const duration = (new Date(job.schedule.end).getTime() - new Date(job.schedule.start).getTime()) / (1000 * 60);
   const getHref = (path: string) => `${path}?role=${role}`;
+  const fullAddress = `${customer.companyInfo.address.street}, ${customer.companyInfo.address.city}, ${customer.companyInfo.address.state} ${customer.companyInfo.address.zipCode}`;
 
   return (
     <div className="space-y-6">
@@ -168,12 +169,12 @@ export default async function JobDetailsPage({ params, searchParams }: { params:
                 </InfoRow>
                  <InfoRow icon={MapPin} label="Address" actionButton={
                      <Button asChild size="icon" variant="ghost">
-                        <a href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(customer.companyInfo.address as string)}`} target="_blank" rel="noopener noreferrer">
+                        <a href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(fullAddress)}`} target="_blank" rel="noopener noreferrer">
                            <Navigation className="h-4 w-4 text-primary" />
                         </a>
                     </Button>
                  }>
-                    {customer.companyInfo.address as string}
+                    {fullAddress}
                 </InfoRow>
             </CardContent>
           </Card>
