@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -76,7 +76,7 @@ const StatusBadge = ({ status }: { status: FeatureStatus }) => {
 
 export default function DevMatrixPage() {
     const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-    const projectStartDate = new Date('2024-06-01T09:00:00Z');
+    const projectStartDate = useMemo(() => new Date('2024-06-01T09:00:00Z'), []);
     const [hoursWorked, setHoursWorked] = useState(0);
 
     useEffect(() => {
