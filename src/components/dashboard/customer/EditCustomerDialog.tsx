@@ -25,6 +25,7 @@ interface EditCustomerDialogProps {
   customer: Customer;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
+  onCustomerUpdate: (updatedCustomer: Customer) => void;
   children: React.ReactNode;
 }
 
@@ -38,22 +39,25 @@ function SubmitButton() {
     )
 }
 
-export function EditCustomerDialog({ customer, isOpen, onOpenChange, children }: EditCustomerDialogProps) {
+export function EditCustomerDialog({ customer, isOpen, onOpenChange, onCustomerUpdate, children }: EditCustomerDialogProps) {
   const { toast } = useToast();
-  const [state, formAction] = useActionState(updateCustomer, { success: false, message: '' });
+  const [state, formAction] = useActionState(updateCustomer, { success: false, message: '', errors: null });
   
   useEffect(() => {
+    if (!isOpen) return; // Don't run effect if dialog is closed
+    
     if (state.message) {
       toast({
         title: state.success ? 'Success' : 'Error',
         description: state.message,
         variant: state.success ? 'default' : 'destructive',
       });
-      if (state.success) {
+      if (state.success && state.customer) {
+        onCustomerUpdate(state.customer);
         onOpenChange(false);
       }
     }
-  }, [state, toast, onOpenChange]);
+  }, [state, toast, onOpenChange, onCustomerUpdate, isOpen]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -118,3 +122,5 @@ export function EditCustomerDialog({ customer, isOpen, onOpenChange, children }:
     </Dialog>
   );
 }
+
+    

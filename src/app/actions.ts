@@ -1340,6 +1340,7 @@ const updateCustomerSchema = z.object({
 type UpdateCustomerState = {
   success: boolean;
   message: string;
+  customer?: Customer;
   errors?: any;
 };
 
@@ -1397,7 +1398,7 @@ export async function updateCustomer(prevState: UpdateCustomerState, formData: F
     
     revalidatePath(`/dashboard/customers/${id}`);
     
-    return { success: true, message: 'Customer updated successfully.' };
+    return { success: true, message: 'Customer updated successfully.', customer: updatedCustomer };
 
   } catch (error) {
     console.error("Error updating customer:", error);
@@ -1475,4 +1476,6 @@ export async function addCustomer(prevState: AddCustomerState, formData: FormDat
     revalidatePath('/dashboard/customers');
     redirect(`/dashboard/customers?role=${validatedFields.data.role || 'admin'}`);
 }
+    
+
     

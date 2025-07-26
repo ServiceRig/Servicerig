@@ -1,4 +1,6 @@
 
+'use client';
+
 import { getCustomerData } from '@/lib/firestore';
 import { notFound } from 'next/navigation';
 import { CustomerHeader } from '@/components/dashboard/customer/CustomerHeader';
@@ -13,17 +15,45 @@ import { CustomerCommunication } from '@/components/dashboard/customer/CustomerC
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FileText, Calculator, FileDiff, Briefcase, UserPlus, BarChart, MessageSquare } from 'lucide-react';
 import { mockData } from '@/lib/mock-data';
+import { useState, useEffect, useCallback, Suspense, use } from 'react';
+import { Loader2 } from 'lucide-react';
+import type { Customer, Job, Estimate, CommunicationLog, Referral, Equipment, CustomerData } from '@/lib/types';
 
 
-export default async function CustomerDetailsPage({ params }: { params: { customerId: string } }) {
+function CustomerDetailsPageContent({ params }: { params: { customerId: string } }) {
   const customerId = params.customerId;
-  const customerData = await getCustomerData(customerId);
+  const [data, setData] = useState<CustomerData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  if (!customerData) {
+  const fetchData = useCallback(async () => {
+    setIsLoading(true);
+    const customerData = await getCustomerData(customerId);
+    if (customerData) {
+      setData(customerData);
+    }
+    setIsLoading(false);
+  }, [customerId]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+  
+  const handleCustomerUpdate = useCallback((updatedCustomer: Customer) => {
+    setData(prevData => {
+        if (!prevData) return null;
+        return { ...prevData, customer: updatedCustomer };
+    });
+  }, []);
+
+  if (isLoading) {
+    return <div className="flex items-center justify-center h-full"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+  }
+  
+  if (!data) {
     notFound();
   }
 
-  const { customer, jobs, estimates, communicationLog, referrals, totals, equipment } = customerData;
+  const { customer, jobs, estimates, communicationLog, referrals, totals, equipment } = data;
   const invoices = mockData.invoices.filter((i: any) => i.customerId === customerId); // Temporary
   const changeOrders = mockData.changeOrders.filter((co: any) => co.customerId === customerId); // Temporary
 
@@ -39,7 +69,7 @@ export default async function CustomerDetailsPage({ params }: { params: { custom
 
   return (
     <div className="space-y-6">
-      <CustomerHeader customer={customer} />
+      <CustomerHeader customer={customer} onCustomerUpdate={handleCustomerUpdate} />
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div className="lg:col-span-3 xl:col-span-3">
           <CustomerInfoPanel customer={customer} />
@@ -65,3 +95,14 @@ export default async function CustomerDetailsPage({ params }: { params: { custom
     </div>
   );
 }
+
+export default function CustomerDetailsPage({ params }: { params: Promise<{ customerId: string }> }) {
+    const resolvedParams = use(params);
+    return (
+        <Suspense fallback={<div className="flex items-center justify-center h-full"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}>
+            <CustomerDetailsPageContent params={resolvedParams} />
+        </Suspense>
+    )
+}
+
+    

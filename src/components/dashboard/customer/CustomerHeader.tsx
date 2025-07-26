@@ -17,7 +17,12 @@ const getTagStyles = (tag: string) => {
     }
 }
 
-export function CustomerHeader({ customer }: { customer: Customer }) {
+interface CustomerHeaderProps {
+    customer: Customer;
+    onCustomerUpdate: (updatedCustomer: Customer) => void;
+}
+
+export function CustomerHeader({ customer, onCustomerUpdate }: CustomerHeaderProps) {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const address = customer.companyInfo.address;
   const fullAddress = address ? `${address.street}, ${address.city}, ${address.state} ${address.zipCode}` : 'No address provided';
@@ -80,6 +85,7 @@ export function CustomerHeader({ customer }: { customer: Customer }) {
             customer={customer} 
             isOpen={isEditDialogOpen} 
             onOpenChange={setIsEditDialogOpen}
+            onCustomerUpdate={onCustomerUpdate}
           >
             <Button variant="outline" className="justify-start">
               <Pencil className="mr-2 h-4 w-4" />
@@ -100,3 +106,5 @@ export function CustomerHeader({ customer }: { customer: Customer }) {
     </div>
   );
 }
+
+    
