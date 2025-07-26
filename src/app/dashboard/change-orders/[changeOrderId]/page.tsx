@@ -2,14 +2,14 @@
 'use client';
 
 import { useState, useEffect, Suspense, use } from 'react';
-import { notFound } from 'next/navigation';
+import { notFound, useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { User, Calendar, Tag, HardHat, FileDiff, Edit, Send, Printer } from 'lucide-react';
+import { User, Calendar, Tag, HardHat, FileDiff, Edit, Send, Printer, ArrowLeft } from 'lucide-react';
 import { cn, getChangeOrderStatusStyles } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { mockData } from '@/lib/mock-data';
@@ -32,6 +32,7 @@ const InfoCard = ({ icon: Icon, label, children }: { icon: React.ElementType, la
 
 function ChangeOrderDetailsPageContent({ changeOrderId }: { changeOrderId: string }) {
   const { role } = useRole();
+  const router = useRouter();
   const [order, setOrder] = useState<ChangeOrder | null>(null);
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [job, setJob] = useState<Job | null>(null);
@@ -60,8 +61,11 @@ function ChangeOrderDetailsPageContent({ changeOrderId }: { changeOrderId: strin
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
+      <div className="flex items-center gap-4">
+        <Button variant="outline" size="icon" onClick={() => router.back()}>
+            <ArrowLeft className="h-4 w-4" />
+        </Button>
+        <div className="flex-grow">
           <h1 className="text-3xl font-bold">{order.title}</h1>
           <div className="flex items-center gap-2 mt-1">
             <p className="text-muted-foreground">Change Order #{order.id}</p>

@@ -3,14 +3,14 @@
 'use client';
 
 import React, { useState, useEffect, Suspense, use } from 'react';
-import { notFound, useSearchParams } from 'next/navigation';
+import { notFound, useSearchParams, useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { User, Calendar, Tag, Signature, Check, Loader2 } from 'lucide-react';
+import { User, Calendar, Tag, Signature, Check, Loader2, ArrowLeft } from 'lucide-react';
 import { cn, getEstimateStatusStyles } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EstimateActions } from './EstimateActions';
@@ -39,6 +39,7 @@ const InfoCard = ({ icon: Icon, label, children }: { icon: React.ElementType, la
 
 function EstimateDetailsPageContent({ estimateId }: { estimateId: string }) {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const role = searchParams.get('role') || 'admin';
   const newEstimateDataParam = searchParams.get('newEstimateData');
   
@@ -128,7 +129,9 @@ function EstimateDetailsPageContent({ estimateId }: { estimateId: string }) {
     return notFound();
   }
 
-  const fullAddress = `${customer.companyInfo.address.street}, ${customer.companyInfo.address.city}, ${customer.companyInfo.address.state} ${customer.companyInfo.address.zipCode}`;
+  const address = customer.companyInfo.address;
+  const fullAddress = address ? `${address.street}, ${address.city}, ${address.state} ${address.zipCode}` : 'No address provided';
+
 
   return (
     <div className="space-y-6" id="printable-area">
@@ -162,8 +165,11 @@ function EstimateDetailsPageContent({ estimateId }: { estimateId: string }) {
              <Separator className="my-8" />
         </div>
 
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 print:hidden">
-        <div>
+      <div className="flex items-center gap-4 print:hidden">
+        <Button variant="outline" size="icon" onClick={() => router.back()}>
+            <ArrowLeft className="h-4 w-4" />
+        </Button>
+        <div className="flex-grow">
           <h1 className="text-3xl font-bold">{estimate.title}</h1>
           <div className="flex items-center gap-2 mt-1">
             <p className="text-muted-foreground">ESTIMATE-{estimate.estimateNumber}</p>

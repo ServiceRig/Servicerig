@@ -1,13 +1,14 @@
 
+
 import { getJobData } from '@/lib/firestore';
-import { notFound } from 'next/navigation';
+import { notFound, useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { Clock, Calendar, User, Building, Phone, MapPin, Wrench, FileText, ChevronRight, Navigation, FileDiff } from 'lucide-react';
+import { Clock, Calendar, User, Building, Phone, MapPin, Wrench, FileText, ChevronRight, Navigation, FileDiff, ArrowLeft } from 'lucide-react';
 import { cn, getEstimateStatusStyles, getJobStatusStyles } from '@/lib/utils';
 import type { Job, ChangeOrder } from '@/lib/types';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
@@ -67,8 +68,10 @@ export default async function JobDetailsPage({ params, searchParams }: { params:
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
+      <div className="flex items-center gap-4">
+        {/* The back button will be rendered on the client */}
+        <ClientBackButton />
+        <div className="flex-grow">
           <h1 className="text-3xl font-bold">{job.title}</h1>
           <div className="flex items-center gap-2 mt-1">
             <p className="text-muted-foreground">JOB-{job.id.toUpperCase()}</p>
@@ -256,4 +259,15 @@ export default async function JobDetailsPage({ params, searchParams }: { params:
       </div>
     </div>
   );
+}
+
+// Client component to handle router.back()
+function ClientBackButton() {
+    'use client';
+    const router = useRouter();
+    return (
+        <Button variant="outline" size="icon" onClick={() => router.back()}>
+            <ArrowLeft className="h-4 w-4" />
+        </Button>
+    )
 }

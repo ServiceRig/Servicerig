@@ -4,14 +4,14 @@
 
 import React, { useState, useEffect, Suspense, use } from 'react';
 import { useFormStatus } from 'react-dom';
-import { notFound, useSearchParams } from 'next/navigation';
+import { notFound, useSearchParams, useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
 import Link from 'next/link';
 import { format, isPast } from 'date-fns';
-import { User, Calendar, Tag, FileText, FileSignature, FileDiff, Printer, CreditCard, Send, Edit, Copy, RefreshCw, AlertCircle, CheckCircle, RotateCcw, ThumbsUp, MessageSquare, Clock, Wand2, Loader2, ListChecks, ShieldAlert, History } from 'lucide-react';
+import { User, Calendar, Tag, FileText, FileSignature, FileDiff, Printer, CreditCard, Send, Edit, Copy, RefreshCw, AlertCircle, CheckCircle, RotateCcw, ThumbsUp, MessageSquare, Clock, Wand2, Loader2, ListChecks, ShieldAlert, History, ArrowLeft } from 'lucide-react';
 import { cn, getInvoiceStatusStyles } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/logo';
@@ -343,6 +343,7 @@ function AiAnalyzerCard({ invoice, job, estimates }: { invoice: Invoice, job?: J
 function InvoiceDetailsPageContent({ invoiceId }: { invoiceId: string }) {
   const { role } = useRole();
   const searchParams = useSearchParams();
+  const router = useRouter();
   const newInvoiceDataParam = searchParams.get('newInvoiceData');
 
   const [invoice, setInvoice] = useState<(Invoice & {jobs: Job[]}) | null>(null);
@@ -461,8 +462,11 @@ function InvoiceDetailsPageContent({ invoiceId }: { invoiceId: string }) {
 
   return (
     <>
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 print:hidden mb-6">
-        <div>
+      <div className="flex items-center gap-4 print:hidden mb-6">
+        <Button variant="outline" size="icon" onClick={() => router.back()}>
+            <ArrowLeft className="h-4 w-4" />
+        </Button>
+        <div className="flex-grow">
           <h1 className="text-3xl font-bold">{invoice.title}</h1>
           <div className="flex items-center gap-2 mt-1">
             <p className="text-muted-foreground">{invoice.invoiceNumber}</p>

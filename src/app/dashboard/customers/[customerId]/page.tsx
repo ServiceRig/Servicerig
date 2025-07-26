@@ -2,7 +2,7 @@
 'use client';
 
 import { getCustomerData } from '@/lib/firestore';
-import { notFound } from 'next/navigation';
+import { notFound, useRouter } from 'next/navigation';
 import { CustomerHeader } from '@/components/dashboard/customer/CustomerHeader';
 import { CustomerInfoPanel } from '@/components/dashboard/customer/CustomerInfoPanel';
 import { CustomerJobs } from '@/components/dashboard/customer/CustomerJobs';
@@ -13,15 +13,17 @@ import { CustomerReferrals } from '@/components/dashboard/customer/CustomerRefer
 import { CustomerAnalytics } from '@/components/dashboard/customer/CustomerAnalytics';
 import { CustomerCommunication } from '@/components/dashboard/customer/CustomerCommunication';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { FileText, Calculator, FileDiff, Briefcase, UserPlus, BarChart, MessageSquare } from 'lucide-react';
+import { FileText, Calculator, FileDiff, Briefcase, UserPlus, BarChart, MessageSquare, ArrowLeft } from 'lucide-react';
 import { mockData } from '@/lib/mock-data';
 import { useState, useEffect, useCallback, Suspense, use } from 'react';
 import { Loader2 } from 'lucide-react';
 import type { Customer, Job, Estimate, CommunicationLog, Referral, Equipment, CustomerData } from '@/lib/types';
+import { Button } from '@/components/ui/button';
 
 
 function CustomerDetailsPageContent({ params }: { params: { customerId: string } }) {
   const customerId = params.customerId;
+  const router = useRouter();
   const [data, setData] = useState<CustomerData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -69,6 +71,14 @@ function CustomerDetailsPageContent({ params }: { params: { customerId: string }
 
   return (
     <div className="space-y-6">
+        <div className="flex items-center gap-4">
+            <Button variant="outline" size="icon" onClick={() => router.back()}>
+                <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <div className="flex-grow">
+                 <h1 className="text-3xl font-bold">Customer Profile</h1>
+            </div>
+        </div>
       <CustomerHeader customer={customer} onCustomerUpdate={handleCustomerUpdate} />
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div className="lg:col-span-3 xl:col-span-3">
@@ -104,5 +114,3 @@ export default function CustomerDetailsPage({ params }: { params: Promise<{ cust
         </Suspense>
     )
 }
-
-    

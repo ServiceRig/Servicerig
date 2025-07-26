@@ -1,12 +1,13 @@
 
+
 import { getPurchaseOrderData } from '@/lib/firestore';
-import { notFound } from 'next/navigation';
+import { notFound, useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
-import { Package, Calendar, User, Truck, Warehouse, DollarSign, FileText, CheckCheck, Edit } from 'lucide-react';
+import { Package, Calendar, User, Truck, Warehouse, DollarSign, FileText, CheckCheck, Edit, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { PurchaseOrder } from '@/lib/types';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
@@ -38,6 +39,17 @@ const InfoCard = ({ icon: Icon, label, children }: { icon: React.ElementType, la
     </div>
 );
 
+// Client component to handle router.back()
+function ClientBackButton() {
+    'use client';
+    const router = useRouter();
+    return (
+        <Button variant="outline" size="icon" onClick={() => router.back()}>
+            <ArrowLeft className="h-4 w-4" />
+        </Button>
+    )
+}
+
 export default async function PurchaseOrderDetailsPage({ params }: { params: { poId: string }}) {
   const poId = params.poId;
   const data = await getPurchaseOrderData(poId);
@@ -51,8 +63,9 @@ export default async function PurchaseOrderDetailsPage({ params }: { params: { p
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
+      <div className="flex items-center gap-4">
+        <ClientBackButton />
+        <div className="flex-grow">
           <h1 className="text-3xl font-bold">Purchase Order</h1>
           <div className="flex items-center gap-2 mt-1">
             <p className="text-muted-foreground">PO-{po.id.toUpperCase()}</p>
