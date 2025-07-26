@@ -110,7 +110,7 @@ const TechnicianColumn = ({ tech, items, currentDate, startHour, endHour, onJobD
                     />
                 ))}
                 {items
-                    .filter(item => ((item.type === 'job' && item.technicianId === tech.id) || (item.type === 'google_event' && item.matchedTechnicianId === tech.id)) && !item.isGhost)
+                    .filter(item => ((item.type === 'job' && item.technicianId === tech.id) || (item.type === 'google_event' && item.matchedTechnicianId === tech.id)) && !item.originalData.isGhost)
                     .map(item => (
                         <DraggableJob 
                             key={`daily-${item.id}`} 

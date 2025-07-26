@@ -49,7 +49,6 @@ function SchedulingPageContent() {
   const [activeView, setActiveView] = useState('week');
   const [isComponentLoaded, setIsComponentLoaded] = useState(false);
   
-  const [stagedJobs, setStagedJobs] = useState<Job[]>([]);
   const [ghostJob, setGhostJob] = useState<SchedulableItem | null>(null);
 
   const { toast } = useToast();
@@ -207,7 +206,6 @@ function SchedulingPageContent() {
   const handleDragHover = useCallback((draggedItem: any, techId: string, time: Date) => {
     const itemData = draggedItem.originalData;
     if (!itemData) {
-        // This can happen on the very first hover frame, so we just ignore it.
         return;
     }
     const durationMs = (new Date(itemData.end).getTime() - new Date(itemData.start).getTime());
@@ -234,7 +232,6 @@ function SchedulingPageContent() {
 
     if (newStatus === 'unscheduled') {
         updates.schedule = { ...job.schedule, unscheduled: true };
-        // Do NOT clear technicianId when rescheduling
     }
     handleJobUpdate(jobId, updates);
   }, [jobs, handleJobUpdate]);
@@ -296,7 +293,8 @@ function SchedulingPageContent() {
             const technician = technicians.find(t => t.id === techId);
             return {
                 ...job,
-                id: index === 0 ? job.id : `${job.id}-ghost-${techId}`,
+                // Only the primary technician's job is the "real" one. Others are visual ghosts.
+                id: index === 0 ? job.id : `${job.id}-multitech-${techId}`, 
                 originalId: job.id,
                 start: new Date(job.schedule.start),
                 end: new Date(job.schedule.end),
@@ -304,7 +302,7 @@ function SchedulingPageContent() {
                 technicianName: technician?.name || 'Unassigned',
                 technicianId: techId,
                 color: technician?.color || '#A0A0A0',
-                isGhost: index !== 0,
+                isGhost: index !== 0, // Mark as ghost for styling if it's not the primary
                 type: 'job' as const,
                 originalData: { ...job, type: 'job' }
             };
