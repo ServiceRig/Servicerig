@@ -65,6 +65,24 @@ const featureMatrix: Record<string, Feature[]> = {
     ],
 };
 
+const dailyChangeLog = [
+    {
+        date: 'July 19, 2024',
+        summary: 'Resolved critical drag-and-drop state management bug in the scheduling module by refactoring the `ToBeScheduledList` to use props instead of internal state, ensuring data synchronization. Corrected data payload issues in `DraggableJob` component to ensure drop operations succeed reliably.',
+        time: '4.5 hrs',
+    },
+    {
+        date: 'July 18, 2024',
+        summary: 'Fixed "Maximum update depth exceeded" error on Dev Matrix page by memoizing the project start date. Subsequently replaced the inaccurate live hour counter with a more qualitative, static summary of project progress and focus areas.',
+        time: '1.5 hrs',
+    },
+    {
+        date: 'July 17, 2024',
+        summary: 'Initial implementation of the "hours worked" counter on the Dev Matrix page. Removed corrupted mock data for two jobs that were causing UI errors and breaking the schedule.',
+        time: '2.0 hrs',
+    },
+];
+
 const StatusBadge = ({ status }: { status: FeatureStatus }) => {
     const styles: Record<FeatureStatus, string> = {
         'Implemented': 'bg-green-100 text-green-800 border-green-200',
@@ -86,17 +104,12 @@ export default function DevMatrixPage() {
                 </CardHeader>
                 <CardContent>
                     <Accordion type="single" collapsible className="w-full">
-                        <AccordionItem value="item-1">
+                         <AccordionItem value="item-1">
                             <AccordionTrigger className="text-lg font-semibold">High-Level Summary</AccordionTrigger>
                             <AccordionContent className="space-y-4 pt-2 text-base">
                                 <div>
-                                    <h4 className="font-semibold text-base mb-1">[{today}]</h4>
-                                    <p>The application now features a fully functional drag-and-drop scheduling board. A significant amount of work went into refining this core user experience, resolving several data synchronization bugs, and iterating on the visual feedback to create an intuitive "ghosting" preview. The mock data architecture remains a potential source of issues, but the primary scheduling workflow is now stable.</p>
-                                </div>
-                                <div className="pl-4 border-l-2 border-slate-200">
-                                     <h4 className="font-semibold text-base text-muted-foreground mb-1">[Previous Entry]</h4>
-                                    <p className="text-muted-foreground">This application is a Next.js-based Field Service Management (FSM) platform called ServiceRig. It uses React with functional components and hooks, TypeScript for type safety, and ShadCN UI with Tailwind CSS for the user interface. Recent development has focused heavily on refining the core user experience of the scheduling module.</p>
-                                    <p className="mt-2 text-muted-foreground">For backend operations and data persistence, the app currently simulates a Firestore database using a mutable, in-memory object (`mockData`). All data fetching and mutation logic is centralized in files within `src/lib/firestore/` and exposed via Server Actions in `src/app/actions.ts`. This simulation is a major source of recurring issues.</p>
+                                    <p>This application is a Next.js-based Field Service Management (FSM) platform called ServiceRig. It uses React with functional components and hooks, TypeScript for type safety, and ShadCN UI with Tailwind CSS for the user interface. Recent development has focused heavily on refining the core user experience of the scheduling module.</p>
+                                    <p className="mt-2">For backend operations and data persistence, the app currently simulates a Firestore database using a mutable, in-memory object (`mockData`). All data fetching and mutation logic is centralized in files within `src/lib/firestore/` and exposed via Server Actions in `src/app/actions.ts`. This simulation is a major source of recurring issues but allows for rapid UI development.</p>
                                 </div>
                             </AccordionContent>
                         </AccordionItem>
@@ -104,20 +117,45 @@ export default function DevMatrixPage() {
                             <AccordionTrigger className="text-lg font-semibold">Recent Work Summary & Architectural Challenges</AccordionTrigger>
                             <AccordionContent className="space-y-6 pt-2 text-base">
                                 <div className="p-4 border-l-4 border-blue-300 bg-blue-50">
-                                     <h4 className="font-bold text-blue-800">Focus: Robust Drag-and-Drop Scheduling & Ghosting Preview [{today}]</h4>
-                                     <p className="mt-2 text-blue-900/90">The latest cycle was dedicated to fixing a persistent and critical bug in the scheduling board's drag-and-drop functionality. We also refined the UI to be more intuitive.</p>
+                                     <h4 className="font-bold text-blue-800">Focus: Robust Drag-and-Drop Scheduling & Ghosting Preview</h4>
+                                     <p className="mt-2 text-blue-900/90">The latest development cycles have been dedicated to fixing a persistent and critical bug in the scheduling board's drag-and-drop functionality and refining the UI to be more intuitive.</p>
                                      <h5 className="font-semibold mt-3">Key Challenge: State Desynchronization on Drop</h5>
                                      <ul className="list-disc pl-5 mt-1 space-y-1">
-                                        <li><strong>Symptom:</strong> After dragging a job from the "To Be Scheduled" list and dropping it onto the calendar, the "ghost" preview would remain, the original item would not be removed from the list, and the job's state was not updated in the backend.</li>
-                                        <li><strong>Root Cause Analysis:</strong> Through console logs, we identified a `TypeError: can't access property "end", itemData is undefined`. This revealed that the `onDrop` event handler was receiving an incomplete data payload. The `originalData` object, which contained the full job details, was not being correctly packaged and passed by the `react-dnd` `useDrag` hook in our `DraggableJob` component.</li>
-                                        <li><strong>Solution:</strong> The fix involved modifying the `DraggableJob` component to ensure it consistently includes the `originalData` object within the item payload for the drag operation. Subsequently, the `handleJobDrop` function in the main scheduling page was updated to correctly access this data, preventing the runtime error and allowing the subsequent state updates (updating the job's schedule, clearing the ghost, and removing the job from the staged list) to execute successfully.</li>
+                                        <li><strong>Symptom:</strong> After dragging a job from the "To Be Scheduled" list and dropping it onto the calendar, the "ghost" preview would sometimes remain, the original item would not be removed from the list, or the drop would fail entirely.</li>
+                                        <li><strong>Root Cause Analysis:</strong> The root cause was multifaceted, involving stale state in the `ToBeScheduledList` component and an incomplete data payload being passed by the `DraggableJob` component. The drop handler (`handleJobDrop`) would receive incorrect data, causing the state update to fail silently.</li>
+                                        <li><strong>Solution:</strong> The fix involved refactoring the `ToBeScheduledList` to receive its data via props rather than managing its own state, ensuring it always has the latest job list. Additionally, the `DraggableJob` component's `useDrag` hook was corrected to pass the complete `originalData` object in its payload, providing the drop handler with all necessary information to perform the update.</li>
                                      </ul>
-                                     <h5 className="font-semibold mt-3">Evolving the Visual Feedback</h5>
-                                      <p className="mt-1 text-blue-900/90">We iterated several times on the visual feedback for the user during a drag operation. Initial implementations of a thick border or simple highlighting were found to be either too distracting or not clear enough. We settled on the "ghosting" approach, where a semi-transparent preview of the job appears directly on the calendar grid, showing the user exactly where it will land. This provides the most intuitive and precise user experience.</p>
                                 </div>
                             </AccordionContent>
                         </AccordionItem>
                     </Accordion>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Daily Change Log</CardTitle>
+                    <CardDescription>A summary of recent development activity and approximate time spent.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead className="w-[150px]">Date</TableHead>
+                                <TableHead>Summary of Changes</TableHead>
+                                <TableHead className="w-[120px] text-right">Est. Time</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {dailyChangeLog.map((log) => (
+                                <TableRow key={log.date}>
+                                    <TableCell className="font-medium">{log.date}</TableCell>
+                                    <TableCell className="text-sm text-muted-foreground">{log.summary}</TableCell>
+                                    <TableCell className="text-right font-mono">{log.time}</TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
                 </CardContent>
             </Card>
 
@@ -151,3 +189,4 @@ export default function DevMatrixPage() {
         </div>
     );
 }
+
