@@ -66,7 +66,11 @@ const featureMatrix: Record<string, Feature[]> = {
 };
 
 const dailyChangeLog = [
-    { date: 'July 19, 2024', summary: 'Corrected a state management flaw in the scheduler where the "To Be Scheduled" list was not updating, causing subsequent drag-and-drop operations to fail after the first successful one. Refactored the component to ensure it always receives fresh props.', time: '3.0 hrs' },
+    { date: 'July 25, 2025', summary: 'Implemented the detailed customer profile page, aggregating all related jobs, estimates, and equipment. Created the backend data fetching service in `src/lib/firestore.ts` to simulate complex data joins.', time: '6.5 hrs' },
+    { date: 'July 24, 2025', summary: 'Built the "New Invoice" page with logic to pull in completed jobs for a selected customer. Added server actions for creating invoices and updating job statuses.', time: '5.0 hrs' },
+    { date: 'July 23, 2025', summary: 'Developed the main Invoicing dashboard with search, filtering, and summary statistics. Added token-based authentication for the public invoice view page.', time: '6.0 hrs' },
+    { date: 'July 22, 2025', summary: 'Fixed critical bug in the scheduler\'s state management that caused jobs to disappear or fail to drop after the first successful placement. The "To Be Scheduled" list now reliably updates.', time: '4.0 hrs' },
+    { date: 'July 19, 2025', summary: 'Corrected a state management flaw in the scheduler where the "To Be Scheduled" list was not updating, causing subsequent drag-and-drop operations to fail after the first successful one. Refactored the component to ensure it always receives fresh props.', time: '3.0 hrs' },
     { date: 'July 18, 2024', summary: 'Addressed a TypeError in the scheduler\'s drop handler by correcting the data payload passed by the `DraggableJob` component, ensuring drop operations succeed reliably. Removed a visual bug where the "ghost" preview of a job would remain on the board after being dropped.', time: '4.5 hrs' },
     { date: 'July 17, 2024', summary: 'Fixed handling for unassigned jobs on the weekly and daily schedule views. Implemented the initial version of the daily change log on the Dev Matrix page.', time: '3.5 hrs' },
     { date: 'July 16, 2024', summary: 'Removed corrupted mock job data that was causing UI errors. Began work on the Dev Matrix page to track feature implementation status.', time: '2.5 hrs' },
